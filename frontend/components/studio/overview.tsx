@@ -1,5 +1,7 @@
 "use client";
 import { ObjectiveEditor } from "./objective-editor";
+import { useState } from "react";
+import { PublishModal } from "./publish-modal";
 import { useQueryClient } from "@tanstack/react-query";
 import { ArrowIcon, PassIcon, PlayIcon } from "@/components/icons/brand";
 import { Button } from "@/components/ui/button";
@@ -16,6 +18,7 @@ export function Overview({
   navigate: (s: Screen) => void;
 }) {
   const qc = useQueryClient();
+  const [publishing, setPublishing] = useState(false);
   const busy = pack.jobs.some((j) => ["Queued", "Running"].includes(j.state));
   const allApproved = pack.assets.length > 0 && pack.assets.every((a) => a.state === "APPROVED" && !a.stale);
   return (
@@ -139,7 +142,7 @@ export function Overview({
             <Button
               variant="default"
               disabled={busy}
-              onClick={() => run(() => post(`/packs/${pack.id}/publish`), "Published to classroom; PDF export queued")}
+              onClick={() => setPublishing(true)}
             >
               Publish to classroom
             </Button>
@@ -159,6 +162,10 @@ export function Overview({
           )}
         </div>
       )}
+      <PublishModal pack={pack} open={publishing} onClose={() => setPublishing(false)} onPublished={() => {
+        void qc.invalidateQueries({ queryKey: ["pack", pack.id] });
+        void qc.invalidateQueries({ queryKey: ["classroom-packs", pack.classroom_id] });
+      }} />
       <div className="notice">
         Unsupported objectives are excluded from generation. Lexical or model
         support judgments must still be reviewed; evidence links alone do not

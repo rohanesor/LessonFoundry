@@ -1,4 +1,5 @@
 "use client";
+import { AppHeader } from "@/components/layout/app-header";
 import { use, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
@@ -26,7 +27,7 @@ export default function ClassroomPage({ params }: { params: Promise<{ id: string
   const { id } = use(params);
   const router = useRouter();
   const qc = useQueryClient();
-  const [tab, setTab] = useState<"packs" | "students">("packs");
+  const [tab, setTab] = useState<"overview" | "packs" | "students">("overview");
   const [creating, setCreating] = useState(false);
   const [title, setTitle] = useState("");
   const [obj, setObj] = useState("Objective 1\nObjective 2");
@@ -36,6 +37,7 @@ export default function ClassroomPage({ params }: { params: Promise<{ id: string
   const members = useQuery({ queryKey: ["classroom-members", id], queryFn: () => api<Member[]>(`/classrooms/${id}/members`), enabled: tab === "students" });
 
   const c = detail.data;
+  const [copyStatus, setCopyStatus] = useState("");
 
   async function createPack(e: React.FormEvent) {
     e.preventDefault();
@@ -48,17 +50,10 @@ export default function ClassroomPage({ params }: { params: Promise<{ id: string
 
   return (
     <div className="teacher-shell">
-      <header className="teacher-topbar">
-        <Link href="/teacher" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none", color: "inherit" }}>
-          <span className="brand-mark"><LFMark size={20} /></span>
-          <span className="brand-wordmark"><span className="lesson">Lesson</span><span className="foundry">Foundry</span></span>
-        </Link>
-        <span style={{ flex: 1 }} />
-        <Button variant="ghost" onClick={async () => { await signOut(); router.replace("/login"); }}>Sign out</Button>
-      </header>
+      <AppHeader role="Teacher" crumbs={[{ label: c?.name || "Classroom" }]} />
 
       <main className="page" style={{ maxWidth: 1100, margin: "0 auto" }}>
-        {!c ? <Skeleton /> : (
+        {detail.error ? <div role="alert" className="alert">{detail.error.message}</div> : !c ? <Skeleton /> : (
           <>
             <div className="row spread">
               <div>
@@ -68,16 +63,19 @@ export default function ClassroomPage({ params }: { params: Promise<{ id: string
               </div>
               <div className="stack" style={{ gap: 8, alignItems: "flex-end" }}>
                 <div className="join-code-display" style={{ fontSize: 18, padding: "8px 16px" }}>{c.join_code}</div>
+                <Button variant="ghost" onClick={async () => { try { await navigator.clipboard.writeText(c.join_code); setCopyStatus("Code copied"); } catch { setCopyStatus("Copy unavailable. Select the code above."); } }}>Copy join code</Button><small role="status">{copyStatus}</small>
                 <small className="muted">{c.member_count} students · {c.pack_count} packs</small>
               </div>
             </div>
 
             <div className="row" style={{ gap: 0, borderBottom: "2px solid var(--color-divider)", marginTop: 20 }}>
+              <button className={`tab-btn ${tab === "overview" ? "active" : ""}`} onClick={() => setTab("overview")}>Overview</button>
               <button className={`tab-btn ${tab === "packs" ? "active" : ""}`} onClick={() => setTab("packs")}>Learning Packs</button>
               <button className={`tab-btn ${tab === "students" ? "active" : ""}`} onClick={() => setTab("students")}>Students</button>
             </div>
 
-            {tab === "packs" && (
+            {tab === "overview" && <div className="stats"><div className="stat"><small>Students</small><strong>{c.member_count}</strong></div><div className="stat"><small>Learning packs</small><strong>{c.pack_count}</strong></div><div className="stat"><small>Next step</small><Button onClick={() => setTab("packs")}>Open learning packs</Button></div></div>}
+            {(tab === "packs" || tab === "overview") && (
               <div className="stack" style={{ marginTop: 20 }}>
                 <div className="row spread">
                   <h2 style={{ fontSize: 22, margin: 0 }}>Learning Packs</h2>

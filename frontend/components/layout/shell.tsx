@@ -1,251 +1,39 @@
 "use client";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { MenuIcon, CloseIcon } from "@/components/icons/brand";
-import {
-  LFMark,
-  LFWordmark,
-  DashboardIcon,
-  PacksIcon,
-  SourceIcon,
-  OverviewIcon,
-  ExplanationIcon,
-  AssessmentIcon,
-  QuizIcon,
-  AnswerKeyIcon,
-  AITeacherIcon,
-  ExamFocusIcon,
-  ResourcesIcon,
-  VersionIcon,
-  ValidationIcon,
-  SettingsIcon,
-  ApprovalIcon,
-  ArrowIcon,
-} from "@/components/icons/brand";
+import { AppHeader } from "./app-header";
 import { Button } from "@/components/ui/button";
-import { Status } from "@/components/ui/status";
+import { PublishModal } from "@/components/studio/publish-modal";
+import { api } from "@/lib/api";
 import type { Pack, Screen } from "@/types";
 
-const groups: { label: string; items: Screen[] }[] = [
-  { label: "Workspace", items: ["Dashboard", "Learning Packs", "Sources"] },
-  {
-    label: "Current Pack",
-    items: [
-      "Overview",
-      "Explanation",
-      "Assessment",
-      "Quiz",
-      "Answer Key",
-      "AI Teacher",
-      "Exam Focus",
-      "Resources",
-    ],
-  },
-  { label: "System", items: ["Versions", "Validation", "Settings"] },
-];
-
-const navIcons: Record<Screen, React.ComponentType<{ size?: number }>> = {
-  Dashboard: DashboardIcon,
-  "Learning Packs": PacksIcon,
-  Sources: SourceIcon,
-  Overview: OverviewIcon,
-  Explanation: ExplanationIcon,
-  Assessment: AssessmentIcon,
-  Quiz: QuizIcon,
-  "Answer Key": AnswerKeyIcon,
-  "AI Teacher": AITeacherIcon,
-  "Exam Focus": ExamFocusIcon,
-  Resources: ResourcesIcon,
-  Versions: VersionIcon,
-  Validation: ValidationIcon,
-  Settings: SettingsIcon,
-};
-
-export function Shell({
-  screen,
-  navigate,
-  pack,
-  onApprove,
-  children,
-}: {
-  screen: Screen;
-  navigate: (s: Screen) => void;
-  pack?: Pack;
-  onApprove: () => void;
-  children: React.ReactNode;
-}) {
-  const [open, setOpen] = useState(false);
-  const inPack =
-    pack && !["Dashboard", "Learning Packs", "Settings"].includes(screen);
-  const approved =
-    pack &&
-    pack.assets.length > 0 &&
-    pack.assets.every((a) => a.state === "APPROVED" && !a.stale);
-  return (
-    <div className="shell">
-      <a href="#main-content" className="sr-only focus:not-sr-only">
-        Skip to content
-      </a>
-      <aside className={`sidebar ${open ? "open" : ""}`}>
-        <div className="brand">
-          <span className="brand-mark" aria-hidden="true">
-            <LFMark size={20} />
-          </span>
-          <span className="brand-wordmark">
-            <span className="lesson">Lesson</span>
-            <span className="foundry">Foundry</span>
-          </span>
-          <Button
-            className="mobile-menu"
-            variant="ghost"
-            aria-label="Close navigation"
-            onClick={() => setOpen(false)}
-          >
-            <CloseIcon size={16} />
-          </Button>
-        </div>
-        {groups.map((g) => (
-          <nav className="nav-group" key={g.label} aria-label={g.label}>
-            <div className="nav-label">{g.label.toUpperCase()}</div>
-            {g.label === "Current Pack" && pack && (
-              <div className="pack-nav-title">
-                {pack.title}
-                <br />
-                <small>
-                  {pack.subject} · {pack.level}
-                </small>
-              </div>
-            )}
-            {g.items.map((n) => {
-              const Icon = navIcons[n];
-              return (
-                <button
-                  className={`nav-item ${screen === n ? "active" : ""}`}
-                  key={n}
-                  aria-current={screen === n ? "page" : undefined}
-                  onClick={() => {
-                    navigate(n);
-                    setOpen(false);
-                  }}
-                >
-                  <span className="nav-item-start">
-                    <Icon size={16} />
-                    <span>{n}</span>
-                  </span>
-                  <span className="nav-item-end">
-                    {n === "Quiz" && pack && (
-                      <small>
-                        {
-                          pack.assets.filter((a) => a.slot.startsWith("quiz"))
-                            .length
-                        }
-                      </small>
-                    )}
-                    {n === "Versions" && pack && <small>v{pack.revision}</small>}
-                  </span>
-                </button>
-              );
-            })}
-          </nav>
-        ))}
-        <div className="sidebar-footer">
-          <LFWordmark height={12} />
-          <br />
-          Source-bound learning infrastructure
-          <br />
-          <b>LLM proposes. Teacher approves.</b>
-        </div>
-      </aside>
-      <div className="main-shell">
-        <header className="topbar">
-          <Button
-            variant="ghost"
-            className="mobile-menu"
-            aria-label="Open navigation"
-            onClick={() => setOpen(true)}
-          >
-            <MenuIcon size={18} />
-          </Button>
-          <div className="breadcrumb">
-            Workspace / {pack && inPack ? "Learning pack / " : ""}
-            <b>{screen}</b>
-          </div>
-          {pack && (
-            <Button asChild>
-              <a
-                href={`/student/${pack.share_token}`}
-                target="_blank"
-                rel="noreferrer"
-              >
-                Student view <ArrowIcon size={14} />
-              </a>
-            </Button>
-          )}
-          <span className="user-avatar">T</span>
-          <span className="user-name">
-            <b>Teacher</b>
-            <br />
-            <small>LessonFoundry Studio</small>
-          </span>
-        </header>
-        {inPack && (
-          <section className="pack-header">
-            <div className="row spread">
-              <div>
-                <h1>{pack.title}</h1>
-                <small>
-                  {pack.subject} · {pack.level} · {pack.exam} ·{" "}
-                  {pack.objectives.length} objectives · {pack.sources.length}{" "}
-                  sources
-                </small>
-              </div>
-              <div className="row">
-                <Status state={approved ? "APPROVED" : "NEEDS REVIEW"} />
-                <span className="meta">Pack v{pack.revision}</span>
-                <Button
-                  variant="default"
-                  disabled={approved || !pack.assets.length}
-                  onClick={onApprove}
-                >
-                  {approved ? (
-                    <>
-                      <ApprovalIcon size={14} /> Approved
-                    </>
-                  ) : (
-                    "Approve pack"
-                  )}
-                </Button>
-              </div>
-            </div>
-            <div className="flow">
-              {[
-                "Source",
-                "Evidence",
-                "Objectives",
-                "Generate",
-                "Validate",
-                "Review",
-                "Approve",
-                "Learn",
-              ].map((s, i) => (
-                <span key={s}>
-                  {s}
-                  {i < 7 ? " →" : ""}
-                </span>
-              ))}
-            </div>
-          </section>
-        )}
-        {approved && inPack && (
-          <div className="banner good">
-            <ApprovalIcon size={13} style={{ display: "inline", marginRight: 8 }} />
-            <b>APPROVED · v{pack.revision}</b> — Published versions are locked.
-            Create a new draft to make changes.
-          </div>
-        )}
-        <main className="content" id="main-content">
-          {children}
-        </main>
-      </div>
-    </div>
-  );
+const sections: Screen[] = ["Overview", "Explanation", "Assessment", "Quiz", "Answer Key", "AI Teacher", "Exam Focus", "Resources", "Sources"];
+export function Shell({ screen, navigate, pack, onApprove, children }: { screen: Screen; navigate: (s: Screen) => void; pack?: Pack; onApprove: () => void; children: React.ReactNode }) {
+  const [publishing,setPublishing] = useState(false); const qc = useQueryClient();
+  const classroom = useQuery({ queryKey: ["classroom",pack?.classroom_id], queryFn: () => api<{name:string}>(`/classrooms/${pack!.classroom_id}`), enabled: !!pack?.classroom_id });
+  const inPack = pack && !["Dashboard","Learning Packs","Settings"].includes(screen);
+  const approved = !!pack?.assets.length && pack.assets.every(a => a.state === "APPROVED" && !a.stale);
+  const running = pack?.jobs.some(j => ["Queued","Running"].includes(j.state));
+  const stale = pack?.assets.some(a=>a.stale);
+  const fails = pack?.assets.flatMap(a=>a.checks).filter(c=>c.state === "FAIL").length || 0;
+  const warnings = pack?.assets.flatMap(a=>a.checks).filter(c=>["WARNING","NEEDS_REVIEW"].includes(c.state)).length || 0;
+  const stage = running ? 0 : approved ? pack?.published_at ? 3 : 2 : pack?.assets.length ? 1 : 0;
+  const crumbs = pack ? [...(pack.classroom_id ? [{label:classroom.data?.name || "Classroom",href:`/teacher/classrooms/${pack.classroom_id}`}] : []),{label:pack.title}] : [{label:screen}];
+  return <div className="v5-workspace">
+    <a href="#main-content" className="sr-only focus:not-sr-only">Skip to content</a>
+    <AppHeader role="Teacher" crumbs={crumbs} />
+    {inPack ? <section className="v5-pack-header"><div className="row spread">
+      <div className="v5-pack-title"><div className="kicker">Learning pack · {pack.subject} · {pack.level} · {pack.exam}</div><h1>{pack.title}</h1><small>Version {pack.revision}</small></div>
+      <div className="row"><Button onClick={()=>navigate("Validation")}>Review · {fails ? `${fails} blocking` : `${warnings} warnings`}</Button>
+        {!approved ? <Button variant="default" disabled={!pack.assets.length || !!running} onClick={onApprove}>Approve pack</Button> : !pack.published_at && pack.classroom_id ? <Button variant="default" onClick={()=>setPublishing(true)}>Publish to classroom</Button> : <span className="status good">{pack.published_at ? "Published" : "Approved"}</span>}
+      </div></div>
+      <ol className="lifecycle" aria-label="Pack lifecycle">{[running ? "Generating" : "Draft", "Review", "Approved", "Published"].map((label,i)=><li key={i} className={i<=stage?"reached":""} aria-current={stage===i?"step":undefined}>{label}</li>)}</ol>
+      {stale && <div className="notice">Sources have changed. Current assets need review before approval; published snapshots remain separate.</div>}
+      {approved && <div className="banner good">Approved versions are locked. {pack.published_at ? "This pack has been published to its classroom." : "Publish separately to make this pack available in its classroom."}</div>}
+      <nav className="pack-tabs" aria-label="Pack sections">{sections.map(s=><button key={s} aria-current={s===screen?"page":undefined} className={`tab-btn ${s===screen?"active":""}`} onClick={()=>navigate(s)}>{s}</button>)}</nav>
+      <div className="row trust-actions"><small>Trust &amp; history</small><a href={`/student/${pack.share_token}`} target="_blank" rel="noreferrer">Student preview ↗</a><Button variant="ghost" onClick={()=>navigate("Validation")}>Validation</Button><Button variant="ghost" onClick={()=>navigate("Versions")}>Versions</Button><Button variant="ghost" onClick={()=>navigate("Sources")}>Evidence &amp; sources</Button></div>
+    </section> : <nav className="pack-tabs workspace-links" aria-label="Workspace">{(["Dashboard","Learning Packs","Sources","Settings"] as Screen[]).map(s=><button className={`tab-btn ${s===screen?"active":""}`} key={s} onClick={()=>navigate(s)}>{s}</button>)}</nav>}
+    <main className="content" id="main-content">{children}</main>
+    {pack && <PublishModal pack={pack} open={publishing} onClose={()=>setPublishing(false)} onPublished={()=>{void qc.invalidateQueries({queryKey:["pack",pack.id]});void qc.invalidateQueries({queryKey:["classroom-packs",pack.classroom_id]});}} />}
+  </div>;
 }

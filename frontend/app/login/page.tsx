@@ -77,7 +77,12 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="login-page">
+    <div className="login-page v5-login">
+      <aside className="login-story">
+        <div className="kicker">LessonFoundry</div>
+        <div><h1>Generation<br />with control.</h1><p>Trusted sources. Traceable learning. Your approval.</p></div>
+        <div className="row"><span>Sources</span><span>Evidence</span><span>Review</span><span>Learning</span></div>
+      </aside>
       <div className="login-card">
         <div className="brand" style={{ padding: 0, gap: 10, borderBottom: "none" }}>
           <LessonFoundryLogo height={28} />

@@ -1,4 +1,5 @@
 "use client";
+import { AppHeader } from "@/components/layout/app-header";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
@@ -41,15 +42,7 @@ export default function StudentDashboard() {
 
   return (
     <div className="student-shell">
-      <header className="student-header">
-        <Link href="/student" style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none", color: "inherit" }}>
-          <span className="brand-mark"><LFMark size={18} /></span>
-          <span className="brand-wordmark" style={{ fontSize: 14 }}><span className="lesson">Lesson</span><span className="foundry">Foundry</span></span>
-        </Link>
-        <span style={{ flex: 1 }} />
-        <span className="topbar-user">{me.data?.name || "Student"}</span>
-        <Button variant="ghost" onClick={async () => { await signOut(); router.replace("/login"); }}>Sign out</Button>
-      </header>
+      <AppHeader role="Student" />
 
       <main className="student-content" style={{ maxWidth: 900, margin: "0 auto", padding: "32px 24px" }}>
         <div className="row spread">

@@ -1,4 +1,5 @@
 "use client";
+import { AppHeader } from "@/components/layout/app-header";
 import { use, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
@@ -24,10 +25,13 @@ export default function StudentPackPage({ params }: { params: Promise<{ id: stri
 
   const q = useQuery({ queryKey: ["student-pack", id], queryFn: () => api<PackData>(`/student/packs/${id}`) });
   const data = q.data;
+  const checkedCount = Object.values(answers).filter(a => a.correct !== undefined).length;
+  const correctCount = Object.values(answers).filter(a => a.correct === true).length;
 
   const rows = data?.assets.filter((a) =>
     tab === "Learn" ? a.slot === "explanation"
     : tab === "Practice" ? a.slot.startsWith("quiz") || a.slot.startsWith("assessment")
+    : tab === "Watch" ? a.slot === "video_script"
     : tab === "Revise" ? a.slot === "exam_focus"
     : false
   ) || [];
@@ -41,31 +45,18 @@ export default function StudentPackPage({ params }: { params: Promise<{ id: stri
     setDownloading(true);
     try {
       const r = await post<{ download_url: string }>(`/student/packs/${id}/download`);
-      window.open(r.download_url, "_blank");
+      window.open(r.download_url, "_blank", "noopener,noreferrer");
     } catch (err) { alert((err as Error).message); }
     finally { setDownloading(false); }
   }
 
   return (
     <div className="student-shell">
-      <header className="student-header">
-        <Link href="/student" style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none", color: "inherit" }}>
-          <span className="brand-mark"><LFMark size={18} /></span>
-          <span className="brand-wordmark" style={{ fontSize: 14 }}><span className="lesson">Lesson</span><span className="foundry">Foundry</span></span>
-        </Link>
-        <span className="muted" style={{ fontSize: 12 }}>/ {data?.subject} · {data?.level}</span>
-        <span style={{ flex: 1 }} />
-        {data?.has_export && (
-          <Button onClick={download} disabled={downloading}>
-            <DownloadIcon size={14} /> {downloading ? "Preparing…" : "Download PDF"}
-          </Button>
-        )}
-        <Button variant="ghost" onClick={async () => { await signOut(); router.replace("/login"); }}>Sign out</Button>
-      </header>
+      <AppHeader role="Student" crumbs={[{ label: data?.title || "Learning pack" }]} actions={data?.has_export ? <Button onClick={download} disabled={downloading}><DownloadIcon size={14} />{downloading ? "Preparing…" : "Download PDF"}</Button> : undefined} />
 
-      <nav className="student-nav">
+      <nav className="student-nav" aria-label="Learning sections">
         {tabs.map((t) => (
-          <Button key={t} className={tab === t ? "active" : ""} onClick={() => setTab(t)}>{t}</Button>
+          <Button key={t} aria-current={tab === t ? "page" : undefined} className={tab === t ? "active" : ""} onClick={() => setTab(t)}>{t}</Button>
         ))}
       </nav>
 
@@ -77,6 +68,7 @@ export default function StudentPackPage({ params }: { params: Promise<{ id: stri
           <Empty title="Content not available">This learning pack has no published content yet.</Empty>
         ) : (
           <div style={{ marginTop: 24 }}>
+            {tab === "Practice" && <div className="notice" role="status">{checkedCount} questions checked · {correctCount} correct. Progress is for this session only.</div>}
             {rows.map((a) =>
               a.slot.startsWith("quiz") ? (
                 <section key={a.id} className="card" style={{ marginBottom: 16 }}>
@@ -107,7 +99,7 @@ export default function StudentPackPage({ params }: { params: Promise<{ id: stri
                 </section>
               )
             )}
-            {tab === "Watch" && <Empty title="Video not available">Your teacher will add a video when ready.</Empty>}
+            {tab === "Watch" && !rows.length && <Empty title="Video not available">Your teacher will add a video when ready.</Empty>}
             {tab === "Resources" && (data.resources.length ? data.resources.map((r) => (
               <div key={r.url} className="card" style={{ marginBottom: 12 }}>
                 <h4>{r.title}</h4>

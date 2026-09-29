@@ -1,4 +1,5 @@
 "use client";
+import { AppHeader } from "@/components/layout/app-header";
 import { use } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
@@ -25,17 +26,10 @@ export default function StudentClassroomPage({ params }: { params: Promise<{ id:
 
   return (
     <div className="student-shell">
-      <header className="student-header">
-        <Link href="/student" style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none", color: "inherit" }}>
-          <span className="brand-mark"><LFMark size={18} /></span>
-          <span className="brand-wordmark" style={{ fontSize: 14 }}><span className="lesson">Lesson</span><span className="foundry">Foundry</span></span>
-        </Link>
-        <span style={{ flex: 1 }} />
-        <Button variant="ghost" onClick={async () => { await signOut(); router.replace("/login"); }}>Sign out</Button>
-      </header>
+      <AppHeader role="Student" crumbs={[{ label: c?.name || "Classroom" }]} />
 
       <main className="student-content" style={{ maxWidth: 900, margin: "0 auto", padding: "32px 24px" }}>
-        {!c ? <Skeleton /> : (
+        {detail.error ? <div role="alert" className="alert">{detail.error.message}</div> : !c ? <Skeleton /> : (
           <>
             <Link href="/student" className="muted" style={{ fontSize: 13 }}>← My Classrooms</Link>
             <h1 style={{ fontSize: 30, marginBottom: 4 }}>{c.name}</h1>

@@ -1,5 +1,6 @@
 "use client";
-import { useQuery } from "@tanstack/react-query";
+import { AppHeader } from "@/components/layout/app-header";
+import { useQuery, useQueries } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { LFMark, LFWordmark, PlusIcon, ArrowIcon } from "@/components/icons/brand";
@@ -27,6 +28,10 @@ export default function TeacherDashboard() {
     queryFn: () => api<ClassroomSummary[]>("/classrooms"),
   });
 
+  const recent = useQuery({ queryKey: ["packs"], queryFn: () => api<import("@/types").PackSummary[]>("/packs") });
+  const details = useQueries({ queries: (recent.data || []).slice(0, 5).map(p => ({ queryKey: ["pack", p.id], queryFn: () => api<import("@/types").Pack>(`/packs/${p.id}`) })) });
+  const attention = details.flatMap(q => q.data ? [q.data] : []).filter(p => !p.published_at || p.assets.some(a => a.stale));
+
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
     const r = await post<{ id: string; join_code: string }>("/classrooms", { name, description: desc });
@@ -38,13 +43,7 @@ export default function TeacherDashboard() {
 
   return (
     <div className="teacher-shell">
-      <header className="teacher-topbar">
-        <span className="brand-mark"><LFMark size={20} /></span>
-        <span className="brand-wordmark"><span className="lesson">Lesson</span><span className="foundry">Foundry</span></span>
-        <span style={{ flex: 1 }} />
-        <span className="topbar-user">{me.data?.name || "Teacher"}</span>
-        <Button variant="ghost" onClick={async () => { await signOut(); router.replace("/login"); }}>Sign out</Button>
-      </header>
+      <AppHeader role="Teacher" />
 
       <main className="page" style={{ maxWidth: 1100, margin: "0 auto" }}>
         <div className="row spread" style={{ marginBottom: 8 }}>
@@ -57,6 +56,16 @@ export default function TeacherDashboard() {
           </Button>
         </div>
 
+        <section className="attention-center" aria-label="Needs your attention">
+          <h2>Needs your attention</h2>
+          <p className="muted">Next steps for your five most recent learning packs.</p>
+          {details.some(q => q.isLoading) ? <p role="status">Checking recent packs…</p> : attention.length ? attention.map(p => {
+            const stale = p.assets.some(a => a.stale);
+            const failures = p.assets.flatMap(a => a.checks).filter(c => c.state === "FAIL").length;
+            const approved = p.assets.length > 0 && p.assets.every(a => a.state === "APPROVED" && !a.stale);
+            return <Link className="attention-row" href={`/teacher/packs/${p.id}`} key={p.id}><strong>{p.title}</strong><span>{stale ? "Source changes need review" : failures ? `${failures} blocking checks` : approved ? "Ready to publish" : p.assets.length ? "Ready for teacher review" : "Add sources and prepare learning"} →</span></Link>;
+          }) : <p>{details.some(q=>q.error) || recent.error ? "Recent pack status is unavailable." : "No pending actions in recent packs."}</p>}
+        </section>
         {creating && (
           <div className="card" style={{ marginTop: 20, marginBottom: 20 }}>
             {createdCode ? (
@@ -101,6 +110,10 @@ export default function TeacherDashboard() {
           </div>
         )}
 
+        <section className="stack" style={{ marginTop: 32 }}>
+          <h2>Recent learning packs</h2>
+          {recent.error ? <p role="alert">{recent.error.message}</p> : (recent.data || []).slice(0,5).map(p => <Link className="card classroom-card" key={p.id} href={`/teacher/packs/${p.id}`}><h3>{p.title}</h3><small>{p.subject} · {p.level} · v{p.revision}</small></Link>)}
+        </section>
         <div className="rule" style={{ marginTop: 32 }}>
           <Link href="/">← Legacy Studio (standalone packs)</Link>
         </div>

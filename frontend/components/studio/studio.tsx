@@ -11,6 +11,7 @@ import { EvidenceDrawer } from "@/components/evidence/evidence-drawer";
 import { AssetEditor } from "./asset-editor";
 import { Overview } from "./overview";
 import { Approval } from "./approval";
+import { ReviewDrawer, type ReviewTab } from "./drawer";
 import { Login } from "./login";
 import {
   Versions,
@@ -33,6 +34,7 @@ export function Studio({ initialPackId }: { initialPackId?: string }) {
   const [review, setReview] = useState<Asset | "pack" | null>(null);
   const [busy, setBusy] = useState(false);
   const [reviewRevision, setReviewRevision] = useState(0);
+  const [reviewTab, setReviewTab] = useState<ReviewTab | null>(null);
   const [error, setError] = useState("");
   const [toast, setToast] = useState("");
   useEffect(() => {
@@ -136,6 +138,10 @@ export function Studio({ initialPackId }: { initialPackId?: string }) {
     }
   };
   const navigate = (s: Screen) => {
+    if (s === "Validation" || s === "Versions") {
+      setReviewTab(s);
+      return;
+    }
     setScreen(s);
     setError("");
   };
@@ -354,7 +360,9 @@ export function Studio({ initialPackId }: { initialPackId?: string }) {
           onClose={() => setEvidence(null)}
         />
       )}
+      {pack && <ReviewDrawer key={pack.id} pack={pack} tab={reviewTab} onTab={setReviewTab} onClose={() => setReviewTab(null)} onEvidence={(e) => { setReviewTab(null); setEvidence(e); }} />}
       <Approval
+        pack={pack}
         target={review}
         onClose={() => setReview(null)}
         busy={busy}
@@ -375,7 +383,7 @@ export function Studio({ initialPackId }: { initialPackId?: string }) {
             );
             setReview(null);
             refresh();
-            setToast("Approved version published and locked");
+            setToast("Approved version locked. Classroom publication is a separate step.");
           } catch (e) {
             setError((e as Error).message);
             setReview(null);

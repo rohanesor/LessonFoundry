@@ -4,9 +4,11 @@ import { SourceIcon, UploadIcon } from "@/components/icons/brand";
 import { hostedAuth } from "@/lib/auth";
 import { api, post } from "@/lib/api";
 import { Button } from "@/components/ui/button";
+import { Status } from "@/components/ui/status";
 import { Panel } from "@/components/ui/dialog";
 import type { Pack, Evidence } from "@/types";
 
+type UploadItem = { name: string; size: number; status: "queued" | "uploading" | "extracted" | "failed"; error?: string; evidence?: number };
 type TeacherNoteAttachment = {
   id: string;
   file: File;
@@ -50,6 +52,7 @@ export function Sources({
   const [attachments, setAttachments] = useState<TeacherNoteAttachment[]>([]);
   const [attachmentError, setAttachmentError] = useState("");
   const [isDragging, setIsDragging] = useState(false);
+  const [uploadQueue, setUploadQueue] = useState<UploadItem[]>([]);
 
   const docInput = useRef<HTMLInputElement>(null);
   const imgInput = useRef<HTMLInputElement>(null);
@@ -166,29 +169,24 @@ export function Sources({
           accept=".pdf,.pptx,.docx,.txt,.md"
           disabled={uploading}
           onChange={async (e) => {
-            const files = Array.from(e.target.files || []);
+            const files = Array.from(e.target.files || []).slice(0, 10);
+            if (!files.length) return;
+            setUploadQueue(files.map(file => ({ name: file.name, size: file.size, status: "uploading" })));
             setUploading(true);
             try {
-              for (const file of files) {
-                const f = new FormData();
-                f.append("file", file);
-                await run(
-                  () =>
-                    api(`/packs/${pack.id}/sources`, {
-                      method: "POST",
-                      body: f,
-                    }),
-                  "Source extracted with provenance"
-                );
-              }
-            } finally {
-              setUploading(false);
-              e.target.value = "";
+              const form = new FormData();
+              files.forEach(file => form.append("files", file));
+              const result = await api<{ uploaded: { name: string; evidence_count: number }[]; errors: { name: string; error: string }[] }>(`/packs/${pack.id}/sources/batch`, { method: "POST", body: form });
+              setUploadQueue(files.map(file => { const ok = result.uploaded.find(x => x.name === file.name); const bad = result.errors.find(x => x.name === file.name); return { name: file.name, size: file.size, status: ok ? "extracted" : "failed", evidence: ok?.evidence_count, error: bad?.error }; }));
               refresh();
-            }
+            } catch (err) {
+              setUploadQueue(files.map(file => ({ name: file.name, size: file.size, status: "failed", error: (err as Error).message })));
+            } finally { setUploading(false); e.target.value = ""; }
           }}
         />
       </label>
+
+      {!!uploadQueue.length && <section className="upload-queue" aria-live="polite"><h3>Upload queue</h3>{uploadQueue.map(item => <div className="upload-row" key={item.name}><span><b>{item.name}</b><small>{fileSize(item.size)}</small></span><Status state={item.status === "extracted" ? "PASS" : item.status === "failed" ? "FAIL" : "Running"} label={item.status === "extracted" ? `Extracted${item.evidence !== undefined ? ` · ${item.evidence} evidence` : ""}` : item.status === "failed" ? `Failed${item.error ? `: ${item.error}` : ""}` : "Uploading…"} /></div>)}</section>}
 
       <div className="notice">
         Adding or replacing sources marks existing assets stale. Historical source

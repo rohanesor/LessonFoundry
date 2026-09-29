@@ -2,14 +2,15 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { LessonFoundryLogo } from "@/components/icons/brand";
 import { Button } from "@/components/ui/button";
+import { Panel } from "@/components/ui/dialog";
 import { signOut } from "@/lib/auth";
+import { api } from "@/lib/api";
+type Profile = { id:string; name:string; email?:string|null; role:string; avatar_url?:string|null; institution_type?:string|null; institution_name?:string|null; grade_level?:string|null; onboarding_completed?:boolean };
 export function AppHeader({ role, crumbs = [], actions }: { role: "Teacher" | "Student"; crumbs?: { label: string; href?: string }[]; actions?: React.ReactNode }) {
-  const router = useRouter(); const [error, setError] = useState("");
-  return <><header className="app-header">
-    <Link href={role === "Teacher" ? "/teacher" : "/student"} className="brand-link" aria-label={`${role} home`}><LessonFoundryLogo height={22} /></Link>
-    <nav aria-label="Breadcrumb" className="app-breadcrumb"><Link href={role === "Teacher" ? "/teacher" : "/student"}>Home</Link>{crumbs.map((c,i) => <span key={i}> / {c.href ? <Link href={c.href}>{c.label}</Link> : <b aria-current="page">{c.label}</b>}</span>)}</nav>
-    <div className="app-header-actions">{actions}<span className="role-pill">{role}</span><Button variant="ghost" onClick={async () => { try { await signOut(); router.replace("/login"); } catch(e) { setError((e as Error).message); } }}>Sign out</Button></div>
-  </header>{error && <div role="alert" className="alert">{error}</div>}</>;
+  const router = useRouter(); const qc=useQueryClient(); const [error,setError]=useState(""); const [open,setOpen]=useState(false); const profile=useQuery({queryKey:["me"],queryFn:()=>api<Profile>("/me")}); const [name,setName]=useState(""); const [institution,setInstitution]=useState(""); const [grade,setGrade]=useState("");
+  const p=profile.data; const initials=(p?.name||role).split(/\s+/).map(x=>x[0]).join("").slice(0,2).toUpperCase();
+  return <><header className="app-header"><Link href={role === "Teacher" ? "/teacher" : "/student"} className="brand-link" aria-label={`${role} home`}><LessonFoundryLogo height={22} /></Link><nav aria-label="Breadcrumb" className="app-breadcrumb"><Link href={role === "Teacher" ? "/teacher" : "/student"}>Home</Link>{crumbs.map((c,i)=><span key={i}> / {c.href?<Link href={c.href}>{c.label}</Link>:<b aria-current="page">{c.label}</b>}</span>)}</nav><div className="app-header-actions">{actions}<button className="profile-trigger" onClick={()=>{setName(p?.name||"");setInstitution(p?.institution_name||"");setGrade(p?.grade_level||"");setOpen(true);}} aria-label="Open profile settings"><span className="profile-initials">{initials}</span><span className="topbar-user">{p?.name||role}</span><span className="role-pill">{role}</span></button><Button variant="ghost" onClick={async()=>{try{await signOut();router.replace("/login");}catch(e){setError((e as Error).message);}}}>Sign out</Button></div></header>{error&&<div role="alert" className="alert">{error}</div>}<Panel open={open} onClose={()=>setOpen(false)} title="Profile settings" description="Update your identity and academic context."><form className="stack" onSubmit={async e=>{e.preventDefault();try{await api("/me",{method:"PATCH",body:JSON.stringify({name,institution_name:institution,grade_level:grade})});await qc.invalidateQueries({queryKey:["me"]});setOpen(false);}catch(err){setError((err as Error).message);}}}><label>Full name<input className="input" required minLength={2} value={name} onChange={e=>setName(e.target.value)}/></label><label>Institution<input className="input" value={institution} onChange={e=>setInstitution(e.target.value)}/></label><label>Grade / level / department<input className="input" value={grade} onChange={e=>setGrade(e.target.value)}/></label><p className="muted">Account role: {role} · {p?.email||"email unavailable"}</p><Button variant="default">Save profile</Button></form></Panel></>;
 }

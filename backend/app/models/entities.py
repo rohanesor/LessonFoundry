@@ -31,6 +31,11 @@ class User(Identity, Base):
     email: Mapped[str | None] = mapped_column(String, nullable=True)
     avatar_url: Mapped[str | None] = mapped_column(String, nullable=True)
     role: Mapped[str] = mapped_column(String, default="teacher")
+    institution_type: Mapped[str | None] = mapped_column(String, nullable=True)
+    institution_name: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    grade_level: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    onboarding_completed: Mapped[bool] = mapped_column(Boolean, default=False)
+    updated_at: Mapped[str] = mapped_column(String, default=now)
 
 
 class Unit(Identity, Base):
@@ -194,10 +199,39 @@ class Job(Identity, Base):
     created_at: Mapped[str] = mapped_column(String, default=now)
 
 
+class Avatar(Identity, Base):
+    __tablename__ = "avatars"
+    owner_id: Mapped[str] = mapped_column(ForeignKey("users.id"), index=True)
+    name: Mapped[str] = mapped_column(String(200))
+    description: Mapped[str] = mapped_column(Text, default="")
+    storage_key: Mapped[str] = mapped_column(String)
+    mime_type: Mapped[str] = mapped_column(String(100))
+    status: Mapped[str] = mapped_column(String(20), default="ready")
+    created_at: Mapped[str] = mapped_column(String, default=now)
+
+
+class TeacherVideo(Identity, Base):
+    __tablename__ = "teacher_videos"
+    owner_id: Mapped[str] = mapped_column(ForeignKey("users.id"), index=True)
+    pack_id: Mapped[str | None] = mapped_column(ForeignKey("units.id"), nullable=True, index=True)
+    avatar_id: Mapped[str | None] = mapped_column(ForeignKey("avatars.id"), nullable=True)
+    script_version_id: Mapped[str | None] = mapped_column(ForeignKey("asset_versions.id"), nullable=True)
+    title: Mapped[str] = mapped_column(String(200))
+    description: Mapped[str] = mapped_column(Text, default="")
+    storage_key: Mapped[str] = mapped_column(String)
+    mime_type: Mapped[str] = mapped_column(String(100))
+    status: Mapped[str] = mapped_column(String(20), default="ready")
+    approved: Mapped[bool] = mapped_column(Boolean, default=False)
+    published: Mapped[bool] = mapped_column(Boolean, default=False)
+    is_demo: Mapped[bool] = mapped_column(Boolean, default=False)
+    created_at: Mapped[str] = mapped_column(String, default=now)
+
+
 class VideoJob(Identity, Base):
     __tablename__ = "video_jobs"
     unit_id: Mapped[str] = mapped_column(ForeignKey("units.id"), index=True)
     script_version_id: Mapped[str] = mapped_column(ForeignKey("asset_versions.id"))
+    avatar_id: Mapped[str | None] = mapped_column(ForeignKey("avatars.id"), nullable=True)
     job_id: Mapped[str] = mapped_column(ForeignKey("jobs.id"))
     provider: Mapped[str] = mapped_column(String, default="mock-avatar")
     state: Mapped[str] = mapped_column(String, default="Queued")

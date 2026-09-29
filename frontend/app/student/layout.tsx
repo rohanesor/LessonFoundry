@@ -18,9 +18,10 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
     }
     accessToken().then((t) => {
       if (!t) { router.replace("/login"); return; }
-      api<{ role?: string }>("/me")
+      api<{ role?: string; onboarding_completed?: boolean }>("/me")
         .then((u) => {
-          if (u.role === "teacher") router.replace("/teacher");
+          if (u.onboarding_completed === false) router.replace("/onboarding");
+          else if (u.role === "teacher") router.replace("/teacher");
           else setOk(true);
         })
         .catch(() => router.replace("/login"));

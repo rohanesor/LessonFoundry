@@ -9,9 +9,10 @@ from app.api.ratelimit import rate_limit
 from app.database import transaction
 from app.models.entities import (
     Classroom, ClassroomMember, Unit, User, Asset, AssetVersion, Export,
-    Resource, now, uid,
+    Resource, TeacherVideo, now, uid,
 )
 from app.repositories.packs import current_versions, pack_dict
+from app.schemas.contracts import ProfileUpdate
 from app.services.classrooms import (
     generate_join_code, classroom_owned, classroom_summary, derive_pack_status,
     find_classroom_by_code, find_classroom_for_join,
@@ -238,6 +239,9 @@ def publish_pack(pid: str, user=Depends(teacher)):
             raise HTTPException(409, "Approve all assets before publishing")
         u.published_at = now()
         u.revision += 1
+        # Only explicitly approved videos attached to this pack become visible.
+        for video in s.scalars(select(TeacherVideo).where(TeacherVideo.pack_id == u.id, TeacherVideo.approved == True)):
+            video.published = True
         from app.services.packs import event
         event(s, u, "Pack published", "Students in this classroom can now access the approved version.")
         # Queue export job
@@ -392,8 +396,18 @@ def student_pack(pid: str, user=Depends(student)):
                 Export.status == "completed",
             ).order_by(Export.created_at.desc())
         )
+        published_video = s.scalar(select(TeacherVideo).where(TeacherVideo.pack_id == u.id, TeacherVideo.approved == True, TeacherVideo.published == True).order_by(TeacherVideo.created_at.desc()))
+        video_output = None
+        if published_video:
+            try:
+                from app.services.storage import get_store
+                signed = get_store("media").create_server_download_url(published_video.storage_key, expires=60)
+                video_output = {"id": published_video.id, "title": published_video.title, "description": published_video.description, "url": signed["url"], "expires_in": 60, "is_demo": published_video.is_demo}
+            except Exception:
+                video_output = None
         return dict(
             title=u.title, subject=u.subject, level=u.level,
+            video=video_output,
             assets=output,
             resources=[
                 dict(title=r.title, url=f"https://www.youtube.com/watch?v={r.video_id}")
@@ -490,7 +504,24 @@ def get_me(user=Depends(authenticated)):
         return dict(
             id=u.id, name=u.name, email=u.email,
             avatar_url=u.avatar_url, role=u.role,
+            institution_type=u.institution_type, institution_name=u.institution_name,
+            grade_level=u.grade_level, onboarding_completed=u.onboarding_completed,
         )
+
+
+@router.patch("/me")
+def update_me(body: ProfileUpdate, user=Depends(authenticated)):
+    with transaction() as s:
+        u = s.get(User, user)
+        if not u: raise HTTPException(404, "User not found")
+        values = body.model_dump(exclude_unset=True)
+        if values.get("institution_name") is not None and len(values["institution_name"].strip()) < 3:
+            raise HTTPException(422, "Institution name must be at least 3 characters")
+        for key, value in values.items(): setattr(u, key, value.strip() if isinstance(value, str) else value)
+        u.updated_at = now()
+        return dict(id=u.id, name=u.name, email=u.email, avatar_url=u.avatar_url, role=u.role,
+                    institution_type=u.institution_type, institution_name=u.institution_name,
+                    grade_level=u.grade_level, onboarding_completed=u.onboarding_completed)
 
 # ─── Readiness ───────────────────────────────────────────────────────────────
 

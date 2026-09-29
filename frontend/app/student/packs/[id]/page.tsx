@@ -12,7 +12,7 @@ import { api, post } from "@/lib/api";
 import { signOut } from "@/lib/auth";
 
 interface Asset { id: string; slot: string; title: string; body: string; options: string[]; flowchart?: any; }
-interface PackData { title: string; subject: string; level: string; assets: Asset[]; resources: { title: string; url: string }[]; has_export: boolean; }
+interface PackData { title: string; subject: string; level: string; assets: Asset[]; resources: { title: string; url: string }[]; has_export: boolean; video?: { id: string; title: string; description: string; url: string; expires_in: number; is_demo: boolean } | null; }
 
 const tabs = ["Learn", "Practice", "Revise", "Watch", "Resources"] as const;
 
@@ -99,7 +99,8 @@ export default function StudentPackPage({ params }: { params: Promise<{ id: stri
                 </section>
               )
             )}
-            {tab === "Watch" && !rows.length && <Empty title="Video not available">Your teacher will add a video when ready.</Empty>}
+            {tab === "Watch" && data.video && <section className="student-video card"><h2>{data.video.title}</h2><video src={data.video.url} controls preload="metadata" style={{ width: "100%", maxHeight: 520 }} /><p>{data.video.description}</p>{data.video.is_demo && <small className="muted">Development demo video · not synthesized by a paid AI provider.</small>}</section>}
+            {tab === "Watch" && !data.video && <Empty title="Video not available">Your teacher will add a video when ready.</Empty>}
             {tab === "Resources" && (data.resources.length ? data.resources.map((r) => (
               <div key={r.url} className="card" style={{ marginBottom: 12 }}>
                 <h4>{r.title}</h4>

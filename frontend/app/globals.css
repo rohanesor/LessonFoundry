@@ -1094,3 +1094,22 @@ td {
 .v5-login { justify-items:stretch; }
 .v5-workspace .table-wrap table { min-width:680px; }
 @media(max-width:768px) { .v5-workspace .table-wrap { overscroll-behavior-x:contain; } }
+
+.v5-studio-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:24px; }
+.upload-queue { border:1px solid var(--color-divider); padding:16px; }
+.upload-queue h3 { font-size:18px; margin-bottom:10px; }
+.upload-row { display:flex; justify-content:space-between; align-items:center; gap:16px; padding:10px 0; border-top:1px solid var(--color-neutral-300); }
+.upload-row span { display:flex; flex-direction:column; gap:2px; min-width:0; }
+.upload-row b { overflow-wrap:anywhere; }
+.auth-tabs { display:flex; border-bottom:2px solid var(--color-divider); }
+.auth-tabs button,.role-choice button { border:0; background:transparent; padding:10px 14px; font:inherit; font-weight:700; cursor:pointer; }
+.auth-tabs button.active { color:var(--color-accent-700); border-bottom:3px solid var(--color-accent); margin-bottom:-2px; }
+.role-choice { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.role-choice button { border:1px solid var(--color-neutral-400); text-align:left; }
+.role-choice button.selected { border:2px solid var(--color-accent); color:var(--color-accent-700); }
+.onboarding-page { min-height:100dvh; display:grid; place-items:center; padding:24px; background:var(--color-bg); }
+.onboarding-card { width:min(560px,100%); padding:32px; border:2px solid var(--color-divider); background:var(--color-bg); }
+.onboarding-card h1 { margin-top:24px; }
+@media(max-width:520px) { .role-choice { grid-template-columns:1fr; } .onboarding-card { padding:20px; } }
+.profile-trigger { display:flex; align-items:center; gap:8px; border:0; background:transparent; font:inherit; cursor:pointer; color:inherit; }
+.profile-initials { display:grid; place-items:center; width:30px; height:30px; background:var(--color-text); color:var(--color-bg); font-size:11px; font-weight:800; }

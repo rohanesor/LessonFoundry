@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 from uuid import uuid4
 import httpx
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
@@ -11,7 +12,7 @@ from app.schemas.contracts import *
 from app.repositories.packs import owned, pack_dict, current_versions, evidence_rows
 from app.services.packs import add_source, new_version, event, approve
 from app.services.extraction import FileExtractor
-from app.services.storage import ObjectStore
+from app.services.storage import ObjectStore, get_store
 
 router = APIRouter(prefix="/api")
 
@@ -150,6 +151,49 @@ def upload(
 
             logging.warning("Source upload rollback requires storage cleanup")
         raise
+
+
+@router.post("/packs/{pid}/sources/batch")
+@rate_limit("source-batch-upload", capacity=5, refill_per_second=1 / 30)
+def upload_batch(pid: str, files: list[UploadFile] = File(...), user=Depends(teacher)):
+    """Resilient batch ingestion: extraction is concurrent, persistence is isolated per file."""
+    if not files or len(files) > 10:
+        raise HTTPException(400, "Choose between 1 and 10 files")
+    owned_pid = pid
+    with transaction() as s: owned(s, pid, user)
+    items = []
+    total = 0
+    for file in files:
+        data = file.file.read(10 * 1024 * 1024 + 1)
+        total += len(data)
+        name = (file.filename or "upload").replace("\\", "/").split("/")[-1]
+        items.append((name, data))
+    if total > 50 * 1024 * 1024:
+        raise HTTPException(413, "Batch payload must be 50 MB or smaller")
+    from concurrent.futures import ThreadPoolExecutor
+    def extract(item):
+        name, data = item
+        try: return (name, data, FileExtractor().extract(name, data), None)
+        except Exception as exc: return (name, data, None, str(exc))
+    extracted = []
+    with ThreadPoolExecutor(max_workers=min(3, len(items))) as pool:
+        extracted = list(pool.map(extract, items))
+    uploaded, errors = [], []
+    for name, data, rows, error in extracted:
+        if error:
+            errors.append({"name": name, "status": "failed", "error": error}); continue
+        key = f"{user}/{pid}/{uuid4()}/{name}"
+        try:
+            ObjectStore().put(key, data)
+            with transaction() as s:
+                u = owned(s, pid, user, True)
+                d = add_source(s, u, name, rows, data, key)
+                uploaded.append({"id": d.id, "name": name, "evidence_count": len(rows), "status": "extracted"})
+        except Exception as exc:
+            try: ObjectStore().delete(key)
+            except Exception: pass
+            errors.append({"name": name, "status": "failed", "error": "Source could not be saved"})
+    return {"uploaded": uploaded, "errors": errors}
 
 
 @router.post("/packs/{pid}/gap-check", status_code=202)
@@ -370,6 +414,99 @@ def versions(pid: str, user=Depends(teacher)):
         ]
 
 
+AVATAR_MIMES = {"image/png", "image/jpeg", "image/webp"}
+VIDEO_MIMES = {"video/mp4", "video/webm", "video/quicktime"}
+
+
+def _media_key(owner: str, kind: str, ident: str, filename: str) -> str:
+    safe = Path(filename).name.replace(" ", "_")[:120]
+    return f"{owner}/{kind}/{ident}/{safe}"
+
+
+@router.get("/avatars")
+def list_avatars(user=Depends(teacher)):
+    with transaction() as s:
+        return [dict(id=a.id, name=a.name, description=a.description, mime_type=a.mime_type, status=a.status, created_at=a.created_at) for a in s.scalars(select(Avatar).where(Avatar.owner_id == user).order_by(Avatar.created_at.desc()))]
+
+
+@router.post("/avatars", status_code=201)
+def create_avatar(name: str = Form(...), description: str = Form(""), file: UploadFile = File(...), user=Depends(teacher)):
+    if file.content_type not in AVATAR_MIMES:
+        raise HTTPException(415, "Avatar must be PNG, JPG, JPEG or WEBP")
+    data = file.file.read()
+    if len(data) > 5 * 1024 * 1024:
+        raise HTTPException(413, "Avatar image must be 5 MB or smaller")
+    avatar = Avatar(owner_id=user, name=name.strip()[:200], description=description[:2000], storage_key="", mime_type=file.content_type)
+    with transaction() as s:
+        s.add(avatar); s.flush()
+        avatar.storage_key = _media_key(user, "avatars", avatar.id, file.filename or "avatar")
+        try:
+            get_store("media").put(avatar.storage_key, data, file.content_type)
+        except Exception as exc:
+            raise HTTPException(502, "Private avatar storage unavailable") from exc
+        return dict(id=avatar.id, name=avatar.name, description=avatar.description, mime_type=avatar.mime_type, status=avatar.status, created_at=avatar.created_at)
+
+
+@router.get("/avatars/{aid}/download")
+def avatar_download(aid: str, user=Depends(teacher)):
+    with transaction() as s:
+        avatar = s.get(Avatar, aid)
+        if not avatar or avatar.owner_id != user: raise HTTPException(404, "Avatar not found")
+        try: return get_store("media").create_download_url(avatar.storage_key, expires=60)
+        except Exception as exc: raise HTTPException(502, "Avatar preview unavailable") from exc
+
+
+@router.get("/videos")
+def list_videos(pack_id: str | None = None, user=Depends(teacher)):
+    with transaction() as s:
+        query = select(TeacherVideo).where(TeacherVideo.owner_id == user)
+        if pack_id: query = query.where(TeacherVideo.pack_id == pack_id)
+        return [dict(id=v.id, pack_id=v.pack_id, title=v.title, description=v.description, mime_type=v.mime_type, status=v.status, approved=v.approved, published=v.published, is_demo=v.is_demo, created_at=v.created_at) for v in s.scalars(query.order_by(TeacherVideo.created_at.desc()))]
+
+
+@router.post("/videos", status_code=201)
+def upload_video(title: str = Form(...), description: str = Form(""), pack_id: str | None = Form(None), file: UploadFile = File(...), user=Depends(teacher)):
+    if file.content_type not in VIDEO_MIMES: raise HTTPException(415, "Video must be MP4, WEBM or MOV")
+    data = file.file.read()
+    if len(data) > 250 * 1024 * 1024: raise HTTPException(413, "Video must be 250 MB or smaller")
+    with transaction() as s:
+        if pack_id: owned(s, pack_id, user, True)
+        video = TeacherVideo(owner_id=user, pack_id=pack_id, title=title.strip()[:200], description=description[:2000], storage_key="", mime_type=file.content_type)
+        s.add(video); s.flush(); video.storage_key = _media_key(user, "videos", video.id, file.filename or "video")
+        try: get_store("media").put(video.storage_key, data, file.content_type)
+        except Exception as exc: raise HTTPException(502, "Private video storage unavailable") from exc
+        return dict(id=video.id, title=video.title, status=video.status, approved=video.approved, published=video.published, is_demo=False)
+
+
+@router.post("/videos/{vid}/attach")
+def attach_video(vid: str, pack_id: str = Form(...), avatar_id: str | None = Form(None), user=Depends(teacher)):
+    with transaction() as s:
+        v = s.get(TeacherVideo, vid); u = owned(s, pack_id, user, True)
+        if not v or v.owner_id != user: raise HTTPException(404, "Video not found")
+        if avatar_id and (not s.get(Avatar, avatar_id) or s.get(Avatar, avatar_id).owner_id != user): raise HTTPException(404, "Avatar not found")
+        v.pack_id = u.id; v.avatar_id = avatar_id; v.approved = False; v.published = False
+        return {"id": v.id, "pack_id": v.pack_id, "status": v.status, "approved": v.approved, "published": v.published}
+
+
+@router.post("/videos/{vid}/approve")
+def approve_video(vid: str, user=Depends(teacher)):
+    with transaction() as s:
+        v = s.get(TeacherVideo, vid)
+        if not v or v.owner_id != user: raise HTTPException(404, "Video not found")
+        if not v.pack_id: raise HTTPException(409, "Attach the video to a pack first")
+        v.approved = True
+        return {"id": v.id, "approved": True}
+
+
+@router.get("/videos/{vid}/download")
+def video_download(vid: str, user=Depends(teacher)):
+    with transaction() as s:
+        v = s.get(TeacherVideo, vid)
+        if not v or v.owner_id != user: raise HTTPException(404, "Video not found")
+        try: return get_store("media").create_download_url(v.storage_key, expires=60)
+        except Exception as exc: raise HTTPException(502, "Video preview unavailable") from exc
+
+
 @router.post("/video-jobs", status_code=202)
 @rate_limit("video", capacity=3, refill_per_second=1 / 120)
 def video(body: VideoInput, user=Depends(teacher)):
@@ -379,6 +516,10 @@ def video(body: VideoInput, user=Depends(teacher)):
             ((a, v) for a, v in current_versions(s, u.id) if a.slot == "video_script"),
             None,
         )
+        if body.avatar_id:
+            avatar = s.get(Avatar, body.avatar_id)
+            if not avatar or avatar.owner_id != user:
+                raise HTTPException(404, "Avatar not found")
         if (
             not row
             or row[1].state != "APPROVED"
@@ -388,7 +529,7 @@ def video(body: VideoInput, user=Depends(teacher)):
                 409, "Approve the current video script before rendering."
             )
         job = queue(s, u, "video")
-        v = VideoJob(unit_id=u.id, script_version_id=row[1].id, job_id=job["id"])
+        v = VideoJob(unit_id=u.id, script_version_id=row[1].id, avatar_id=body.avatar_id, job_id=job["id"])
         s.add(v)
         s.flush()
         return {"id": v.id}

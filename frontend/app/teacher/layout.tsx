@@ -11,9 +11,10 @@ export default function TeacherLayout({ children }: { children: React.ReactNode 
   useEffect(() => {
     accessToken().then((t) => {
       if (!t) { router.replace("/login"); return; }
-      api<{ role?: string }>("/me")
+      api<{ role?: string; onboarding_completed?: boolean }>("/me")
         .then((u) => {
-          if (u.role === "student") router.replace("/student");
+          if (u.onboarding_completed === false) router.replace("/onboarding");
+          else if (u.role === "student") router.replace("/student");
           else setOk(true);
         })
         .catch(() => router.replace("/login"));

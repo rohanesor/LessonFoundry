@@ -82,10 +82,20 @@ class ReviewInput(BaseModel):
 
 class VideoInput(BaseModel):
     pack_id: str
+    avatar_id: str | None = None
 
 
 class Choice(BaseModel):
     choice: int = Field(ge=0, le=3)
+
+
+class ProfileUpdate(BaseModel):
+    name: str | None = Field(default=None, min_length=2, max_length=150)
+    institution_type: Literal["school", "college", "independent"] | None = None
+    institution_name: str | None = Field(default=None, max_length=200)
+    grade_level: str | None = Field(default=None, max_length=100)
+    avatar_url: str | None = Field(default=None, max_length=500)
+    onboarding_completed: bool | None = None
 
 
 class ObjectiveEdit(BaseModel):

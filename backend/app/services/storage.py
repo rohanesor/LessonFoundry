@@ -8,10 +8,10 @@ from app.security import identity
 class ObjectStore:
     """Normal I/O uses the teacher's JWT, not a service-role bypass."""
 
-    def __init__(self):
+    def __init__(self, bucket: str | None = None):
         self.remote = os.getenv("AUTH_MODE") == "supabase"
         self.url = os.getenv("SUPABASE_URL", "").rstrip("/")
-        self.bucket = os.getenv("SUPABASE_SOURCE_BUCKET", "sources")
+        self.bucket = bucket or os.getenv("SUPABASE_SOURCE_BUCKET", "sources")
 
     def headers(self):
         actor = identity.get()
@@ -83,6 +83,24 @@ class ObjectStore:
             raise ValueError("Unexpected storage signing response")
         return {"url": f"{self.url}/storage/v1{path}", "expires_in": expires}
 
+    def create_server_download_url(self, key, expires=60):
+        """Server-side authorized media signing after API authorization.
+        The service key never leaves the backend process.
+        """
+        if not self.remote:
+            return {"url": f"/local-files/{key}", "expires_in": expires}
+        key_value = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+        if not key_value:
+            raise ValueError("Server media signing is not configured")
+        r = httpx.post(
+            f"{self.url}/storage/v1/object/sign/{quote(self.bucket, safe='')}/{quote(key, safe='/')}",
+            headers={"Authorization": f"Bearer {key_value}", "apikey": key_value},
+            json={"expiresIn": expires}, timeout=20,
+        )
+        if not r.is_success: raise ValueError("Private media signing failed")
+        path = r.json()["signedURL"]
+        return {"url": f"{self.url}/storage/v1{path}", "expires_in": expires}
+
     def create_download_url(self, key, expires=300):
         """Generate a download URL. Delegates to sign() for Supabase, S3 for S3."""
         if self.remote:
@@ -94,10 +112,10 @@ class ObjectStore:
 class S3ObjectStore:
     """AWS S3 private bucket storage. Server-side only."""
 
-    def __init__(self):
+    def __init__(self, bucket: str | None = None):
         import boto3
         from botocore.client import Config
-        self.bucket = os.environ["AWS_S3_BUCKET"]
+        self.bucket = bucket or os.environ["AWS_S3_BUCKET"]
         self.region = os.getenv("AWS_REGION", "us-east-1")
         endpoint = f"https://s3.{self.region}.amazonaws.com"
         config = Config(signature_version="s3v4", s3={"addressing_style": "virtual"})
@@ -123,10 +141,13 @@ class S3ObjectStore:
     def sign(self, key, expires=300):
         return self.create_download_url(key, expires)
 
+    def create_server_download_url(self, key, expires=60):
+        return self.create_download_url(key, expires)
 
-def get_store():
-    """Factory: return the appropriate ObjectStore based on STORAGE_PROVIDER."""
+
+def get_store(bucket: str | None = None):
+    """Factory: return the appropriate private store and bucket."""
     provider = os.getenv("STORAGE_PROVIDER", "")
     if provider == "s3":
-        return S3ObjectStore()
-    return ObjectStore()
+        return S3ObjectStore(bucket)
+    return ObjectStore(bucket)

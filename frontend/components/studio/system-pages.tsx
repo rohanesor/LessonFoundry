@@ -1,5 +1,6 @@
 "use client";
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { api, post } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Status, Skeleton, Empty } from "@/components/ui/status";
@@ -199,75 +200,120 @@ export function VideoWorkflow({
   onApprove: (a: Asset) => void;
   run: (fn: () => Promise<unknown>, message?: string) => Promise<void>;
 }) {
+  const latest = pack.videos[0];
+  const scriptApproved = script && script.state === "APPROVED" && !script.stale;
+  const [avatarId, setAvatarId] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const [message, setMessage] = useState("");
+  const avatars = useQuery({ queryKey: ["avatars"], queryFn: () => api<{id:string;name:string;description:string;status:string}[]>("/avatars") });
+  const videos = useQuery({ queryKey: ["videos", pack.id], queryFn: () => api<{id:string;title:string;status:string;approved:boolean;published:boolean}[]>(`/videos?pack_id=${pack.id}`) });
+  async function createAvatar(file: File) {
+    const form = new FormData(); form.append("file", file); form.append("name", file.name.replace(/\\.[^.]+$/, ""));
+    setUploading(true); setMessage(""); try { await api("/avatars", { method: "POST", body: form }); await avatars.refetch(); setMessage("Avatar profile created. It is private to your teacher account."); } catch(e) { setMessage((e as Error).message); } finally { setUploading(false); }
+  }
+  async function uploadVideo(file: File) {
+    const form = new FormData(); form.append("file", file); form.append("title", file.name.replace(/\\.[^.]+$/, "")); form.append("pack_id", pack.id);
+    setUploading(true); setMessage(""); try { const video = await api<{id:string}>("/videos", { method: "POST", body: form }); await api(`/videos/${video.id}/attach`, { method: "POST", body: (() => { const f = new FormData(); f.append("pack_id", pack.id); if (avatarId) f.append("avatar_id", avatarId); return f; })() }); await videos.refetch(); setMessage("Existing video uploaded and attached. Approve it before publication."); } catch(e) { setMessage((e as Error).message); } finally { setUploading(false); }
+  }
   return (
     <div className="page stack">
-      <div className="kicker">AI teacher · Script-controlled presentation</div>
-      <h1>Teach through an AI presenter</h1>
+      <div className="kicker">AI Teacher</div>
+      <h1>Script, avatar, video</h1>
+      <p className="muted">
+        LessonFoundry keeps the approved script as the source of truth. The
+        avatar presents it. Video generation is provider-agnostic and currently
+        runs in demo mode.
+      </p>
       <div className="notice">
-        Development avatar provider · workflow simulation only. No playable
-        video is generated. HeyGen integration is not enabled.
+        Development mode · no paid AI provider configured. Generated outputs use
+        configured demo media only.
       </div>
-      <div className="video-stage">
-        <AITeacherIcon size={44} />
-        <h3>Approved script → AI presenter</h3>
-        <span>
-          LessonFoundry controls the lesson. The avatar only presents it.
-        </span>
+
+      <div className="v5-studio-grid">
+        <section className="stack">
+          <h3>Script</h3>
+          {script ? (
+            <article className="asset-card">
+              <div className="row spread">
+                <h4>{script.payload.title} · v{script.version}</h4>
+                <Status state={script.state} />
+              </div>
+              <p className="prose">{script.payload.body}</p>
+              <div className="row">
+                <Button
+                  disabled={script.state === "APPROVED" || script.stale}
+                  onClick={() => onApprove(script)}
+                >
+                  Review & approve script
+                </Button>
+              </div>
+            </article>
+          ) : (
+            <Empty title="No script yet">
+              Generate the learning pack first. The script is derived from the
+              approved explanation.
+            </Empty>
+          )}
+        </section>
+
+        <section className="stack">
+          <h3>Avatar</h3>
+          <div className="asset-card">
+            <div className="video-stage" style={{ minHeight: 160 }}>
+              <AITeacherIcon size={36} />
+              <h4>Avatar library</h4>
+              <span>Avatar upload and selection require the avatar library migration.</span>
+            </div>
+            <div className="row">
+              <label className="row">Avatar<select className="input" value={avatarId} onChange={e => setAvatarId(e.target.value)}><option value="">Choose an avatar</option>{(avatars.data || []).map(a => <option key={a.id} value={a.id}>{a.name}</option>)}</select></label>
+              <label className="btn btn-secondary">Create avatar from photo<input hidden type="file" accept="image/png,image/jpeg,image/webp" disabled={uploading} onChange={e => { const f=e.target.files?.[0]; if(f) void createAvatar(f); e.currentTarget.value=""; }} /></label>
+            </div>
+          </div>
+        </section>
       </div>
-      {script ? (
-        <>
+
+      <section className="stack">
+        <h3>Video</h3>
+        {latest ? (
           <article className="asset-card">
             <div className="row spread">
-              <h4>Video script · v{script.version}</h4>
-              <Status state={script.state} />
+              <b>
+                {latest.provider} · v{latest.script_version_id === script?.version_id ? script?.version : "historical"}
+              </b>
+              <Status state={latest.state} />
             </div>
-            <p className="prose">{script.payload.body}</p>
-            <div className="row">
-              <Button
-                disabled={script.state === "APPROVED" || script.stale}
-                onClick={() => onApprove(script)}
-              >
-                Review & approve script
-              </Button>
-              <Button
-                variant="default"
-                disabled={script.state !== "APPROVED" || script.stale}
-                onClick={() =>
-                  run(
-                    () => post("/video-jobs", { pack_id: pack.id }),
-                    "Mock render queued",
-                  )
-                }
-              >
-                <PlayIcon size={14} />
-                Simulate rendering
-              </Button>
-            </div>
+            {latest.url ? (
+              <video src={latest.url} controls poster="" style={{ width: "100%", maxHeight: 420 }} />
+            ) : (
+              <p className="muted">No playable video is available from the demo provider.</p>
+            )}
+            <small>{latest.state} · {latest.url ? "Demo media attached" : "Simulation only"}</small>
           </article>
-          {pack.videos.map((v) => (
-            <div className="asset-card" key={v.id}>
-              <div className="row spread">
-                <b>
-                  Generated from approved script{" "}
-                  {v.script_version_id === script.version_id
-                    ? `v${script.version}`
-                    : "(historical version)"}
-                </b>
-                <Status state={v.state} />
-              </div>
-              <small>
-                {v.provider} ·{" "}
-                {v.url ? "Output available" : "No MP4: mock workflow only"}
-              </small>
-            </div>
-          ))}
-        </>
-      ) : (
-        <Empty title="No script yet">
-          Generate your learning pack first, then review the script before
-          rendering.
-        </Empty>
-      )}
+        ) : (
+          <Empty title="No AI Teacher video yet">
+            Upload an existing video or run the mock generator once an approved
+            script and avatar are ready.
+          </Empty>
+        )}
+        {message && <div className="alert" role="status">{message}</div>}
+        {videos.data?.map(v => <div className="row" key={v.id}><span>{v.title}</span><Status state={v.approved ? "APPROVED" : v.status} /><Button disabled={v.approved} onClick={() => run(async () => { await post(`/videos/${v.id}/approve`); await videos.refetch(); }, "Existing video approved")}>{v.approved ? "Approved" : "Approve video"}</Button></div>)}
+        <div className="row">
+          <label className="btn btn-secondary">Upload existing video<input hidden type="file" accept="video/mp4,video/webm,video/quicktime" disabled={uploading} onChange={e => { const f=e.target.files?.[0]; if(f) void uploadVideo(f); e.currentTarget.value=""; }} /></label>
+          <Button
+            variant="default"
+            disabled={!scriptApproved || !avatarId}
+            onClick={() =>
+              run(
+                () => post("/video-jobs", { pack_id: pack.id, avatar_id: avatarId }),
+                "Mock generation queued",
+              )
+            }
+          >
+            <PlayIcon size={14} />
+            Generate AI Teacher video
+          </Button>
+        </div>
+      </section>
     </div>
   );
 }

@@ -1,0 +1,87 @@
+name: Mobile Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version (e.g. v1.0.0)"
+        required: true
+        default: "v0.1.0"
+      prerelease:
+        description: "Mark as pre-release"
+        type: boolean
+        default: true
+
+jobs:
+  build-and-release:
+    name: Build Mobile & Create Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+
+      - name: Install mobile dependencies
+        working-directory: mobile
+        run: npm ci
+
+      - name: Typecheck
+        working-directory: mobile
+        run: npm run typecheck
+
+      - name: Install Expo CLI
+        run: npm install -g expo-cli@latest @expo/ngrok
+
+      - name: Export Expo web bundle
+        working-directory: mobile
+        run: npx expo export --platform web --output-dir dist
+        env:
+          NODE_ENV: production
+
+      - name: Package mobile web bundle
+        working-directory: mobile
+        run: |
+          tar -czf ../lessonfoundry-mobile-web-${{ inputs.version }}.tar.gz -C dist .
+
+      - name: Package mobile source
+        run: |
+          tar -czf lessonfoundry-mobile-source-${{ inputs.version }}.tar.gz \
+            mobile/App.tsx mobile/app.json mobile/package.json mobile/tsconfig.json
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ inputs.version }}
+          name: "LessonFoundry ${{ inputs.version }}"
+          prerelease: ${{ inputs.prerelease }}
+          generate_release_notes: true
+          files: |
+            lessonfoundry-mobile-web-${{ inputs.version }}.tar.gz
+            lessonfoundry-mobile-source-${{ inputs.version }}.tar.gz
+          body: |
+            ## LessonFoundry ${{ inputs.version }}
+
+            ### Mobile App
+            - **Web Bundle**: `lessonfoundry-mobile-web-${{ inputs.version }}.tar.gz` — Expo web export, deployable to any static host
+            - **Source Package**: `lessonfoundry-mobile-source-${{ inputs.version }}.tar.gz` — Source files for local Expo development
+
+            ### To run the mobile app locally:
+            ```bash
+            cd mobile
+            npm install
+            npx expo start
+            ```
+            Scan the QR code with Expo Go on your phone to test.
+
+            ### To build a native APK (requires EAS):
+            ```bash
+            npm install -g eas-cli
+            cd mobile
+            eas build --platform android --profile preview
+            ```

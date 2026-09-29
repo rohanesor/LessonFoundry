@@ -1,0 +1,56 @@
+name: Deploy to EC2
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          cat >> ~/.ssh/config <<EOF
+          Host ec2
+            HostName 3.7.29.147
+            User ubuntu
+            IdentityFile ~/.ssh/deploy_key
+            StrictHostKeyChecking no
+          EOF
+
+      - name: Pull latest code
+        run: ssh ec2 "cd /opt/lessonfoundry && git pull origin main"
+
+      - name: Apply database migrations
+        run: |
+          ssh ec2 'cd /opt/lessonfoundry && for f in backend/migrations/*.sql; do
+            echo "Applying $f..."
+            docker compose exec -T db psql -U lessonfoundry -d lessonfoundry -f - < "$f" 2>&1 || true
+          done'
+
+      - name: Rebuild and restart containers
+        run: |
+          ssh ec2 'cd /opt/lessonfoundry && \
+            docker compose build --no-cache api worker web && \
+            docker compose up -d && \
+            echo "Waiting for health check..." && \
+            sleep 10 && \
+            curl -sf http://127.0.0.1:8000/api/ready || echo "Health check warning"'
+
+      - name: Verify deployment
+        run: |
+          ssh ec2 'curl -sf http://127.0.0.1:8000/api/ready && echo "Deployment OK" || echo "Deployment needs attention"'
+          ssh ec2 'docker compose ps'

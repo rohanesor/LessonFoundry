@@ -7,21 +7,27 @@ import { api } from "@/lib/api";
 
 export default function LoginPage() {
   const router = useRouter();
+  const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [intent, setIntent] = useState<"teacher" | "student">("teacher");
-
+  const routeUser = (u: { role?: string; onboarding_completed?: boolean }) =>
+    router.replace(
+      u.onboarding_completed === false
+        ? "/onboarding"
+        : u.role === "student"
+          ? "/student"
+          : "/teacher",
+    );
   useEffect(() => {
     accessToken().then((t) => {
-      if (t) {
-        api<{ role?: string }>("/me")
-          .then((u) => router.replace(u.role === "student" ? "/student" : "/teacher"))
+      if (t)
+        api<{ role?: string; onboarding_completed?: boolean }>("/me")
+          .then(routeUser)
           .catch(() => {});
-      }
     });
   }, [router]);
-
-  async function handleGoogle() {
+  async function google() {
     if (!hostedAuth) {
       setError("Google login requires Supabase configuration.");
       return;
@@ -37,37 +43,55 @@ export default function LoginPage() {
     if (error) setError(error.message);
     setBusy(false);
   }
-
-  async function handlePassword(e: React.FormEvent<HTMLFormElement>) {
+  async function password(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setBusy(true);
     setError("");
-    const fd = new FormData(e.currentTarget);
+    const f = new FormData(e.currentTarget);
     try {
-      const result = await supabase().auth.signInWithPassword({
-        email: String(fd.get("email") || ""),
-        password: String(fd.get("password") || ""),
-      });
-      if (result.error || !result.data.session) throw result.error || new Error("Session was not created");
-      const user = await api<{ role?: string }>("/me");
-      router.replace(user.role === "student" ? "/student" : "/teacher");
+      if (mode === "signup") {
+        const pass = String(f.get("password") || "");
+        if (pass.length < 8)
+          throw new Error("Password must be at least 8 characters.");
+        if (pass !== String(f.get("confirm") || ""))
+          throw new Error("Passwords do not match.");
+        const r = await supabase().auth.signUp({
+          email: String(f.get("email")),
+          password: pass,
+          options: {
+            data: { requested_role: intent, name: String(f.get("name") || "") },
+          },
+        });
+        if (r.error) throw r.error;
+        if (!r.data.session) {
+          setError(
+            "Account created. Check your email to confirm, then sign in.",
+          );
+          setMode("signin");
+          return;
+        }
+      } else {
+        const r = await supabase().auth.signInWithPassword({
+          email: String(f.get("email") || ""),
+          password: String(f.get("password") || ""),
+        });
+        if (r.error || !r.data.session)
+          throw r.error || new Error("Session was not created");
+      }
+      routeUser(await api("/me"));
     } catch (err) {
       setError((err as Error).message);
     } finally {
       setBusy(false);
     }
   }
-
-  async function handleLocal(e: React.FormEvent<HTMLFormElement>) {
+  async function local(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setBusy(true);
-    setError("");
-    const fd = new FormData(e.currentTarget);
-    const token = String(fd.get("token") || "").trim();
+    const f = new FormData(e.currentTarget);
     try {
-      sessionStorage.setItem("lf-token", token);
-      const u = await api<{ role?: string }>("/me");
-      router.replace(u.role === "student" ? "/student" : "/teacher");
+      sessionStorage.setItem("lf-token", String(f.get("token") || "").trim());
+      routeUser(await api("/me"));
     } catch (err) {
       sessionStorage.removeItem("lf-token");
       setError((err as Error).message);
@@ -75,65 +99,152 @@ export default function LoginPage() {
       setBusy(false);
     }
   }
-
   return (
     <div className="login-page v5-login">
       <aside className="login-story">
         <div className="kicker">LessonFoundry</div>
-        <div><h1>Generation<br />with control.</h1><p>Trusted sources. Traceable learning. Your approval.</p></div>
-        <div className="row"><span>Sources</span><span>Evidence</span><span>Review</span><span>Learning</span></div>
+        <div>
+          <h1>
+            Generation
+            <br />
+            with control.
+          </h1>
+          <p>Trusted sources. Traceable learning. Your approval.</p>
+        </div>
+        <div className="row">
+          <span>Sources</span>
+          <span>Evidence</span>
+          <span>Review</span>
+          <span>Learning</span>
+        </div>
       </aside>
       <div className="login-card">
-        <div className="brand" style={{ padding: 0, gap: 10, borderBottom: "none" }}>
-          <LessonFoundryLogo height={28} />
-        </div>
+        <LessonFoundryLogo height={28} />
         <p className="login-tagline">Build. Verify. Teach. Learn.</p>
-
         {hostedAuth ? (
           <>
-            <button className="btn btn-primary btn-block" onClick={handleGoogle} disabled={busy}>
+            <div className="auth-tabs">
+              <button
+                className={mode === "signin" ? "active" : ""}
+                onClick={() => setMode("signin")}
+              >
+                Sign in
+              </button>
+              <button
+                className={mode === "signup" ? "active" : ""}
+                onClick={() => setMode("signup")}
+              >
+                Create account
+              </button>
+            </div>
+            <button
+              className="btn btn-primary btn-block"
+              onClick={google}
+              disabled={busy}
+            >
               Continue with Google
             </button>
-            <div className="muted" style={{ textAlign: "center" }}>or</div>
-            <form className="stack" onSubmit={handlePassword}>
-              <label>Email<input className="input" name="email" type="email" autoComplete="username" required /></label>
-              <label>Password<input className="input" name="password" type="password" autoComplete="current-password" required /></label>
-              <button className="btn btn-secondary btn-block" type="submit" disabled={busy}>
-                {busy ? "Signing in…" : "Sign in with email"}
+            <div className="muted" style={{ textAlign: "center" }}>
+              or
+            </div>
+            <form className="stack" onSubmit={password}>
+              {mode === "signup" && (
+                <>
+                  <div className="role-choice">
+                    <button
+                      type="button"
+                      className={intent === "teacher" ? "selected" : ""}
+                      onClick={() => setIntent("teacher")}
+                    >
+                      Teacher / Educator
+                    </button>
+                    <button
+                      type="button"
+                      className={intent === "student" ? "selected" : ""}
+                      onClick={() => setIntent("student")}
+                    >
+                      Student / Learner
+                    </button>
+                  </div>
+                  <label>
+                    Full name
+                    <input
+                      className="input"
+                      name="name"
+                      required
+                      minLength={2}
+                    />
+                  </label>
+                </>
+              )}
+              <label>
+                Email
+                <input
+                  className="input"
+                  name="email"
+                  type="email"
+                  autoComplete="username"
+                  required
+                />
+              </label>
+              <label>
+                Password
+                <input
+                  className="input"
+                  name="password"
+                  type="password"
+                  autoComplete={
+                    mode === "signup" ? "new-password" : "current-password"
+                  }
+                  required
+                />
+              </label>
+              {mode === "signup" && (
+                <label>
+                  Confirm password
+                  <input
+                    className="input"
+                    name="confirm"
+                    type="password"
+                    autoComplete="new-password"
+                    required
+                  />
+                </label>
+              )}
+              <button className="btn btn-secondary btn-block" disabled={busy}>
+                {busy
+                  ? mode === "signup"
+                    ? "Creating…"
+                    : "Signing in…"
+                  : mode === "signup"
+                    ? "Create account"
+                    : "Sign in with email"}
               </button>
             </form>
-            <div className="login-role-selector">
-              <span className="muted">I am a…</span>
-              <div className="row" style={{ gap: 8 }}>
-                <button
-                  className={`btn ${intent === "teacher" ? "btn-secondary" : "btn-ghost"}`}
-                  onClick={() => setIntent("teacher")}
-                >Teacher</button>
-                <button
-                  className={`btn ${intent === "student" ? "btn-secondary" : "btn-ghost"}`}
-                  onClick={() => setIntent("student")}
-                >Student</button>
-              </div>
-              <small className="muted">Role is confirmed by your account, not this selection.</small>
-            </div>
           </>
         ) : (
-          <form className="stack" onSubmit={handleLocal}>
-            <div className="notice">
-              Local development mode. Google OAuth requires Supabase configuration.
-            </div>
+          <form className="stack" onSubmit={local}>
+            <div className="notice">Local development mode.</div>
             <label>
               Token
-              <input className="input" name="token" type="password" required
-                defaultValue="local-development-only" />
+              <input
+                className="input"
+                name="token"
+                type="password"
+                defaultValue="local-development-only"
+                required
+              />
             </label>
-            <button className="btn btn-primary btn-block" type="submit" disabled={busy}>
-              {busy ? "Connecting…" : "Sign in →"}
+            <button className="btn btn-primary btn-block" disabled={busy}>
+              Sign in →
             </button>
           </form>
         )}
-
-        {error && <div className="alert" role="alert">{error}</div>}
+        {error && (
+          <div className="alert" role="alert">
+            {error}
+          </div>
+        )}
       </div>
     </div>
   );

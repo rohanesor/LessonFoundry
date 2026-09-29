@@ -10,7 +10,7 @@ from app.observability import log_job
 from app.repositories.packs import pack_dict, owned, current_versions
 from app.services.packs import new_version, event
 from app.providers.llm import provider, SLOTS
-from app.providers.avatar import MockAvatarProvider
+from app.providers.video import MockVideoGenerationProvider, VideoGenerationInput
 from app.services.export import render_pack_pdf
 
 
@@ -67,7 +67,10 @@ def run_job(jid):
                 ):
                     raise ValueError("Script must be approved and current")
                 text = script.payload["body"]
-            result = MockAvatarProvider().create_video(text)
+            result = MockVideoGenerationProvider().create_video(VideoGenerationInput(
+                script_text=text, avatar_id=v.avatar_id, pack_id=v.unit_id, user_id=user_id
+            ))
+            result = {"state": result.state, "url": result.url, "message": result.message, "is_demo": result.is_demo}
         else:
             objectives = [o for o in data["objectives"] if o["status"] == "SUPPORTED"]
             if not objectives:

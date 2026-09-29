@@ -145,6 +145,23 @@ def test_student_duplicate_join():
     assert r.status_code == 409
 
 
+def test_student_join_by_code_alone():
+    c = _api()
+    data = _create_classroom(c)
+    r = c.post("/api/join", json={"code": data["join_code"]}, headers=S)
+    assert r.status_code == 200
+    assert r.json()["joined"] is True
+    assert r.json()["classroom_id"] == data["id"]
+
+    # duplicate
+    r_dup = c.post("/api/join", json={"code": data["join_code"]}, headers=S)
+    assert r_dup.status_code == 409
+
+    # invalid code
+    r_inv = c.post("/api/join", json={"code": "LF-BADCD"}, headers=S)
+    assert r_inv.status_code == 400
+
+
 def test_list_and_remove_members():
     c = _api()
     data = _create_classroom(c)

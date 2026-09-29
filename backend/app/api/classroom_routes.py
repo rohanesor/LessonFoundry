@@ -14,6 +14,7 @@ from app.models.entities import (
 from app.repositories.packs import current_versions, pack_dict
 from app.services.classrooms import (
     generate_join_code, classroom_owned, classroom_summary, derive_pack_status,
+    find_classroom_by_code, find_classroom_for_join,
 )
 
 router = APIRouter(prefix="/api")
@@ -111,12 +112,7 @@ def regenerate_code(cid: str, user=Depends(teacher)):
 def join_by_code(body: JoinInput, user=Depends(student)):
     """Join a classroom by code alone (no classroom_id needed)."""
     with transaction() as s:
-        c = s.scalar(
-            select(Classroom).where(
-                Classroom.join_code == body.code.upper().strip(),
-                Classroom.status == "active",
-            )
-        )
+        c = find_classroom_by_code(s, body.code)
         if not c:
             raise HTTPException(400, "Invalid join code")
         existing = s.scalar(
@@ -139,12 +135,7 @@ def join_by_code(body: JoinInput, user=Depends(student)):
 @rate_limit("join", capacity=10, refill_per_second=1/60)
 def join_classroom(cid: str, body: JoinInput, user=Depends(student)):
     with transaction() as s:
-        c = s.scalar(
-            select(Classroom).where(
-                Classroom.id == cid,
-                Classroom.status == "active",
-            )
-        )
+        c = find_classroom_for_join(s, cid)
         if not c:
             raise HTTPException(404, "Classroom not found")
         if c.join_code.upper() != body.code.upper().strip():

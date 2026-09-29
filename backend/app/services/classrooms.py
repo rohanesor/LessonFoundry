@@ -30,6 +30,44 @@ def classroom_owned(s, classroom_id: str, user_id: str, lock: bool = False):
     return c
 
 
+def find_classroom_by_code(s, code: str) -> Classroom | None:
+    """Find active classroom by join code, bypassing RLS during student join handshake."""
+    code_clean = code.upper().strip()
+    if s.bind.dialect.name == "postgresql":
+        from sqlalchemy import text
+        return s.scalars(
+            select(Classroom).from_statement(
+                text("SELECT * FROM lf_private.find_classroom_by_join_code(:code)")
+            ),
+            {"code": code_clean},
+        ).first()
+    return s.scalar(
+        select(Classroom).where(
+            Classroom.join_code == code_clean,
+            Classroom.status == "active",
+        )
+    )
+
+
+def find_classroom_for_join(s, cid: str) -> Classroom | None:
+    """Find active classroom by ID, bypassing RLS during student join handshake."""
+    if s.bind.dialect.name == "postgresql":
+        from sqlalchemy import text
+        return s.scalars(
+            select(Classroom).from_statement(
+                text("SELECT * FROM lf_private.get_classroom_for_join(:cid)")
+            ),
+            {"cid": cid},
+        ).first()
+    return s.scalar(
+        select(Classroom).where(
+            Classroom.id == cid,
+            Classroom.status == "active",
+        )
+    )
+
+
+
 def classroom_summary(s, c: Classroom) -> dict:
     member_count = s.scalar(
         select(func.count()).where(

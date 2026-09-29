@@ -1,0 +1,208 @@
+// LessonFoundry icon set · 24px grid · 1.75 stroke · square caps · mitred joins.
+// Modes: s = stroke, f = fill, d = dashed stroke, k = knock-out stroke (ground colour).
+// Source: LessonFoundry Frontend Design/design_handoff_lessonfoundry/components/LFIcon.tsx
+import * as React from "react";
+type Mode = "s" | "f" | "d" | "k";
+const I = {
+  source: [
+    ["M5 3h9l5 5v13H5z", "s"],
+    ["M14 3v5h5", "s"],
+    ["M8 12.5h8M8 16.5h8", "s"],
+  ],
+  evidence: [
+    ["M3 3h11v18H3z", "s"],
+    ["M6 8h5v3.5H6z", "f"],
+    ["M11 9.75h6.5V16", "s"],
+    ["M15 16h5v5h-5z", "f"],
+  ],
+  objective: [
+    ["M12 3a9 9 0 1 1 0 18a9 9 0 1 1 0-18z", "s"],
+    ["M12 8a4 4 0 1 1 0 8a4 4 0 1 1 0-8z", "s"],
+    ["M11 11h2v2h-2z", "f"],
+  ],
+  generate: [
+    ["M3 3h7v7H3z", "s"],
+    ["M6.5 10v7.5H12", "s"],
+    ["M10 15l2.5 2.5L10 20", "s"],
+    ["M14 14h7v7h-7z", "f"],
+  ],
+  regenerate: [
+    ["M19.5 9A8 8 0 1 0 20 12.5", "s"],
+    ["M20 4v5h-5", "s"],
+    ["M10 10h4v4h-4z", "f"],
+  ],
+  validation: [
+    ["M14 3H3v18h18v-9", "s"],
+    ["M7.5 11.5l4 4L21 5", "s"],
+  ],
+  approval: [
+    ["M8 9V6.5a4 4 0 0 1 8 0V9", "s"],
+    ["M4 9h16v12H4z", "s"],
+    ["M8.5 15l2.5 2.5 4.5-5", "s"],
+  ],
+  lock: [
+    ["M8 10V7a4 4 0 0 1 8 0v3", "s"],
+    ["M5 10h14v11H5z", "s"],
+    ["M12 14v3", "s"],
+  ],
+  version: [
+    ["M9 6V3h12v12h-3", "s"],
+    ["M6 9V6h12v12h-3", "s"],
+    ["M3 9h12v12H3z", "s"],
+  ],
+  student: [
+    ["M12 3a3.5 3.5 0 1 1 0 7a3.5 3.5 0 1 1 0-7z", "s"],
+    ["M4.5 21v-4.5h15V21", "s"],
+  ],
+  aiTeacher: [
+    ["M3 4h18v12H3z", "s"],
+    ["M10 7.5v5l4.5-2.5z", "f"],
+    ["M7 20h10", "s"],
+  ],
+  resources: [
+    ["M13 3h8v8", "s"],
+    ["M21 3l-9 9", "s"],
+    ["M18 14v7H3V6h7", "s"],
+  ],
+  dashboard: [
+    ["M3 3h8v10H3zM13 3h8v6h-8zM13 11h8v10h-8zM3 15h8v6H3z", "s"],
+  ],
+  packs: [
+    ["M3 8h18v13H3z", "s"],
+    ["M5 5h14M7 2.5h10", "s"],
+    ["M9 12h6", "s"],
+  ],
+  overview: [
+    ["M3 3h18v18H3z", "s"],
+    ["M3 9h18M9 9v12", "s"],
+  ],
+  explanation: [
+    ["M5 3h14v18H5z", "s"],
+    ["M8 7h8M8 11h8M8 15h5", "s"],
+  ],
+  assessment: [
+    ["M6 4h12v17H6z", "s"],
+    ["M9 2.5h6v3H9z", "f"],
+    ["M9 11h6M9 15h4", "s"],
+  ],
+  quiz: [
+    ["M4 5h4v4H4z", "f"],
+    ["M11 7h9", "s"],
+    ["M4 15h4v4H4z", "s"],
+    ["M11 17h9", "s"],
+  ],
+  answerKey: [
+    ["M3 8h8v8H3z", "s"],
+    ["M11 12h10M17 12v4M20.5 12v3", "s"],
+  ],
+  exam: [
+    ["M5 21V3", "s"],
+    ["M5 4h13l-3 4.5 3 4.5H5", "s"],
+  ],
+  settings: [
+    ["M4 7h9M17 7h3M4 17h3M11 17h9", "s"],
+    ["M13 5h4v4h-4zM7 15h4v4H7z", "s"],
+  ],
+  search: [
+    ["M10.5 4a6.5 6.5 0 1 1 0 13a6.5 6.5 0 1 1 0-13z", "s"],
+    ["M15.5 15.5l5 5", "s"],
+  ],
+  bell: [
+    ["M6 17v-6a6 6 0 0 1 12 0v6", "s"],
+    ["M4 17h16", "s"],
+    ["M10 20.5h4", "s"],
+  ],
+  warning: [
+    ["M12 3.5l9.5 17h-19z", "s"],
+    ["M12 10v4.5", "s"],
+    ["M11.1 16.6h1.8v1.8h-1.8z", "f"],
+  ],
+  fail: [
+    ["M12 3a9 9 0 1 1 0 18a9 9 0 1 1 0-18z", "s"],
+    ["M9 9l6 6M15 9l-6 6", "s"],
+  ],
+  draft: [
+    ["M5 3h14v18H5z", "d"],
+    ["M8 8h8M8 12h5", "s"],
+  ],
+  queued: [
+    ["M6 3h12M6 21h12", "s"],
+    ["M7 3l5 9-5 9M17 3l-5 9 5 9", "s"],
+  ],
+  running: [
+    ["M21 12a9 9 0 1 1-9-9", "s"],
+    ["M12 3a9 9 0 0 1 9 9", "d"],
+    ["M10.5 10.5h3v3h-3z", "f"],
+  ],
+  ready: [
+    ["M3 3h18v18H3z", "f"],
+    ["M7.5 12l3 3 6-6.5", "k"],
+  ],
+  pending: [
+    ["M12 3a9 9 0 1 1 0 18a9 9 0 1 1 0-18z", "d"],
+  ],
+  info: [
+    ["M12 3a9 9 0 1 1 0 18a9 9 0 1 1 0-18z", "s"],
+    ["M12 10.5v6", "s"],
+    ["M11.1 6.6h1.8v1.8h-1.8z", "f"],
+  ],
+  edited: [
+    ["M4 20v-4L16 4l4 4L8 20z", "s"],
+    ["M13 7l4 4", "s"],
+  ],
+  arrowRight: [
+    ["M4 12h15M14 7l5 5-5 5", "s"],
+  ],
+  close: [
+    ["M6 6l12 12M18 6L6 18", "s"],
+  ],
+  plus: [
+    ["M12 4v16M4 12h16", "s"],
+  ],
+  play: [
+    ["M7 4v16l13-8z", "f"],
+  ],
+  check: [
+    ["M5 12.5l4.5 4.5L19 7", "s"],
+  ],
+} as const;
+
+export type LFIconName = keyof typeof I;
+
+export function LFIcon({
+  name,
+  size = 16,
+  className,
+}: {
+  name: LFIconName;
+  size?: number;
+  className?: string;
+} & React.SVGProps<SVGSVGElement>) {
+  const sw = size <= 12 ? 2.1 : size >= 32 ? 1.5 : 1.75;
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden
+      className={className}
+    >
+      {I[name].map(([d, m], i) =>
+        m === "f" ? (
+          <path key={i} d={d} fill="currentColor" />
+        ) : (
+          <path
+            key={i}
+            d={d}
+            stroke={m === "k" ? "var(--color-bg)" : "currentColor"}
+            strokeWidth={sw}
+            strokeLinecap="square"
+            strokeLinejoin="miter"
+            strokeDasharray={m === "d" ? "2.2 2.4" : undefined}
+          />
+        ),
+      )}
+    </svg>
+  );
+}

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/modernist-2d405345-c880-4218-92f2-cddc1804b608/styles.css">
+<script src="_ds/modernist-2d405345-c880-4218-92f2-cddc1804b608/_ds_bundle.js"></script>
+</helmet>
+<div style="display:flex;flex-direction:column;gap:30px;padding:{{ pad }};max-width:1000px;font-family:var(--font-body);color:var(--color-text)">
+  <div style="display:flex;flex-direction:column;gap:6px">
+    <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;font-weight:600;color:var(--color-accent-700)">{{ kicker }}</div>
+    <div style="font-size:32px;font-weight:800;letter-spacing:-0.02em;line-height:1.1">Important &amp; Exam Focus</div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:12px">
+    <div style="display:flex;align-items:center;gap:10px;padding-bottom:8px;border-bottom:2px solid var(--color-divider)"><span style="width:24px;height:24px;display:grid;place-items:center;background:var(--color-text);color:var(--color-bg);font-size:13px">★</span><span style="font-size:18px;font-weight:800">★ Must know</span><span style="font-size:12px;color:var(--color-neutral-700)">Key concepts</span></div>
+    <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px">
+      <sc-for list="{{ concepts }}" as="c" hint-placeholder-count="6">
+        <div style="display:flex;flex-direction:column;gap:6px;padding:14px 16px;background:var(--color-surface)">
+          <span style="font-size:15px;font-weight:800">{{ c.t }}</span>
+          <span style="font-size:13px;line-height:1.5">{{ c.d }}</span>
+          <sc-if value="{{ teacher }}" hint-placeholder-val="{{ true }}"><span style="font-size:11px;color:var(--color-neutral-700)"><b>{{ c.ev }}</b> · Objective {{ c.o }}</span></sc-if>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:12px">
+    <div style="display:flex;align-items:center;gap:10px;padding-bottom:8px;border-bottom:2px solid var(--color-divider)"><span style="width:24px;height:24px;display:grid;place-items:center;background:var(--color-text);color:var(--color-bg);font-size:13px;font-weight:800">ƒ</span><span style="font-size:18px;font-weight:800">ƒ Key formulas &amp; facts</span></div>
+    <sc-for list="{{ formulas }}" as="f" hint-placeholder-count="5">
+      <div style="display:grid;grid-template-columns:200px minmax(0,1fr) auto;gap:16px;align-items:baseline;padding:10px 0;border-bottom:1px solid var(--color-neutral-300)">
+        <span style="font-family:Georgia, 'Times New Roman', serif;font-size:20px;font-style:italic">{{ f.f }}</span>
+        <span style="font-size:13px;line-height:1.5">{{ f.d }}</span>
+        <sc-if value="{{ teacher }}" hint-placeholder-val="{{ true }}"><span style="font-size:11px;font-weight:700;padding:2px 6px;background:var(--color-neutral-200)">{{ f.ev }}</span></sc-if>
+      </div>
+    </sc-for>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:12px">
+    <div style="display:flex;align-items:center;gap:10px;padding-bottom:8px;border-bottom:2px solid var(--color-divider)"><span style="width:24px;height:24px;display:grid;place-items:center;background:var(--color-text);color:var(--color-bg);font-size:13px;font-weight:800">↳</span><span style="font-size:18px;font-weight:800">↳ Concept flow</span><span style="font-size:12px;color:var(--color-neutral-700)">Which law applies</span></div>
+    <div style="display:grid;grid-template-columns:minmax(0,1fr) 32px minmax(0,1fr) 32px minmax(0,1.2fr);align-items:center;gap:0;padding:8px 0">
+      <div style="padding:14px;border:2px solid var(--color-text);font-size:14px;font-weight:800">Forces act on a body</div>
+      <div style="text-align:center;font-weight:800">→</div>
+      <div style="padding:14px;border:2px solid var(--color-text);font-size:14px;font-weight:800">Is the net force zero?</div>
+      <div style="text-align:center;font-weight:800">→</div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div style="padding:10px 12px;background:var(--color-surface);font-size:13px;line-height:1.4"><b>Yes</b> → velocity does not change<br><span style="color:var(--color-neutral-700)">First Law · inertia</span></div>
+        <div style="padding:10px 12px;background:var(--color-surface);font-size:13px;line-height:1.4"><b>No</b> → body accelerates, a = F<sub>net</sub> / m<br><span style="color:var(--color-neutral-700)">Second Law</span></div>
+      </div>
+    </div>
+    <div style="padding:10px 12px;border-top:1px solid var(--color-neutral-300);font-size:13px;line-height:1.45"><b>In every case</b> each force has an equal and opposite partner acting on a different body · <span style="color:var(--color-neutral-700)">Third Law</span></div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:12px">
+    <div style="display:flex;align-items:center;gap:10px;padding-bottom:8px;border-bottom:2px solid var(--color-divider)"><span style="width:24px;height:24px;display:grid;place-items:center;background:var(--color-text);color:var(--color-bg);font-size:13px;font-weight:800">✓</span><span style="font-size:18px;font-weight:800">✓ Verified PYQs</span></div>
+    <sc-if value="{{ teacher }}" hint-placeholder-val="{{ true }}"><div style="font-size:12px;color:var(--color-neutral-800)">A question is labelled PYQ only when it is matched to an uploaded exam paper. Unmatched questions are shown to students as practice questions.</div></sc-if>
+    <div style="display:grid;grid-template-columns:120px 90px minmax(0,1fr) {{ srcCol }};gap:14px;padding:8px 0;border-bottom:2px solid var(--color-divider);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;font-weight:600;color:var(--color-neutral-700)"><span>Exam</span><span>Year</span><span>Question</span><sc-if value="{{ teacher }}" hint-placeholder-val="{{ true }}"><span>Source · verification</span></sc-if></div>
+    <sc-for list="{{ pyqs }}" as="q" hint-placeholder-count="4">
+      <div style="display:grid;grid-template-columns:120px 90px minmax(0,1fr) {{ srcCol }};gap:14px;align-items:start;padding:12px 0;border-bottom:1px solid var(--color-neutral-300);opacity:{{ q.op }}">
+        <span style="font-size:13px;font-weight:700">{{ q.exam }}</span>
+        <span style="font-size:13px">{{ q.year }}</span>
+        <span style="font-size:14px;line-height:1.5">{{ q.q }}<span style="display:block;font-size:11px;color:var(--color-neutral-700);margin-top:2px">{{ q.marks }}</span></span>
+        <sc-if value="{{ teacher }}" hint-placeholder-val="{{ true }}"><span style="display:flex;flex-direction:column;gap:4px;font-size:12px"><dc-import name="StatusBadge" status="{{ q.s }}" label="{{ q.sl }}" hint-size="90px,20px"></dc-import><span style="color:var(--color-neutral-800)">{{ q.src }}</span></span></sc-if>
+      </div>
+    </sc-for>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1000,&quot;height&quot;:1200},&quot;student&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const student = !!this.props.student;
+    const pyqs = [
+      { exam: 'CBSE Class 11', year: '2023', q: "State Newton's first law of motion. Why is it also called the law of inertia?", marks: '2 marks', s: 'pass', sl: 'Verified', src: 'CBSE_Physics_2023.pdf · p.3 · Q7' },
+      { exam: 'CBSE Class 11', year: '2024', q: 'Explain why a cricketer moves their hands backwards while catching a fast ball.', marks: '2 marks', s: 'pass', sl: 'Verified', src: 'CBSE_Physics_2024.pdf · p.5 · Q12' },
+      { exam: 'JEE Main', year: '2022', q: 'A body of mass 2 kg moving at 5 m/s is brought to rest in 0.1 s. What average force acts on it?', marks: '4 marks · MCQ', s: 'pass', sl: 'Verified', src: 'JEE_Main_2022_Shift1.pdf · Q4' },
+      { exam: 'Not matched', year: '—', q: 'Two blocks in contact are pushed on a smooth surface. Find the contact force between them.', marks: 'Shown to students as a practice question', s: 'review', sl: 'Unverified', src: 'No match in uploaded papers · not labelled PYQ', unverified: true }
+    ].filter((q) => !(student && q.unverified)).map((q) => ({ ...q, op: q.unverified ? 0.75 : 1 }));
+    return {
+      teacher: !student, pad: student ? '0' : '26px 32px 40px', srcCol: student ? '' : '220px',
+      kicker: student ? 'Revise' : 'Asset 06 · Exam focus · v2',
+      concepts: [
+        { t: 'Inertia', d: 'A body resists changes to its state of rest or uniform motion. More mass means more inertia.', ev: 'E102', o: '01' },
+        { t: 'First Law', d: 'With zero net force, velocity stays constant, including staying at rest.', ev: 'E102', o: '01' },
+        { t: 'Net force', d: 'The vector sum of all forces on one body. Only the net force changes motion.', ev: 'E110', o: '02' },
+        { t: 'Second Law', d: 'Acceleration is proportional to net force and inversely proportional to mass.', ev: 'E110', o: '02' },
+        { t: 'Third Law pairs', d: 'Equal in size, opposite in direction, acting on different bodies.', ev: 'E121', o: '03' },
+        { t: 'Common mistake', d: 'Action and reaction do not cancel: they act on different objects.', ev: 'E131', o: '03' }
+      ],
+      formulas: [
+        { f: 'F = ma', d: 'Second Law for constant mass. F in newtons, m in kilograms, a in m/s².', ev: 'E110' },
+        { f: 'F = Δp / Δt', d: 'General form: force equals the rate of change of momentum.', ev: 'E110' },
+        { f: 'p = mv', d: 'Momentum is mass times velocity, in kg·m/s.', ev: 'E109' },
+        { f: '1 N = 1 kg·m/s²', d: 'One newton gives a 1 kg mass an acceleration of 1 m/s².', ev: 'E111' },
+        { f: 'F\u2081\u2082 = −F\u2082\u2081', d: 'Third Law: the force of A on B equals minus the force of B on A.', ev: 'E121' }
+      ],
+      pyqs
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/modernist-2d405345-c880-4218-92f2-cddc1804b608/styles.css">
+<script src="_ds/modernist-2d405345-c880-4218-92f2-cddc1804b608/_ds_bundle.js"></script>
+</helmet>
+<div style="display:flex;flex-direction:column;gap:20px;padding:{{ pad }};max-width:1080px;font-family:var(--font-body);color:var(--color-text)">
+  <div style="display:flex;flex-direction:column;gap:6px">
+    <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;font-weight:600;color:var(--color-neutral-700)">{{ kicker }}</div>
+    <div style="font-size:32px;font-weight:800;letter-spacing:-0.02em;line-height:1.1">Supplementary Resources</div>
+  </div>
+  <div style="display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:center;padding:12px 14px;border:2px solid var(--color-neutral-400)">
+    <span style="font-size:11px;font-weight:800;letter-spacing:0.08em;padding:3px 8px;background:var(--color-neutral-200)">SUPPLEMENTARY</span>
+    <span style="font-size:13px;line-height:1.45">{{ notice }}</span>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px">
+    <sc-for list="{{ items }}" as="r" hint-placeholder-count="5">
+      <div style="display:flex;flex-direction:column;background:var(--color-surface);opacity:{{ r.op }}">
+        <div style="position:relative;aspect-ratio:16 / 9;background:repeating-linear-gradient(135deg, var(--color-neutral-300) 0 8px, var(--color-neutral-200) 8px 16px);display:flex;align-items:flex-end;justify-content:space-between;padding:8px">
+          <span style="font-family:ui-monospace, Menlo, monospace;font-size:10px;padding:2px 5px;background:rgba(255,255,255,0.8)">video thumbnail</span>
+          <span style="font-size:11px;font-weight:700;padding:2px 6px;background:var(--color-text);color:var(--color-bg)">{{ r.dur }}</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;padding:12px 14px 14px;flex:1">
+          <span style="font-size:15px;font-weight:800;line-height:1.3">{{ r.title }}</span>
+          <span style="font-size:12px;color:var(--color-neutral-800)">{{ r.channel }} · {{ r.dur }}</span>
+          <span style="font-size:12px"><b>Topic relevance {{ r.rel }}</b> · {{ r.obj }}</span>
+          <span style="font-size:11px;color:var(--color-neutral-700);word-break:break-all">{{ r.url }}</span>
+          <div style="flex:1"></div>
+          <div style="display:flex;gap:8px;align-items:center;padding-top:6px">
+            <a class="btn btn-secondary" href="{{ r.url }}" target="_blank" rel="noopener" style="font-size:13px;padding:5px 10px">Watch ↗</a>
+            <sc-if value="{{ teacher }}" hint-placeholder-val="{{ true }}"><button onClick="{{ r.onToggle }}" style="display:flex;align-items:center;gap:6px;border:0;background:transparent;font:inherit;font-size:12px;cursor:pointer;color:var(--color-text)"><span style="width:14px;height:14px;border:1.5px solid var(--color-text);background:{{ r.chk }};color:#fff;font-size:10px;display:grid;place-items:center">{{ r.mark }}</span>Visible to students</button></sc-if>
+          </div>
+        </div>
+      </div>
+    </sc-for>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1080,&quot;height&quot;:800},&quot;student&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;}}">
+const DATA = [
+  { id: 'r1', title: "Newton's First Law and inertia, with everyday demos", channel: 'Mechanics Made Clear', dur: '9:14', rel: '0.91', obj: 'Objective 01', url: 'https://www.youtube.com/watch?v=lf-demo-01' },
+  { id: 'r2', title: 'F = ma: solving one-step force problems', channel: 'Class 11 Physics Lab', dur: '12:40', rel: '0.88', obj: 'Objective 02', url: 'https://www.youtube.com/watch?v=lf-demo-02' },
+  { id: 'r3', title: 'Action–reaction pairs: why they never cancel', channel: 'Mechanics Made Clear', dur: '7:05', rel: '0.84', obj: 'Objective 03', url: 'https://www.youtube.com/watch?v=lf-demo-03' },
+  { id: 'r4', title: 'Laws of Motion: one-shot revision for boards', channel: 'Board Prep Physics', dur: '41:22', rel: '0.72', obj: 'Objectives 01–03', url: 'https://www.youtube.com/watch?v=lf-demo-04' },
+  { id: 'r5', title: 'Momentum and impulse explained', channel: 'Physics in Motion', dur: '10:18', rel: '0.61', obj: 'Related topic', url: 'https://www.youtube.com/watch?v=lf-demo-05', hidden: true }
+];
+class Component extends DCLogic {
+  state = { hidden: Object.fromEntries(DATA.filter((d) => d.hidden).map((d) => [d.id, true])) };
+  renderVals() {
+    const student = !!this.props.student, s = this.state;
+    const items = DATA.filter((d) => !(student && s.hidden[d.id])).map((d) => ({ ...d, op: !student && s.hidden[d.id] ? 0.55 : 1,
+      chk: s.hidden[d.id] ? 'transparent' : 'var(--color-text)', mark: s.hidden[d.id] ? '' : '✓',
+      onToggle: () => this.setState((st) => ({ hidden: { ...st.hidden, [d.id]: !st.hidden[d.id] } })) }));
+    return {
+      teacher: !student, items, pad: student ? '0' : '26px 32px 40px',
+      kicker: student ? 'Explore' : 'Asset 07 · Resources · v1',
+      notice: student ? 'Extra videos picked to go with this topic. They are not part of your lesson and may explain things differently.' : 'Not source evidence. Nothing in this pack was generated or validated from these videos. They are matched to the topic for optional extra viewing.'
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/modernist-2d405345-c880-4218-92f2-cddc1804b608/styles.css">
+<script src="_ds/modernist-2d405345-c880-4218-92f2-cddc1804b608/_ds_bundle.js"></script>
+</helmet>
+<div style="display:flex;flex-direction:column;gap:22px;padding:26px 32px 40px;max-width:1000px;font-family:var(--font-body);color:var(--color-text)">
+  <div style="display:flex;flex-direction:column;gap:6px">
+    <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;font-weight:600;color:var(--color-accent-700)">Asset 05 · AI Teacher · presentation layer</div>
+    <div style="font-size:32px;font-weight:800;letter-spacing:-0.02em;line-height:1.1">AI Teacher Video</div>
+    <div style="font-size:14px;line-height:1.55;color:var(--color-neutral-800);max-width:68ch">The approved script is the source of truth. The avatar video only presents that script; it is not used as evidence and adds no content of its own.</div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-top:2px solid var(--color-divider);border-bottom:2px solid var(--color-divider)">
+    <sc-for list="{{ flow }}" as="f" hint-placeholder-count="4">
+      <div style="position:relative;padding:14px 16px;border-right:1px solid var(--color-neutral-300);display:flex;flex-direction:column;gap:6px;background:{{ f.bg }}">
+        <span style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;font-weight:600;color:var(--color-neutral-700)">{{ f.n }} · {{ f.k }}</span>
+        <span style="font-size:15px;font-weight:800">{{ f.v }}</span>
+        <dc-import name="StatusBadge" status="{{ f.s }}" label="{{ f.l }}" hint-size="100px,20px"></dc-import>
+        <span style="position:absolute;right:-9px;top:50%;transform:translateY(-50%);z-index:1;width:16px;height:16px;display:grid;place-items:center;background:var(--color-bg);font-size:12px;font-weight:800;color:var(--color-neutral-600)">{{ f.arrow }}</span>
+      </div>
+    </sc-for>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:14px;padding:18px 20px;background:var(--color-surface)">
+    <sc-if value="{{ isNone }}" hint-placeholder-val="{{ true }}">
+      <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+        <div style="display:flex;flex-direction:column;gap:2px;flex:1 1 300px"><span style="font-size:16px;font-weight:800">Not rendered yet</span><span style="font-size:13px;color:var(--color-neutral-800)">Rendering sends approved script v3 to HeyGen. The script cannot change during rendering.</span></div>
+        <button class="btn btn-primary" disabled="{{ cantRender }}" onClick="{{ render }}">Generate AI Teacher Video</button>
+      </div>
+    </sc-if>
+    <sc-if value="{{ isQueued }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:16px;font-weight:800">Queued at HeyGen</span><span style="font-size:13px;color:var(--color-neutral-800)">Job hg_7f3a91 · position 3 in queue · script v3 frozen for this render</span><div style="height:6px;background:var(--color-neutral-300)"><div style="height:6px;width:4%;background:var(--color-text)"></div></div></div>
+    </sc-if>
+    <sc-if value="{{ isRendering }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div style="display:flex;justify-content:space-between"><span style="font-size:16px;font-weight:800">Rendering · {{ pct }}</span><span style="font-size:12px;color:var(--color-neutral-700)">Job hg_7f3a91</span></div>
+        <div style="height:6px;background:var(--color-neutral-300)"><div style="height:6px;width:{{ pct }};background:var(--color-text)"></div></div>
+        <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:2px;font-size:12px"><sc-for list="{{ renderSteps }}" as="r" hint-placeholder-count="3"><span style="padding:6px 8px;background:{{ r.bg }};color:{{ r.fg }}">{{ r.l }}</span></sc-for></div>
+      </div>
+    </sc-if>
+    <sc-if value="{{ isFailed }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+        <div style="display:flex;flex-direction:column;gap:4px;flex:1 1 300px"><dc-import name="StatusBadge" status="fail" label="Render failed at 62%" hint-size="130px,20px"></dc-import><span style="font-size:13px;line-height:1.45;color:var(--color-neutral-800)">HeyGen returned <b>avatar_timeout</b> for job hg_7f3a91 during scene 3. The script and the learning pack are unaffected.</span></div>
+        <button class="btn btn-primary" disabled="{{ cantRender }}" onClick="{{ render }}">Retry render</button>
+      </div>
+    </sc-if>
+    <sc-if value="{{ isDone }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div style="position:relative;aspect-ratio:16 / 9;background:repeating-linear-gradient(135deg, #2d2b2b 0 12px, #353232 12px 24px);display:flex;flex-direction:column;justify-content:space-between;padding:16px;color:#fff">
+          <span style="align-self:flex-start;font-family:ui-monospace, Menlo, monospace;font-size:11px;padding:2px 6px;background:rgba(0,0,0,0.5)">avatar video · HeyGen render hg_7f3a91</span>
+          <button onClick="{{ togglePlay }}" style="align-self:center;width:64px;height:64px;border:0;background:var(--color-accent);color:#fff;font-size:22px;cursor:pointer">{{ playGlyph }}</button>
+          <div style="display:flex;align-items:center;gap:10px;font-size:12px"><span>{{ playTime }}</span><div style="flex:1;height:4px;background:rgba(255,255,255,0.3)"><div style="height:4px;width:{{ playPct }};background:#fff"></div></div><span>3:52</span></div>
+        </div>
+        <div style="font-size:13px;font-weight:700">Generated from approved script v3</div>
+        <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-top:1px solid var(--color-neutral-300);font-size:12px">
+          <sc-for list="{{ meta }}" as="m" hint-placeholder-count="4"><div style="padding:8px 8px 0 0"><span style="color:var(--color-neutral-700)">{{ m.k }}</span><br><b>{{ m.v }}</b></div></sc-for>
+        </div>
+      </div>
+    </sc-if>
+  </div>
+
+  <div style="display:flex;flex-direction:column">
+    <div style="display:flex;align-items:baseline;gap:10px;padding-bottom:10px;border-bottom:2px solid var(--color-divider)">
+      <span style="font-size:18px;font-weight:800">Video script</span>
+      <dc-import name="StatusBadge" status="approved" label="Approved · v3 · locked" hint-size="130px,20px"></dc-import>
+      <span style="font-size:12px;color:var(--color-neutral-700)">4 scenes · 3 min 52 s · approved by Priya Nair, 10:55</span>
+    </div>
+    <sc-for list="{{ scenes }}" as="c" hint-placeholder-count="4">
+      <div style="display:grid;grid-template-columns:90px minmax(0,1fr);gap:16px;padding:16px 0;border-bottom:1px solid var(--color-neutral-300)">
+        <div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:13px;font-weight:800">Scene {{ c.n }}</span><span style="font-size:11px;color:var(--color-neutral-700)">{{ c.time }}</span></div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <span style="font-size:15px;font-weight:800">{{ c.title }}</span>
+          <p style="margin:0;font-size:15px;line-height:1.65;max-width:68ch">{{ c.text }}</p>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;font-size:11px"><span style="font-weight:700;padding:2px 6px;border:1px solid var(--color-divider)">Objective {{ c.obj }}</span><sc-for list="{{ c.ev }}" as="e" hint-placeholder-count="1"><span style="font-weight:700;padding:2px 6px;background:var(--color-neutral-200)">{{ e }}</span></sc-for><span style="padding:2px 0;color:var(--color-neutral-700)">On screen: {{ c.onscreen }}</span></div>
+        </div>
+      </div>
+    </sc-for>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1000,&quot;height&quot;:900},&quot;videoState&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;none&quot;,&quot;queued&quot;,&quot;rendering&quot;,&quot;done&quot;,&quot;failed&quot;],&quot;default&quot;:&quot;none&quot;,&quot;tsType&quot;:&quot;'none'|'queued'|'rendering'|'done'|'failed'&quot;},&quot;locked&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;onStateChange&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(s:string) =&gt; void&quot;}}">
+class Component extends DCLogic {
+  state = { vs: this.props.videoState || 'none', pct: 46, playing: false, pos: 0 };
+  componentDidUpdate(prev) { if (prev.videoState !== this.props.videoState) { this.clear(); this.setState({ vs: this.props.videoState || 'none', pct: 46 }); } }
+  componentWillUnmount() { this.clear(); }
+  clear() { clearTimeout(this.t); clearInterval(this.iv); clearInterval(this.pv); }
+  set(vs) { this.setState({ vs }); this.props.onStateChange && this.props.onStateChange(vs); }
+  render_() {
+    this.clear(); this.set('queued');
+    this.t = setTimeout(() => {
+      this.setState({ pct: 0 }); this.set('rendering');
+      this.iv = setInterval(() => {
+        const p = this.state.pct + 7;
+        if (p >= 100) { clearInterval(this.iv); this.set('done'); } else this.setState({ pct: p });
+      }, 300);
+    }, 1600);
+  }
+  renderVals() {
+    const s = this.state, vs = s.vs;
+    const vid = { none: ['pending', 'Not rendered'], queued: ['running', 'Queued'], rendering: ['running', 'Rendering'], done: ['pass', 'Completed'], failed: ['fail', 'Failed'] }[vs];
+    const secs = Math.round((s.pos / 100) * 232);
+    return {
+      flow: [
+        { n: '01', k: 'Approved script', v: 'v3 · source of truth', s: 'approved', l: 'Approved · locked' },
+        { n: '02', k: 'HeyGen', v: 'Avatar provider', s: 'info', l: 'Presenter · en-IN voice' },
+        { n: '03', k: 'Rendering', v: vs === 'rendering' ? s.pct + '%' : vid[1], s: vid[0], l: vid[1] },
+        { n: '04', k: 'Video ready', v: vs === 'done' ? '3:52 · from script v3' : 'Not available', s: vs === 'done' ? 'pass' : 'pending', l: vs === 'done' ? 'Ready for approval' : 'Waiting' }
+      ].map((f, i) => ({ ...f, arrow: i < 3 ? '→' : '', bg: i === 0 ? 'var(--color-surface)' : 'transparent' })),
+      isNone: vs === 'none', isQueued: vs === 'queued', isRendering: vs === 'rendering', isFailed: vs === 'failed', isDone: vs === 'done',
+      pct: s.pct + '%', cantRender: !!this.props.locked,
+      renderSteps: ['Synthesising voice', 'Animating avatar', 'Encoding 1080p'].map((l, i) => {
+        const at = s.pct / 34; return { l: at > i + 1 ? l + ' ✓' : l, bg: at > i && at <= i + 1 ? 'var(--color-text)' : at > i + 1 ? 'oklch(0.94 0.035 150)' : 'var(--color-neutral-200)', fg: at > i && at <= i + 1 ? 'var(--color-bg)' : 'var(--color-text)' };
+      }),
+      render: () => this.render_(),
+      playGlyph: s.playing ? '❚❚' : '▶', playPct: s.pos + '%', playTime: `${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, '0')}`,
+      togglePlay: () => {
+        if (s.playing) { clearInterval(this.pv); return this.setState({ playing: false }); }
+        this.setState({ playing: true });
+        this.pv = setInterval(() => this.setState((st) => (st.pos >= 100 ? { pos: 0, playing: false } : { pos: st.pos + 1 })), 250);
+      },
+      meta: [{ k: 'Duration', v: '3 min 52 s' }, { k: 'Script version', v: 'v3 (approved)' }, { k: 'Source version', v: 'Physics_Textbook.pdf v2' }, { k: 'Generated', v: '29 Sep 2026, 11:14' }],
+      scenes: [
+        { n: 1, time: '0:00–0:48', title: 'Why things keep moving', obj: '01', ev: ['E103'], onscreen: 'Bus braking diagram', text: 'Think about the last time a bus braked suddenly. You moved forward, even though nobody pushed you. Your body was simply continuing the motion it already had. That tendency has a name: inertia.' },
+        { n: 2, time: '0:48–1:42', title: "Newton's First Law", obj: '01', ev: ['E102'], onscreen: 'First Law statement', text: 'Newton\'s First Law says a body stays at rest, or keeps moving in a straight line at constant speed, unless an external net force acts on it. If the forces on a body balance, its motion does not change.' },
+        { n: 3, time: '1:42–2:55', title: 'Force, mass and acceleration', obj: '02', ev: ['E110', 'E114'], onscreen: 'F = ma · worked example 5.3', text: 'When the net force is not zero, the body accelerates. A bigger force gives a bigger acceleration; a bigger mass gives a smaller one. We write this as F = ma. A 12 newton force on a 3 kilogram trolley gives an acceleration of 4 metres per second squared.' },
+        { n: 4, time: '2:55–3:52', title: 'Action and reaction', obj: '03', ev: ['E121', 'E131'], onscreen: 'Wall-push force pair', text: 'Forces always come in pairs. Push on a wall and the wall pushes back on you with the same size of force. These two forces act on different bodies, so they never cancel each other out.' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

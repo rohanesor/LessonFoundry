@@ -1,0 +1,132 @@
+import os
+from pathlib import Path
+from urllib.parse import quote
+import httpx
+from app.security import identity
+
+
+class ObjectStore:
+    """Normal I/O uses the teacher's JWT, not a service-role bypass."""
+
+    def __init__(self):
+        self.remote = os.getenv("AUTH_MODE") == "supabase"
+        self.url = os.getenv("SUPABASE_URL", "").rstrip("/")
+        self.bucket = os.getenv("SUPABASE_SOURCE_BUCKET", "sources")
+
+    def headers(self):
+        actor = identity.get()
+        if not actor:
+            raise ValueError("Verified teacher identity required for private storage")
+        return {
+            "Authorization": f"Bearer {actor.access_token}",
+            "apikey": os.environ["SUPABASE_ANON_KEY"],
+        }
+
+    def object_url(self, key):
+        return f"{self.url}/storage/v1/object/{quote(self.bucket, safe='')}/{quote(key, safe='/')}"
+
+    def local_path(self, key):
+        base = Path(os.getenv("LOCAL_STORAGE_PATH", ".local-files")).resolve()
+        p = (base / key).resolve()
+        if not p.is_relative_to(base):
+            raise ValueError("Invalid object path")
+        return p
+
+    def put(self, key, data, content_type="application/octet-stream"):
+        if self.remote:
+            r = httpx.post(
+                self.object_url(key),
+                headers={
+                    **self.headers(),
+                    "Content-Type": content_type,
+                    "x-upsert": "false",
+                },
+                content=data,
+                timeout=30,
+            )
+            if not r.is_success:
+                raise ValueError(
+                    f"Private storage rejected upload (HTTP {r.status_code})"
+                )
+        else:
+            p = self.local_path(key)
+            p.parent.mkdir(parents=True, exist_ok=True)
+            p.write_bytes(data)
+
+    def delete(self, key):
+        if self.remote:
+            r = httpx.request(
+                "DELETE",
+                f"{self.url}/storage/v1/object/{quote(self.bucket, safe='')}",
+                headers=self.headers(),
+                json={"prefixes": [key]},
+                timeout=20,
+            )
+            if not r.is_success:
+                raise ValueError("Storage cleanup failed")
+        else:
+            self.local_path(key).unlink(missing_ok=True)
+
+    def sign(self, key, expires=60):
+        if not self.remote:
+            raise ValueError("Signed URLs require Supabase Storage")
+        r = httpx.post(
+            f"{self.url}/storage/v1/object/sign/{quote(self.bucket, safe='')}/{quote(key, safe='/')}",
+            headers=self.headers(),
+            json={"expiresIn": expires},
+            timeout=20,
+        )
+        if not r.is_success:
+            raise ValueError("Private storage denied temporary download")
+        path = r.json()["signedURL"]
+        if not path.startswith("/object/sign/"):
+            raise ValueError("Unexpected storage signing response")
+        return {"url": f"{self.url}/storage/v1{path}", "expires_in": expires}
+
+    def create_download_url(self, key, expires=300):
+        """Generate a download URL. Delegates to sign() for Supabase, S3 for S3."""
+        if self.remote:
+            return self.sign(key, expires)
+        # Local mode: return a local path reference (not a real URL).
+        return {"url": f"/local-files/{key}", "expires_in": expires}
+
+
+class S3ObjectStore:
+    """AWS S3 private bucket storage. Server-side only."""
+
+    def __init__(self):
+        import boto3
+        from botocore.client import Config
+        self.bucket = os.environ["AWS_S3_BUCKET"]
+        self.region = os.getenv("AWS_REGION", "us-east-1")
+        endpoint = f"https://s3.{self.region}.amazonaws.com"
+        config = Config(signature_version="s3v4", s3={"addressing_style": "virtual"})
+        self.client = boto3.client("s3", region_name=self.region, endpoint_url=endpoint, config=config)
+
+    def put(self, key, data, content_type="application/octet-stream"):
+        self.client.put_object(
+            Bucket=self.bucket, Key=key, Body=data, ContentType=content_type,
+            ServerSideEncryption="AES256",
+        )
+
+    def delete(self, key):
+        self.client.delete_object(Bucket=self.bucket, Key=key)
+
+    def create_download_url(self, key, expires=300):
+        url = self.client.generate_presigned_url(
+            "get_object",
+            Params={"Bucket": self.bucket, "Key": key},
+            ExpiresIn=expires,
+        )
+        return {"url": url, "expires_in": expires}
+
+    def sign(self, key, expires=300):
+        return self.create_download_url(key, expires)
+
+
+def get_store():
+    """Factory: return the appropriate ObjectStore based on STORAGE_PROVIDER."""
+    provider = os.getenv("STORAGE_PROVIDER", "")
+    if provider == "s3":
+        return S3ObjectStore()
+    return ObjectStore()

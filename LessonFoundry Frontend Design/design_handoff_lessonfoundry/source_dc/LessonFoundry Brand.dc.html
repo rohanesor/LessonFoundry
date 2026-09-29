@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/modernist-2d405345-c880-4218-92f2-cddc1804b608/styles.css">
+<script src="_ds/modernist-2d405345-c880-4218-92f2-cddc1804b608/_ds_bundle.js"></script>
+<style>
+:root{--color-text:oklch(0.24 0.025 262);--color-divider:color-mix(in srgb, oklch(0.24 0.025 262) 40%, transparent);--color-accent:oklch(0.50 0.135 256);--color-accent-100:oklch(0.97 0.014 256);--color-accent-200:oklch(0.93 0.034 256);--color-accent-300:oklch(0.86 0.06 256);--color-accent-400:oklch(0.72 0.1 256);--color-accent-500:oklch(0.58 0.13 256);--color-accent-600:oklch(0.44 0.125 256);--color-accent-700:oklch(0.40 0.115 256);--color-accent-800:oklch(0.32 0.095 256);--color-accent-900:oklch(0.24 0.07 256);--lf-green:oklch(0.50 0.11 152);--lf-green-100:oklch(0.94 0.035 150);--lf-green-700:oklch(0.45 0.11 150);--lf-amber:oklch(0.72 0.13 75);--lf-amber-100:oklch(0.94 0.05 80);--lf-amber-700:oklch(0.47 0.11 65);--lf-red:oklch(0.56 0.19 27);--lf-red-100:oklch(0.94 0.035 25);--lf-red-700:oklch(0.45 0.16 27)}
+html,body{margin:0}body{background:var(--color-bg)}
+a{color:var(--color-accent-700)}a:hover{color:var(--color-accent-600)}
+</style>
+</helmet>
+<div style="max-width:1240px;margin:0 auto;padding:0 40px 80px;font-family:var(--font-body);color:var(--color-text)">
+
+  <section data-screen-label="Cover" style="display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:40px;padding:56px 0 48px;border-bottom:2px solid var(--color-divider)">
+    <div style="display:flex;flex-direction:column;gap:28px">
+      <span style="font-size:11px;letter-spacing:0.16em;font-weight:700;color:var(--color-neutral-700)">BRAND SYSTEM · V1 · SEPTEMBER 2026</span>
+      <dc-import name="LFLogo" variant="lockup" size="72" hint-size="520px,72px"></dc-import>
+      <p style="margin:0;font-size:22px;line-height:1.4;max-width:30ch;text-wrap:pretty">Where raw teaching material is cast into a reliable learning product.</p>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));align-self:end;border-top:2px solid var(--color-divider)">
+      <sc-for list="{{ authority }}" as="a" hint-placeholder-count="4">
+        <div style="display:flex;flex-direction:column;gap:10px;padding:14px 12px 0 0">
+          <span style="display:flex;color:{{ a.c }}"><dc-import name="LFIcon" icon="{{ a.i }}" size="22" hint-size="22px,22px"></dc-import></span>
+          <span style="font-size:15px;font-weight:800;line-height:1.15">{{ a.who }}<br><span style="font-weight:500">{{ a.verb }}</span></span>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
+  <section data-screen-label="01 Mark" style="padding:40px 0;border-bottom:2px solid var(--color-divider);display:flex;flex-direction:column;gap:28px">
+    <div style="display:flex;align-items:baseline;gap:16px"><span style="font-size:13px;font-weight:700;color:var(--color-accent-700)">01</span><span style="font-size:30px;font-weight:800;letter-spacing:-0.02em">Mark &amp; wordmark</span></div>
+    <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:40px;align-items:center">
+      <div style="position:relative;display:grid;place-items:center;aspect-ratio:1;max-width:420px;background:var(--color-surface);background-image:linear-gradient(var(--color-neutral-300) 1px, transparent 1px),linear-gradient(90deg, var(--color-neutral-300) 1px, transparent 1px);background-size:calc(100% / 8) calc(100% / 8)">
+        <dc-import name="LFLogo" variant="mark" size="240" hint-size="240px,240px"></dc-import>
+      </div>
+      <div style="display:flex;flex-direction:column;border-top:2px solid var(--color-divider)">
+        <sc-for list="{{ anatomy }}" as="a" hint-placeholder-count="3">
+          <div style="display:grid;grid-template-columns:40px 140px 1fr;gap:16px;padding:16px 0;border-bottom:1px solid var(--color-neutral-300)">
+            <span style="font-size:13px;font-weight:800;color:var(--color-accent-700)">{{ a.n }}</span><b style="font-size:15px">{{ a.k }}</b><span style="font-size:14px;line-height:1.5;color:var(--color-neutral-800)">{{ a.v }}</span>
+          </div>
+        </sc-for>
+        <div style="padding:16px 0;font-size:13px;line-height:1.5;color:var(--color-neutral-800)">Built on an 8-unit grid. The frame is never opened, rounded or rotated. The stepped edge always climbs from lower left to upper right.</div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:2px">
+      <div style="display:flex;flex-direction:column;justify-content:space-between;gap:30px;padding:28px;background:var(--color-surface);min-height:170px"><dc-import name="LFLogo" variant="lockup" size="40" hint-size="280px,40px"></dc-import><span style="font-size:12px;color:var(--color-neutral-700)">Primary lockup · colour</span></div>
+      <div style="display:flex;flex-direction:column;justify-content:space-between;gap:30px;padding:28px;background:var(--color-text);min-height:170px"><dc-import name="LFLogo" variant="lockup" size="40" tone="inverse" hint-size="280px,40px"></dc-import><span style="font-size:12px;color:var(--color-neutral-400)">Inverse · on Deep Ink</span></div>
+      <div style="display:flex;flex-direction:column;justify-content:space-between;gap:30px;padding:28px;background:var(--color-surface);min-height:170px"><dc-import name="LFLogo" variant="lockup" size="40" tone="ink" hint-size="280px,40px"></dc-import><span style="font-size:12px;color:var(--color-neutral-700)">Monochrome · print, fax, stamps</span></div>
+      <div style="display:flex;flex-direction:column;justify-content:space-between;gap:30px;padding:28px;background:var(--color-surface);min-height:170px"><dc-import name="LFLogo" variant="wordmark" size="40" hint-size="280px,40px"></dc-import><span style="font-size:12px;color:var(--color-neutral-700)">Wordmark · Archivo 500 / 800, −2.5% tracking, one word</span></div>
+      <div style="display:flex;flex-direction:column;justify-content:space-between;gap:30px;padding:28px;background:var(--color-accent);min-height:170px"><dc-import name="LFLogo" variant="lockup" size="40" tone="white" hint-size="280px,40px"></dc-import><span style="font-size:12px;color:#fff">White mono · on Foundry Blue</span></div>
+      <div style="display:flex;flex-direction:column;justify-content:space-between;gap:30px;padding:28px;background:var(--color-surface);min-height:170px"><div style="display:flex;align-items:flex-end;gap:20px"><dc-import name="LFLogo" variant="mark" size="56" hint-size="56px,56px"></dc-import><dc-import name="LFLogo" variant="mark" size="32" hint-size="32px,32px"></dc-import><dc-import name="LFLogo" variant="mark" size="22" hint-size="22px,22px"></dc-import></div><span style="font-size:12px;color:var(--color-neutral-700)">Compact mark · sidebar, avatars, stamps</span></div>
+    </div>
+  </section>
+
+  <section data-screen-label="02 Favicon" style="padding:40px 0;border-bottom:2px solid var(--color-divider);display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr);gap:40px">
+    <div style="display:flex;flex-direction:column;gap:10px"><div style="display:flex;align-items:baseline;gap:16px"><span style="font-size:13px;font-weight:700;color:var(--color-accent-700)">02</span><span style="font-size:30px;font-weight:800;letter-spacing:-0.02em">Favicon &amp; app icon</span></div><p style="margin:0;font-size:14px;line-height:1.55;color:var(--color-neutral-800);max-width:38ch">The mark sits on a solid tile. The source unit and the stepped mass stay legible at 16px; the frame is dropped below 32px, because the tile edge does its job.</p></div>
+    <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px">
+      <sc-for list="{{ favTiles }}" as="t" hint-placeholder-count="2">
+        <div style="display:flex;flex-direction:column;gap:18px;padding:24px;background:{{ t.ground }}">
+          <div style="display:flex;align-items:flex-end;gap:22px">
+            <sc-for list="{{ t.sizes }}" as="s" hint-placeholder-count="3">
+              <div style="display:flex;flex-direction:column;align-items:flex-start;gap:8px">
+                <svg width="{{ s.px }}" height="{{ s.px }}" viewBox="0 0 32 32" style="display:block"><rect width="32" height="32" fill="{{ t.tile }}"></rect><path d="M5 27V22H10V17H15V12H20V7H27V27Z" fill="{{ t.mass }}"></path><path d="M7 7h4v4H7z" fill="{{ t.unit }}"></path></svg>
+                <span style="font-size:11px;color:{{ t.label }}">{{ s.px }}px</span>
+              </div>
+            </sc-for>
+          </div>
+          <span style="font-size:12px;color:{{ t.label }}">{{ t.name }}</span>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
+  <section data-screen-label="03 Colour" style="padding:40px 0;border-bottom:2px solid var(--color-divider);display:flex;flex-direction:column;gap:24px">
+    <div style="display:flex;align-items:baseline;gap:16px"><span style="font-size:13px;font-weight:700;color:var(--color-accent-700)">03</span><span style="font-size:30px;font-weight:800;letter-spacing:-0.02em">Colour tokens</span></div>
+    <div style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:2px">
+      <sc-for list="{{ colors }}" as="c" hint-placeholder-count="7">
+        <div style="display:flex;flex-direction:column">
+          <div style="height:120px;background:{{ c.v }};border:1px solid var(--color-neutral-300);display:flex;align-items:flex-end;padding:10px;color:{{ c.on }}"><sc-if value="{{ c.hasIcon }}" hint-placeholder-val="{{ false }}"><dc-import name="LFIcon" icon="{{ c.icon }}" size="20" hint-size="20px,20px"></dc-import></sc-if></div>
+          <div style="display:flex;flex-direction:column;gap:3px;padding:10px 0">
+            <b style="font-size:14px">{{ c.name }}</b>
+            <code style="font-size:11px;color:var(--color-neutral-700)">{{ c.token }}</code>
+            <span style="font-size:12px;line-height:1.4;color:var(--color-neutral-800)">{{ c.use }}</span>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(5,minmax(0,1fr));border-top:2px solid var(--color-divider)">
+      <sc-for list="{{ semantics }}" as="s" hint-placeholder-count="5">
+        <div style="display:flex;flex-direction:column;gap:8px;padding:14px 14px 0 0">
+          <dc-import name="StatusBadge" status="{{ s.st }}" label="{{ s.l }}" hint-size="100px,20px"></dc-import>
+          <span style="font-size:12px;line-height:1.45;color:var(--color-neutral-800)">{{ s.m }}</span>
+        </div>
+      </sc-for>
+    </div>
+    <div style="font-size:13px;color:var(--color-neutral-800)">Colour is never the only signal. Every state pairs its colour with its own icon and a text label.</div>
+  </section>
+
+  <section data-screen-label="04 Type" style="padding:40px 0;border-bottom:2px solid var(--color-divider);display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr);gap:40px">
+    <div style="display:flex;flex-direction:column;gap:10px"><div style="display:flex;align-items:baseline;gap:16px"><span style="font-size:13px;font-weight:700;color:var(--color-accent-700)">04</span><span style="font-size:30px;font-weight:800;letter-spacing:-0.02em">Typography</span></div><p style="margin:0;font-size:14px;line-height:1.55;color:var(--color-neutral-800);max-width:38ch">One family, Archivo, for product, deck and print. Weight carries the hierarchy; the wordmark uses the same split between 500 and 800.</p></div>
+    <div style="display:flex;flex-direction:column;border-top:2px solid var(--color-divider)">
+      <sc-for list="{{ type }}" as="t" hint-placeholder-count="6">
+        <div style="display:grid;grid-template-columns:150px minmax(0,1fr);gap:20px;align-items:baseline;padding:14px 0;border-bottom:1px solid var(--color-neutral-300)">
+          <div style="display:flex;flex-direction:column;gap:2px"><code style="font-size:12px;font-weight:700">{{ t.token }}</code><span style="font-size:11px;color:var(--color-neutral-700)">{{ t.spec }}</span></div>
+          <span style="font-size:{{ t.size }};font-weight:{{ t.w }};letter-spacing:{{ t.ls }};text-transform:{{ t.tt }};line-height:1.2;font-family:{{ t.ff }}">{{ t.sample }}</span>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
+  <section data-screen-label="05 Icons" style="padding:40px 0;border-bottom:2px solid var(--color-divider);display:flex;flex-direction:column;gap:28px">
+    <div style="display:flex;align-items:baseline;gap:16px"><span style="font-size:13px;font-weight:700;color:var(--color-accent-700)">05</span><span style="font-size:30px;font-weight:800;letter-spacing:-0.02em">Icon system</span><span style="font-size:13px;color:var(--color-neutral-700)">24px grid · 1.75px stroke · square caps · mitred corners · outline first, fill only for evidence and product</span></div>
+    <div style="display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:2px">
+      <sc-for list="{{ signature }}" as="s" hint-placeholder-count="5">
+        <div style="display:flex;flex-direction:column;gap:18px;padding:24px 20px;background:var(--color-surface)">
+          <span style="display:flex;color:{{ s.c }}"><dc-import name="LFIcon" icon="{{ s.i }}" size="56" hint-size="56px,56px"></dc-import></span>
+          <div style="display:flex;flex-direction:column;gap:4px"><span style="font-size:10px;letter-spacing:0.14em;font-weight:700;color:var(--color-neutral-700)">SIGNATURE</span><b style="font-size:17px">{{ s.k }}</b><span style="font-size:12px;line-height:1.5;color:var(--color-neutral-800)">{{ s.v }}</span></div>
+        </div>
+      </sc-for>
+    </div>
+    <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:40px">
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <span style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;font-weight:700;color:var(--color-neutral-700)">Product concepts</span>
+        <div style="display:grid;grid-template-columns:repeat(5,minmax(0,1fr));border-top:1px solid var(--color-neutral-300);border-left:1px solid var(--color-neutral-300)">
+          <sc-for list="{{ product }}" as="i" hint-placeholder-count="10"><div style="display:flex;flex-direction:column;align-items:flex-start;gap:12px;padding:16px 12px;border-right:1px solid var(--color-neutral-300);border-bottom:1px solid var(--color-neutral-300)"><dc-import name="LFIcon" icon="{{ i.i }}" size="24" hint-size="24px,24px"></dc-import><span style="font-size:12px;font-weight:600">{{ i.l }}</span></div></sc-for>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <span style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;font-weight:700;color:var(--color-neutral-700)">Navigation</span>
+        <div style="display:grid;grid-template-columns:repeat(5,minmax(0,1fr));border-top:1px solid var(--color-neutral-300);border-left:1px solid var(--color-neutral-300)">
+          <sc-for list="{{ nav }}" as="i" hint-placeholder-count="14"><div style="display:flex;flex-direction:column;align-items:flex-start;gap:12px;padding:16px 12px;border-right:1px solid var(--color-neutral-300);border-bottom:1px solid var(--color-neutral-300)"><dc-import name="LFIcon" icon="{{ i.i }}" size="24" hint-size="24px,24px"></dc-import><span style="font-size:12px;font-weight:600">{{ i.l }}</span></div></sc-for>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section data-screen-label="06 Status" style="padding:40px 0;border-bottom:2px solid var(--color-divider);display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr);gap:40px">
+    <div style="display:flex;flex-direction:column;gap:14px"><div style="display:flex;align-items:baseline;gap:16px"><span style="font-size:13px;font-weight:700;color:var(--color-accent-700)">06</span><span style="font-size:30px;font-weight:800;letter-spacing:-0.02em">Status language</span></div>
+      <div style="display:flex;flex-direction:column;gap:12px;padding:16px;border:2px solid var(--color-divider)">
+        <div style="display:flex;align-items:center;gap:10px"><dc-import name="StatusBadge" status="pass" label="VALIDATED" hint-size="90px,20px"></dc-import><span style="font-size:13px">System checks passed</span></div>
+        <div style="display:flex;align-items:center;gap:10px"><dc-import name="StatusBadge" status="approved" label="APPROVED" hint-size="90px,20px"></dc-import><span style="font-size:13px">A teacher authorised it</span></div>
+        <span style="font-size:12px;line-height:1.5;color:var(--color-neutral-800)">Never merged. Validated is a tinted frame-and-check; Approved is a solid check-and-lock. Only a person can produce the second.</span>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;border-top:2px solid var(--color-divider)">
+      <sc-for list="{{ statuses }}" as="s" hint-placeholder-count="10">
+        <div style="display:grid;grid-template-columns:24px 150px minmax(0,1fr);gap:14px;align-items:center;padding:10px 0;border-bottom:1px solid var(--color-neutral-300)">
+          <dc-import name="StatusBadge" status="{{ s.st }}" variant="glyph" hint-size="18px,18px"></dc-import>
+          <dc-import name="StatusBadge" status="{{ s.st }}" label="{{ s.l }}" hint-size="120px,20px"></dc-import>
+          <span style="font-size:13px;color:var(--color-neutral-800)">{{ s.m }}</span>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
+  <section data-screen-label="07 Diagrams" style="padding:40px 0;border-bottom:2px solid var(--color-divider);display:flex;flex-direction:column;gap:24px">
+    <div style="display:flex;align-items:baseline;gap:16px"><span style="font-size:13px;font-weight:700;color:var(--color-accent-700)">07</span><span style="font-size:30px;font-weight:800;letter-spacing:-0.02em">Diagram language</span><span style="font-size:13px;color:var(--color-neutral-700)">Square nodes · 1px connectors · arrows point one way · status by icon first, colour second</span></div>
+    <div style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));align-items:stretch">
+      <sc-for list="{{ pipeline }}" as="p" hint-placeholder-count="7">
+        <div style="display:grid;grid-template-columns:minmax(0,1fr) 28px;align-items:center">
+          <div style="display:flex;flex-direction:column;gap:12px;padding:16px 14px;border:{{ p.border }};background:{{ p.bg }};min-height:132px">
+            <span style="display:flex;justify-content:space-between;align-items:flex-start"><dc-import name="LFIcon" icon="{{ p.i }}" size="22" hint-size="22px,22px"></dc-import><dc-import name="StatusBadge" status="{{ p.st }}" variant="glyph" hint-size="18px,18px"></dc-import></span>
+            <b style="font-size:14px;line-height:1.2">{{ p.l }}</b>
+            <span style="font-size:11px;line-height:1.4;color:var(--color-neutral-800)">{{ p.d }}</span>
+          </div>
+          <sc-if value="{{ p.arrow }}" hint-placeholder-val="{{ true }}"><svg width="28" height="12" viewBox="0 0 28 12" style="display:block"><path d="M2 6h22M19 1.5l5 4.5-5 4.5" fill="none" stroke="var(--color-text)" stroke-width="1.25" stroke-linecap="square"></path></svg></sc-if>
+        </div>
+      </sc-for>
+    </div>
+    <div style="font-size:13px;color:var(--color-neutral-800)">Teacher approval is the only double-ruled node: the authority step. The AI generation node is never the last or the largest.</div>
+  </section>
+
+  <section data-screen-label="08 Voice" style="padding:40px 0;border-bottom:2px solid var(--color-divider);display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr);gap:40px">
+    <div style="display:flex;flex-direction:column;gap:10px"><div style="display:flex;align-items:baseline;gap:16px"><span style="font-size:13px;font-weight:700;color:var(--color-accent-700)">08</span><span style="font-size:30px;font-weight:800;letter-spacing:-0.02em">Voice</span></div><p style="margin:0;font-size:14px;line-height:1.55;color:var(--color-neutral-800);max-width:38ch">Precise, calm and respectful of the teacher. Name the object, the version and the evidence. The system reports; it does not celebrate.</p></div>
+    <div style="display:flex;flex-direction:column;border-top:2px solid var(--color-divider)">
+      <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px;padding:8px 0;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;font-weight:700;color:var(--color-neutral-700);border-bottom:1px solid var(--color-neutral-300)"><span>Write</span><span>Not</span></div>
+      <sc-for list="{{ voice }}" as="v" hint-placeholder-count="5">
+        <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px;padding:12px 0;border-bottom:1px solid var(--color-neutral-300);font-size:15px"><b>{{ v.yes }}</b><span style="color:var(--color-neutral-700);text-decoration:line-through">{{ v.no }}</span></div>
+      </sc-for>
+    </div>
+  </section>
+
+  <section data-screen-label="09 Presentation" style="padding:40px 0;display:flex;flex-direction:column;gap:24px">
+    <div style="display:flex;align-items:baseline;gap:16px"><span style="font-size:13px;font-weight:700;color:var(--color-accent-700)">09</span><span style="font-size:30px;font-weight:800;letter-spacing:-0.02em">Presentation</span><span style="font-size:13px;color:var(--color-neutral-700)">Same tokens, icons and diagram rules as the product</span></div>
+    <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px">
+      <div style="aspect-ratio:16/9;background:var(--color-text);color:#fff;display:flex;flex-direction:column;justify-content:space-between;padding:6%">
+        <dc-import name="LFLogo" variant="lockup" size="30" tone="inverse" hint-size="220px,30px"></dc-import>
+        <div style="display:flex;flex-direction:column;gap:10px"><span style="font-size:clamp(20px,2.8vw,34px);font-weight:800;letter-spacing:-0.02em;line-height:1.05;max-width:16ch">A constraint-aware learning pack compiler.</span><span style="font-size:12px;color:var(--color-neutral-400)">Pitch · 2026</span></div>
+        <div style="display:flex;gap:16px;color:var(--color-accent-400)"><sc-for list="{{ authority }}" as="a" hint-placeholder-count="4"><span style="display:flex;align-items:center;gap:6px;font-size:11px;color:#fff"><span style="display:flex;color:var(--color-accent-400)"><dc-import name="LFIcon" icon="{{ a.i }}" size="14" hint-size="14px,14px"></dc-import></span>{{ a.who }} {{ a.verb }}</span></sc-for></div>
+      </div>
+      <div style="aspect-ratio:16/9;background:var(--color-bg);border:1px solid var(--color-neutral-300);display:flex;flex-direction:column;gap:5%;padding:6%">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:3%;border-bottom:2px solid var(--color-divider)"><span style="font-size:11px;letter-spacing:0.14em;font-weight:700;color:var(--color-accent-700)">03 · HOW IT WORKS</span><dc-import name="LFLogo" variant="mark" size="14" hint-size="14px,14px"></dc-import></div>
+        <span style="font-size:clamp(16px,2vw,24px);font-weight:800;letter-spacing:-0.015em">Every asset is traced, checked and approved.</span>
+        <div style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;margin-top:auto">
+          <sc-for list="{{ pipeline }}" as="p" hint-placeholder-count="7"><div style="display:flex;flex-direction:column;gap:6px;padding:8px 6px;border:{{ p.border }};background:{{ p.bg }}"><dc-import name="LFIcon" icon="{{ p.i }}" size="14" hint-size="14px,14px"></dc-import><span style="font-size:9px;font-weight:700;line-height:1.2">{{ p.l }}</span></div></sc-for>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+    const G = 'var(--lf-green-700)', B = 'var(--color-accent)', INK = 'var(--color-text)';
+    return {
+      authority: [
+        { who: 'AI', verb: 'proposes', i: 'generate', c: INK },
+        { who: 'Validators', verb: 'check', i: 'validation', c: INK },
+        { who: 'Teacher', verb: 'approves', i: 'approval', c: B },
+        { who: 'Student', verb: 'learns', i: 'student', c: INK }
+      ],
+      anatomy: [
+        { n: 'A', k: 'Source unit', v: 'The small square top-left: one piece of raw teaching material entering the system.' },
+        { n: 'B', k: 'Cast mass', v: 'The stepped solid in Foundry Blue: structured learning content, built up in controlled steps.' },
+        { n: 'C', k: 'Frame', v: 'The closed mould: the source boundary and the checks every asset must fit inside.' }
+      ],
+      favTiles: [
+        { name: 'Dark tile · default app icon', ground: 'var(--color-surface)', tile: '#1d2433', mass: '#6f9be0', unit: '#ffffff', label: 'var(--color-neutral-700)', sizes: [{ px: 64 }, { px: 32 }, { px: 16 }] },
+        { name: 'Light tile · on dark browser chrome', ground: '#1d2433', tile: '#f3f2f2', mass: 'oklch(0.50 0.135 256)', unit: '#1d2433', label: 'var(--color-neutral-400)', sizes: [{ px: 64 }, { px: 32 }, { px: 16 }] }
+      ],
+      colors: [
+        { name: 'Deep Ink', token: '--color-text', v: 'var(--color-text)', on: '#fff', use: 'Text, navigation, headers, diagram lines' },
+        { name: 'Foundry Blue', token: '--color-accent', v: 'var(--color-accent)', on: '#fff', icon: 'arrowRight', hasIcon: true, use: 'Primary actions, selection, links, active states' },
+        { name: 'Verification Green', token: '--lf-green', v: 'var(--lf-green)', on: '#fff', icon: 'validation', hasIcon: true, use: 'Validated, approved, verified evidence' },
+        { name: 'Warm Amber', token: '--lf-amber', v: 'var(--lf-amber)', on: 'var(--color-text)', icon: 'warning', hasIcon: true, use: 'Needs review, pending teacher action' },
+        { name: 'Error Red', token: '--lf-red', v: 'var(--lf-red)', on: '#fff', icon: 'fail', hasIcon: true, use: 'Failed checks, blocked, destructive only' },
+        { name: 'Canvas', token: '--color-bg', v: 'var(--color-bg)', on: INK, use: 'Page ground' },
+        { name: 'Graphite', token: '--color-neutral-*', v: 'var(--color-neutral-300)', on: INK, icon: 'draft', hasIcon: true, use: 'Draft, inactive, secondary, rules' }
+      ],
+      semantics: [
+        { st: 'info', l: 'Active', m: 'Blue · action, selection, information' },
+        { st: 'pass', l: 'Validated', m: 'Green · verified, approved, passed' },
+        { st: 'review', l: 'Review', m: 'Amber · warning, pending teacher' },
+        { st: 'fail', l: 'Failed', m: 'Red · failed, blocked, error' },
+        { st: 'draft', l: 'Draft', m: 'Gray · draft, inactive, secondary' }
+      ],
+      type: [
+        { token: 'display', spec: 'Archivo 800 · 34/1.05 · −2%', size: '34px', w: 800, ls: '-0.02em', tt: 'none', ff: 'var(--font-heading)', sample: "Newton's Laws of Motion" },
+        { token: 'title', spec: 'Archivo 800 · 22/1.1 · −1.5%', size: '22px', w: 800, ls: '-0.015em', tt: 'none', ff: 'var(--font-heading)', sample: 'Learning pack readiness' },
+        { token: 'heading', spec: 'Archivo 800 · 18/1.2', size: '18px', w: 800, ls: '-0.01em', tt: 'none', ff: 'var(--font-heading)', sample: '§3 Newton\u2019s Second Law' },
+        { token: 'body', spec: 'Archivo 400 · 16/1.7', size: '16px', w: 400, ls: '0', tt: 'none', ff: 'var(--font-body)', sample: 'For constant mass this reduces to F = ma.' },
+        { token: 'label', spec: 'Archivo 700 · 11 · +8% · caps', size: '11px', w: 700, ls: '0.08em', tt: 'uppercase', ff: 'var(--font-body)', sample: 'Evidence · E102 · Page 17' },
+        { token: 'system', spec: 'Mono 400 · 12 · prototype only', size: '12px', w: 400, ls: '0', tt: 'none', ff: 'ui-monospace, SFMono-Regular, Menlo, monospace', sample: 'demo_state = "video_rendering"' }
+      ],
+      signature: [
+        { i: 'evidence', k: 'Evidence', c: B, v: 'A page with one highlighted passage, traced out to a node. This content has a source.' },
+        { i: 'validation', k: 'Validation', c: G, v: 'A frame whose check breaks out of the corner. Structure, then check.' },
+        { i: 'approval', k: 'Approval', c: G, v: 'Check inside a locked body. A teacher authorised it; distinct from validation.' },
+        { i: 'version', k: 'Version', c: INK, v: 'Three stacked frames, v1 behind v3. Used for history, assets and packs.' },
+        { i: 'generate', k: 'Generation', c: INK, v: 'An outline unit stepped into a solid one. A controlled operation, not magic.' }
+      ],
+      product: [['source', 'Source'], ['evidence', 'Evidence'], ['objective', 'Objective'], ['generate', 'Generate'], ['regenerate', 'Regenerate'], ['validation', 'Validation'], ['approval', 'Approval'], ['version', 'Version'], ['student', 'Student'], ['aiTeacher', 'AI Teacher']].map(([i, l]) => ({ i, l })),
+      nav: [['dashboard', 'Dashboard'], ['packs', 'Learning Packs'], ['source', 'Sources'], ['overview', 'Overview'], ['explanation', 'Explanation'], ['assessment', 'Assessment'], ['quiz', 'Quiz'], ['answerKey', 'Answer Key'], ['aiTeacher', 'AI Teacher'], ['exam', 'Exam Focus'], ['resources', 'Resources'], ['version', 'Versions'], ['validation', 'Validation'], ['settings', 'Settings'], ['search', 'Search']].map(([i, l]) => ({ i, l })),
+      statuses: [
+        { st: 'pass', l: 'PASS', m: 'A system check passed' }, { st: 'review', l: 'REVIEW', m: 'Needs a teacher decision' }, { st: 'fail', l: 'FAILED', m: 'Blocks approval until fixed' },
+        { st: 'draft', l: 'DRAFT', m: 'Not published; students cannot see it' }, { st: 'approved', l: 'APPROVED', m: 'Approved by teacher' }, { st: 'locked', l: 'LOCKED', m: 'Frozen; changes require a new version' },
+        { st: 'queued', l: 'QUEUED', m: 'Waiting for a worker (e.g. HeyGen render)' }, { st: 'running', l: 'RUNNING', m: 'Operation in progress' }, { st: 'ready', l: 'READY', m: 'Output available, e.g. video rendered' },
+        { st: 'regen', l: 'REGENERATE', m: 'Upstream changed; this item is stale' }
+      ],
+      pipeline: [
+        { i: 'source', l: 'Source', d: 'PDF, PPTX, DOCX, MD', st: 'pass' }, { i: 'evidence', l: 'Evidence', d: '47 passages, each located', st: 'pass' },
+        { i: 'objective', l: 'Objectives', d: 'Mapped to evidence', st: 'review' }, { i: 'generate', l: 'AI generation', d: 'Proposes 7 assets', st: 'pass' },
+        { i: 'validation', l: 'Validation', d: '9 checks per pack', st: 'pass' }, { i: 'approval', l: 'Teacher approval', d: 'Authorises & locks', st: 'approved' },
+        { i: 'student', l: 'Student', d: 'Approved version only', st: 'pending' }
+      ].map((p, i, a) => ({ ...p, arrow: i < a.length - 1, border: p.i === 'approval' ? '3px double var(--color-text)' : '1px solid var(--color-divider)', bg: p.i === 'approval' ? 'var(--color-bg)' : 'var(--color-surface)' })),
+      voice: [
+        { yes: 'Ready for review', no: 'Your awesome lesson is ready!' }, { yes: 'Evidence coverage: 92%', no: 'AI confidence: 92%' },
+        { yes: 'Approved by teacher', no: 'AI-approved' }, { yes: 'Regenerate Q3', no: 'Make it better' },
+        { yes: 'Objective 04 is not supported by the selected sources.', no: 'Oops, AI could not find enough info.' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

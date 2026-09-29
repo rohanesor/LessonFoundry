@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<span style="display:inline-flex;align-items:center;gap:{{ gap }}px;font-family:var(--font-heading);line-height:1;white-space:nowrap">
+<sc-if value="{{ showMark }}" hint-placeholder-val="{{ true }}"><svg width="{{ size }}" height="{{ size }}" viewBox="0 0 32 32" aria-label="LessonFoundry" style="display:block;flex:none"><path d="M2.5 29.5V23.5H9.5V16.5H16.5V9.5H23.5V2.5H29.5V29.5Z" fill="{{ mass }}"></path><path d="M5.5 5.5h5v5h-5z" fill="{{ ink }}"></path><path d="M2.5 2.5h27v27h-27z" fill="none" stroke="{{ ink }}" stroke-width="2.5" stroke-linejoin="miter"></path></svg></sc-if>
+<sc-if value="{{ showWord }}" hint-placeholder-val="{{ true }}"><span style="font-size:{{ fs }}px;letter-spacing:-0.025em;color:{{ ink }}"><span style="font-weight:500">Lesson</span><span style="font-weight:800">Foundry</span></span></sc-if>
+</span>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:320,&quot;height&quot;:80},&quot;variant&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;lockup&quot;,&quot;mark&quot;,&quot;wordmark&quot;],&quot;default&quot;:&quot;lockup&quot;,&quot;tsType&quot;:&quot;'lockup'|'mark'|'wordmark'&quot;},&quot;tone&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;color&quot;,&quot;ink&quot;,&quot;inverse&quot;,&quot;white&quot;],&quot;default&quot;:&quot;color&quot;,&quot;tsType&quot;:&quot;'color'|'ink'|'inverse'|'white'&quot;},&quot;size&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:24,&quot;min&quot;:12,&quot;max&quot;:200,&quot;tsType&quot;:&quot;number&quot;}}">
+// Mark: a closed frame (the mould) holding a raw source unit (top-left) and the cast, stepped mass it becomes.
+const TONES = {
+  color: { ink: 'var(--color-text)', mass: 'var(--color-accent)' },
+  ink: { ink: 'var(--color-text)', mass: 'var(--color-text)' },
+  inverse: { ink: '#ffffff', mass: 'var(--color-accent-400)' },
+  white: { ink: '#ffffff', mass: '#ffffff' }
+};
+class Component extends DCLogic {
+  renderVals() {
+    const v = this.props.variant ?? 'lockup', size = Number(this.props.size ?? 24), t = TONES[this.props.tone] || TONES.color;
+    return { ...t, size, showMark: v !== 'wordmark', showWord: v !== 'mark', fs: Math.round(size * (v === 'wordmark' ? 1 : 0.72)), gap: Math.round(size * 0.38) };
+  }
+}
+</script>
+</body>
+</html>

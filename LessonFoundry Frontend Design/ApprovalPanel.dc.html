@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/modernist-2d405345-c880-4218-92f2-cddc1804b608/styles.css">
+<script src="_ds/modernist-2d405345-c880-4218-92f2-cddc1804b608/_ds_bundle.js"></script>
+</helmet>
+<div style="display:flex;flex-direction:column;gap:22px;padding:26px 32px 48px;max-width:900px;font-family:var(--font-body);color:var(--color-text)">
+  <div style="display:flex;flex-direction:column;gap:6px">
+    <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;font-weight:600;color:var(--color-accent-700)">Teacher approves</div>
+    <div style="font-size:28px;font-weight:800;letter-spacing:-0.02em">Approve Learning Pack</div>
+  </div>
+
+  <sc-if value="{{ isApproved }}" hint-placeholder-val="{{ false }}">
+    <div style="display:flex;flex-direction:column;gap:18px;padding:28px 28px 24px;background:oklch(0.4 0.1 150);color:#fff">
+      <div style="display:flex;align-items:center;gap:14px"><span style="width:44px;height:44px;display:grid;place-items:center;background:#fff;color:oklch(0.4 0.1 150);font-size:22px;font-weight:800">✓</span><span style="font-size:40px;font-weight:800;letter-spacing:0.02em;line-height:1">APPROVED</span></div>
+      <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-top:1px solid rgba(255,255,255,0.4);font-size:13px">
+        <div style="padding:10px 10px 0 0"><span style="opacity:0.8">Version</span><br><b style="font-size:18px">{{ meta.version }}</b></div>
+        <div style="padding:10px 10px 0 0"><span style="opacity:0.8">Approved by</span><br><b style="font-size:18px">{{ meta.by }}</b></div>
+        <div style="padding:10px 10px 0 0"><span style="opacity:0.8">Approved at</span><br><b style="font-size:18px">{{ meta.at }}</b></div>
+        <div style="padding:10px 10px 0 0"><span style="opacity:0.8">State</span><br><b style="font-size:18px;display:inline-flex;align-items:center;gap:6px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg>Locked</b></div>
+      </div>
+      <div style="font-size:14px;line-height:1.5">Student Mode now serves this exact approved version. Editing and regeneration are disabled until you choose Create New Version; students keep {{ meta.version }} until a newer version is approved.</div>
+      <div style="display:flex;gap:10px"><button class="btn" onClick="{{ onStudent }}" style="background:#fff;color:oklch(0.3 0.08 150)">Open Student View →</button></div>
+    </div>
+  </sc-if>
+
+  <div style="display:flex;flex-direction:column">
+    <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;font-weight:700;padding-bottom:10px;border-bottom:2px solid var(--color-divider)">Learning pack readiness</div>
+    <sc-for list="{{ rows }}" as="r" hint-placeholder-count="6">
+      <div style="display:grid;grid-template-columns:22px minmax(0,1fr) auto;gap:14px;align-items:center;padding:12px 0;border-bottom:1px solid var(--color-neutral-300)">
+        <dc-import name="StatusBadge" status="{{ r.s }}" variant="glyph" hint-size="18px,18px"></dc-import>
+        <div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:15px;font-weight:700">{{ r.label }}</span><span style="font-size:12px;color:var(--color-neutral-700)">{{ r.detail }}</span></div>
+        <sc-if value="{{ r.hasGo }}" hint-placeholder-val="{{ false }}"><button class="btn btn-ghost" onClick="{{ r.onGo }}" style="font-size:13px;white-space:nowrap">{{ r.goLabel }} →</button></sc-if>
+      </div>
+    </sc-for>
+  </div>
+
+  <sc-if value="{{ showBlock }}" hint-placeholder-val="{{ false }}">
+    <div style="padding:12px 14px;background:var(--color-accent-100);color:var(--color-accent-800);font-size:14px"><b>✕ {{ blockers }} failed check blocks approval.</b> Fix it with a targeted regeneration; the rest of the pack is kept.</div>
+  </sc-if>
+  <sc-if value="{{ showWarn }}" hint-placeholder-val="{{ false }}">
+    <div style="display:flex;flex-direction:column;gap:10px;padding:12px 14px;background:oklch(0.94 0.05 80);color:oklch(0.36 0.09 65);font-size:14px">
+      <b>! {{ warnText }}</b>
+      <button onClick="{{ toggleAck }}" style="display:flex;align-items:center;gap:8px;border:0;padding:0;background:transparent;font:inherit;font-size:13px;color:inherit;cursor:pointer;text-align:left"><span style="width:16px;height:16px;flex:none;border:1.5px solid currentColor;display:grid;place-items:center;background:{{ ackBg }};color:#fff;font-size:11px">{{ ackMark }}</span>I have reviewed the flagged items and approve them as they are.</button>
+    </div>
+  </sc-if>
+  <sc-if value="{{ notApproved }}" hint-placeholder-val="{{ true }}">
+    <div style="display:flex;align-items:center;gap:14px;padding-top:6px;border-top:2px solid var(--color-divider)">
+      <button class="btn btn-primary" disabled="{{ cantApprove }}" onClick="{{ onApprove }}" style="font-size:16px;padding:12px 18px;min-width:260px;justify-content:flex-start">Approve Learning Pack</button>
+      <span style="font-size:13px;color:var(--color-neutral-800)">{{ cta }}</span>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:960,&quot;height&quot;:800},&quot;items&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;{label:string;detail:string;s:string;go?:string;goLabel?:string}[]&quot;},&quot;approved&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;meta&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;{version:string;by:string;at:string}&quot;},&quot;version&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;v4&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;onApprove&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;()=&gt;void&quot;},&quot;onGo&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(go:string)=&gt;void&quot;},&quot;onStudent&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;()=&gt;void&quot;}}">
+class Component extends DCLogic {
+  state = { ack: false };
+  renderVals() {
+    const p = this.props, items = p.items || [];
+    const blockers = items.filter((i) => i.s === 'fail').length, reviews = items.filter((i) => i.s === 'review').length;
+    const approved = !!p.approved, needAck = reviews > 0 && !this.state.ack;
+    return {
+      isApproved: approved, notApproved: !approved, meta: p.meta || {},
+      rows: items.map((i) => ({ ...i, s: approved ? 'pass' : i.s, hasGo: !approved && !!i.go, goLabel: i.goLabel || 'Review', onGo: () => p.onGo && p.onGo(i.go) })),
+      blockers, showBlock: !approved && blockers > 0, showWarn: !approved && reviews > 0,
+      warnText: `${reviews} ${reviews === 1 ? 'asset requires' : 'assets require'} teacher review`,
+      ackBg: this.state.ack ? 'currentColor' : 'transparent', ackMark: this.state.ack ? '✓' : '',
+      toggleAck: () => this.setState((s) => ({ ack: !s.ack })),
+      cantApprove: approved || blockers > 0 || needAck || !!p.locked,
+      cta: blockers ? 'Resolve the failed check first.' : needAck ? 'Confirm the flagged items to continue.' : `Locks ${p.version || 'v4'} and publishes it to Student Mode.`,
+      onApprove: p.onApprove, onStudent: p.onStudent
+    };
+  }
+}
+</script>
+</body>
+</html>

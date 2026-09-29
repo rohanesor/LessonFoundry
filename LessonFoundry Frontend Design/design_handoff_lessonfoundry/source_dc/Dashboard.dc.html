@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/modernist-2d405345-c880-4218-92f2-cddc1804b608/styles.css">
+<script src="_ds/modernist-2d405345-c880-4218-92f2-cddc1804b608/_ds_bundle.js"></script>
+</helmet>
+<div style="padding:28px 32px 56px;display:flex;flex-direction:column;gap:28px;max-width:1280px;font-family:var(--font-body);color:var(--color-text)">
+  <div style="display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap">
+    <div style="display:flex;flex-direction:column;gap:4px;flex:1 1 360px">
+      <div style="display:flex;align-items:center;gap:8px;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;font-weight:600;color:var(--color-accent-700)"><dc-import name="LFIcon" icon="dashboard" size="14" hint-size="14px,14px"></dc-import>Workspace · Northfield School</div>
+      <div style="font-size:30px;font-weight:800;letter-spacing:-0.02em;line-height:1.1">{{ title }}</div>
+      <div style="font-size:14px;color:var(--color-neutral-800)">{{ subtitle }}</div>
+    </div>
+    <button class="btn btn-primary" onClick="{{ onCreate }}" style="white-space:nowrap">+ Create Learning Pack</button>
+  </div>
+
+  <sc-if value="{{ showEmpty }}" hint-placeholder-val="{{ false }}">
+    <div style="display:flex;flex-direction:column;gap:24px;padding:40px 0;border-top:2px solid var(--color-divider)">
+      <div style="display:flex;flex-direction:column;gap:8px;max-width:560px">
+        <div style="font-size:24px;font-weight:800;letter-spacing:-0.015em">No learning packs yet</div>
+        <div style="font-size:15px;line-height:1.6;color:var(--color-neutral-800)">Start with the sources you already teach from. LessonFoundry only generates content those sources support, and nothing reaches students until you approve it.</div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-top:1px solid var(--color-neutral-300);border-bottom:1px solid var(--color-neutral-300);max-width:920px">
+        <sc-for list="{{ steps }}" as="s" hint-placeholder-count="4">
+          <div style="padding:16px 16px 16px 0;display:flex;flex-direction:column;gap:4px;border-right:1px solid var(--color-neutral-300)">
+            <span style="font-size:11px;font-weight:700;color:var(--color-neutral-600)">{{ s.n }}</span>
+            <span style="font-size:16px;font-weight:800">{{ s.t }}</span>
+            <span style="font-size:12px;line-height:1.45;color:var(--color-neutral-700);padding-right:12px">{{ s.d }}</span>
+          </div>
+        </sc-for>
+      </div>
+      <div><button class="btn btn-primary" onClick="{{ onCreate }}">+ Create your first Learning Pack</button></div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ showStats }}" hint-placeholder-val="{{ true }}">
+    <div style="display:grid;grid-template-columns:repeat(5,minmax(0,1fr));border-top:2px solid var(--color-divider);border-bottom:1px solid var(--color-neutral-300)">
+      <sc-for list="{{ stats }}" as="s" hint-placeholder-count="5">
+        <div style="padding:16px 16px 16px 0;display:flex;flex-direction:column;gap:2px;border-right:1px solid var(--color-neutral-300)">
+          <span style="font-size:12px;color:var(--color-neutral-700)">{{ s.l }}</span>
+          <span style="font-size:30px;font-weight:800;letter-spacing:-0.02em;line-height:1.1;color:{{ s.fg }}">{{ s.v }}</span>
+        </div>
+      </sc-for>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ showTable }}" hint-placeholder-val="{{ true }}">
+    <div style="display:grid;grid-template-columns:{{ cols }};gap:32px;align-items:start">
+      <div style="min-width:0;display:flex;flex-direction:column">
+        <div style="display:flex;align-items:baseline;gap:10px;padding-bottom:10px"><span style="font-size:16px;font-weight:800">Recent learning packs</span><span style="font-size:12px;color:var(--color-neutral-700)">6 of 12</span></div>
+        <div style="display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,0.8fr) minmax(0,1.3fr) minmax(0,1fr) 120px 150px;gap:12px;padding:8px 0;border-top:2px solid var(--color-divider);border-bottom:2px solid var(--color-divider);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;font-weight:600;color:var(--color-neutral-700)"><span>Pack</span><span>Subject</span><span>Source</span><span>Status</span><span>Updated</span><span>Validation</span></div>
+        <sc-for list="{{ packs }}" as="p" hint-placeholder-count="6">
+          <button onClick="{{ p.onClick }}" style="display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,0.8fr) minmax(0,1.3fr) minmax(0,1fr) 120px 150px;gap:12px;align-items:center;padding:12px 0;border:0;border-bottom:1px solid var(--color-neutral-300);background:transparent;cursor:{{ p.cursor }};text-align:left;font:inherit;color:var(--color-text)">
+            <span style="display:flex;flex-direction:column;min-width:0"><span style="font-size:14px;font-weight:700">{{ p.name }}</span><span style="font-size:12px;color:var(--color-neutral-700)">{{ p.topic }}</span></span>
+            <span style="font-size:13px">{{ p.subject }}<br><span style="font-size:12px;color:var(--color-neutral-700)">{{ p.level }}</span></span>
+            <span style="font-size:12px;color:var(--color-neutral-800);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ p.source }}</span>
+            <span style="font-size:13px;font-weight:600">{{ p.stage }}</span>
+            <span style="font-size:12px;color:var(--color-neutral-700)">{{ p.updated }}</span>
+            <span><dc-import name="StatusBadge" status="{{ p.vs }}" label="{{ p.vl }}" hint-size="100px,20px"></dc-import></span>
+          </button>
+        </sc-for>
+      </div>
+      <sc-if value="{{ showActivity }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;flex-direction:column">
+          <div style="font-size:16px;font-weight:800;padding-bottom:10px">Recent activity</div>
+          <sc-for list="{{ activity }}" as="a" hint-placeholder-count="5">
+            <div style="display:grid;grid-template-columns:22px 1fr;gap:10px;padding:10px 0;border-top:1px solid var(--color-neutral-300)">
+              <span style="width:22px;height:22px;display:grid;place-items:center;font-size:10px;font-weight:800;background:{{ a.bg }};color:{{ a.fg }}">{{ a.k }}</span>
+              <span style="display:flex;flex-direction:column;gap:2px"><span style="font-size:13px;line-height:1.4">{{ a.t }}</span><span style="font-size:11px;color:var(--color-neutral-700)">{{ a.time }}</span></span>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1200,&quot;height&quot;:760},&quot;empty&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;mode&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;dashboard&quot;,&quot;packs&quot;],&quot;default&quot;:&quot;dashboard&quot;,&quot;tsType&quot;:&quot;'dashboard'|'packs'&quot;},&quot;currentPack&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;{stage:string; vs:string; vl:string}&quot;},&quot;onCreate&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;() =&gt; void&quot;},&quot;onOpenPack&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;() =&gt; void&quot;}}">
+const KIND = {
+  AI: { bg: 'var(--color-neutral-200)', fg: 'var(--color-text)' },
+  T: { bg: 'var(--color-text)', fg: 'var(--color-bg)' },
+  S: { bg: 'transparent', fg: 'var(--color-text)' },
+  OK: { bg: 'oklch(0.4 0.1 150)', fg: '#fff' },
+  '!': { bg: 'var(--lf-red-100, #ffe0d9)', fg: 'var(--lf-red-700, #ae1800)' }
+};
+class Component extends DCLogic {
+  renderVals() {
+    const p = this.props, empty = !!p.empty, packsMode = p.mode === 'packs';
+    const cur = p.currentPack || { stage: 'Draft', vs: 'fail', vl: '1 failed · 2 review' };
+    const rows = [
+      { id: 'newton', name: 'Unit 5 · Laws of Motion', topic: "Newton's Laws of Motion", subject: 'Physics', level: 'Class 11 · CBSE / JEE', source: 'Physics_Textbook.pdf +2', stage: cur.stage, updated: 'Today, 11:05', vs: cur.vs, vl: cur.vl },
+      { name: 'Unit 13 · Photosynthesis', topic: 'Photosynthesis in Higher Plants', subject: 'Biology', level: 'Class 11 · NEET', source: 'NCERT_Bio_Ch13.pdf', stage: 'Awaiting approval', updated: 'Today, 09:14', vs: 'pass', vl: '9/9 passed' },
+      { name: 'Ch 4 · Quadratic Equations', topic: 'Quadratic Equations', subject: 'Mathematics', level: 'Class 10 · CBSE', source: 'Algebra_Notes.docx +1', stage: 'Approved', updated: 'Yesterday', vs: 'approved', vl: 'Locked · v2' },
+      { name: 'Unit 4 · Chemical Bonding', topic: 'Chemical Bonding and Molecular Structure', subject: 'Chemistry', level: 'Class 11 · JEE', source: 'Chem_Ch4_Slides.pptx', stage: 'Draft', updated: '27 Sep', vs: 'fail', vl: 'Key mismatch' },
+      { name: 'Unit 12 · Electrostatics', topic: 'Electric Charges and Fields', subject: 'Physics', level: 'Class 12 · CBSE', source: 'Electrostatics_Ch1.pdf', stage: 'Awaiting approval', updated: '25 Sep', vs: 'review', vl: '1 needs review' },
+      { name: 'Ch 1 · The French Revolution', topic: 'The French Revolution', subject: 'History', level: 'Class 9 · CBSE', source: 'Revolution_Reader.pdf', stage: 'Approved', updated: '24 Sep', vs: 'approved', vl: 'Locked · v3' }
+    ].map((r) => ({ ...r, cursor: r.id ? 'pointer' : 'default', onClick: () => r.id && p.onOpenPack && p.onOpenPack() }));
+    const act = [
+      ['AI', 'Quiz Q9 regeneration available in Laws of Motion after a duplicate-check failure', 'Today, 11:08'],
+      ['S', 'Physics_Textbook.pdf updated to v2. 3 packs revalidated automatically', 'Today, 11:05'],
+      ['T', 'You submitted Photosynthesis for approval', 'Today, 09:14'],
+      ['OK', 'Quadratic Equations v2 approved and published to Student Mode', 'Yesterday, 16:40'],
+      ['!', 'Chemical Bonding: answer key failed consistency on 2 questions', '27 Sep, 14:22']
+    ].map(([k, t, time]) => ({ k: k === 'OK' ? '✓' : k, t, time, ...KIND[k] }));
+    return {
+      title: packsMode ? 'Learning Packs' : 'Dashboard',
+      subtitle: empty ? 'Priya Nair · Physics department' : packsMode ? '12 packs across 5 subjects' : 'Good morning, Priya. 3 packs are waiting for your review.',
+      showEmpty: empty, showStats: !empty && !packsMode, showTable: !empty, showActivity: !packsMode,
+      cols: packsMode ? 'minmax(0,1fr)' : 'minmax(0,1fr) 300px',
+      stats: [
+        { l: 'Total learning packs', v: 12, fg: 'var(--color-text)' }, { l: 'Drafts', v: 5, fg: 'var(--color-text)' },
+        { l: 'Awaiting approval', v: 3, fg: 'var(--color-text)' }, { l: 'Approved', v: 4, fg: 'oklch(0.45 0.11 150)' },
+        { l: 'Validation issues', v: 2, fg: 'var(--lf-red-700, #ae1800)' }
+      ],
+      steps: [
+        { n: '01', t: 'Add sources', d: 'PDF, PPTX, DOCX, TXT or Markdown. Evidence is extracted page by page.' },
+        { n: '02', t: 'AI generates', d: 'Seven connected assets, each built only from cited evidence.' },
+        { n: '03', t: 'System verifies', d: 'Grounding, answers, coverage and consistency are checked.' },
+        { n: '04', t: 'You approve', d: 'Only approved, locked versions reach students.' }
+      ],
+      packs: rows, activity: act, onCreate: p.onCreate
+    };
+  }
+}
+</script>
+</body>
+</html>

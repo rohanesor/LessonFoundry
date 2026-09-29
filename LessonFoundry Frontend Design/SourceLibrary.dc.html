@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/modernist-2d405345-c880-4218-92f2-cddc1804b608/styles.css">
+<script src="_ds/modernist-2d405345-c880-4218-92f2-cddc1804b608/_ds_bundle.js"></script>
+</helmet>
+<div style="display:flex;flex-direction:column;gap:20px;padding:26px 32px 48px;max-width:1280px;font-family:var(--font-body);color:var(--color-text)">
+  <div style="display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap">
+    <div style="display:flex;flex-direction:column;gap:4px;flex:1 1 360px">
+      <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;font-weight:600;color:var(--color-accent-700)">Workspace</div>
+      <div style="font-size:28px;font-weight:800;letter-spacing:-0.02em">Sources</div>
+      <div style="font-size:13px;color:var(--color-neutral-800)">Trusted teaching material. Generated content can only cite evidence extracted from these files.</div>
+    </div>
+    <button class="btn btn-primary" onClick="{{ upload }}">+ Upload source</button>
+  </div>
+  <div style="display:flex;flex-direction:column">
+    <div style="display:grid;grid-template-columns:minmax(0,1.6fr) 60px 70px 110px 150px 80px minmax(0,1fr) 250px;gap:12px;padding:8px 0;border-top:2px solid var(--color-divider);border-bottom:2px solid var(--color-divider);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;font-weight:600;color:var(--color-neutral-700)"><span>Source</span><span>Type</span><span>Version</span><span>Uploaded</span><span>Processing</span><span>Evidence</span><span>Used by</span><span>Actions</span></div>
+    <sc-for list="{{ rows }}" as="r" hint-placeholder-count="8">
+      <div style="display:flex;flex-direction:column;border-bottom:1px solid var(--color-neutral-300);background:{{ r.bg }}">
+        <div style="display:grid;grid-template-columns:minmax(0,1.6fr) 60px 70px 110px 150px 80px minmax(0,1fr) 250px;gap:12px;align-items:center;padding:11px 0">
+          <span style="font-size:14px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ r.name }}</span>
+          <span style="font-size:10px;font-weight:800;letter-spacing:0.06em;padding:2px 0;text-align:center;border:1px solid var(--color-divider)">{{ r.type }}</span>
+          <span style="font-size:13px">{{ r.ver }}</span>
+          <span style="font-size:12px;color:var(--color-neutral-700)">{{ r.date }}</span>
+          <span><dc-import name="StatusBadge" status="{{ r.s }}" label="{{ r.sl }}" hint-size="110px,20px"></dc-import></span>
+          <span style="font-size:13px;font-weight:700">{{ r.ev }}</span>
+          <span style="font-size:12px;color:var(--color-neutral-800)">{{ r.used }}</span>
+          <span style="display:flex;gap:2px"><button class="btn btn-ghost" onClick="{{ r.onView }}" style="font-size:12px">View source</button><button class="btn btn-ghost" disabled="{{ r.noEv }}" onClick="{{ r.onToggle }}" style="font-size:12px">{{ r.evLabel }}</button><button class="btn btn-ghost" onClick="{{ r.onNewVer }}" style="font-size:12px">New version</button></span>
+        </div>
+        <sc-if value="{{ r.open }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;margin:0 0 12px;padding:0 12px;background:var(--color-surface)">
+            <sc-for list="{{ r.items }}" as="e" hint-placeholder-count="4">
+              <div style="display:grid;grid-template-columns:60px 90px minmax(0,1fr) auto;gap:12px;align-items:center;padding:8px 0;border-bottom:1px solid var(--color-neutral-300);font-size:13px"><b>{{ e.id }}</b><span style="color:var(--color-neutral-700)">{{ e.loc }}</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ e.text }}</span><button class="btn btn-ghost" onClick="{{ e.onOpen }}" style="font-size:12px">Open</button></div>
+            </sc-for>
+          </div>
+        </sc-if>
+        <sc-if value="{{ r.hasNote }}" hint-placeholder-val="{{ false }}"><div style="margin:0 0 10px;font-size:12px;color:{{ r.noteFg }}">{{ r.note }}</div></sc-if>
+      </div>
+    </sc-for>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1280,&quot;height&quot;:800},&quot;onViewEvidence&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(id:string)=&gt;void&quot;},&quot;onToast&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(msg:string)=&gt;void&quot;}}">
+const EVI = [
+  ['E102', 'p.17', 'A body continues in its state of rest or of uniform motion in a straight line…'],
+  ['E103', 'p.18', 'When a moving bus stops suddenly, passengers lurch forward…'],
+  ['E110', 'p.21', 'The rate of change of momentum of a body is directly proportional to the applied force…'],
+  ['E114', 'p.24', 'A constant force of 12 N acts on a trolley of mass 3 kg initially at rest…']
+];
+class Component extends DCLogic {
+  state = { open: 'S1', extra: [] };
+  renderVals() {
+    const p = this.props, s = this.state;
+    const base = [
+      { id: 'S1', name: 'Physics_Textbook.pdf', type: 'PDF', ver: 'v2', date: 'Today, 11:05', s: 'pass', sl: 'Extracted', ev: 31, used: '3 packs · Laws of Motion, Electrostatics, Work & Energy', note: 'v1 superseded at 11:05 (errata on p.21). Dependent packs were revalidated.', noteFg: 'var(--color-neutral-700)' },
+      { id: 'S2', name: 'Newton_Lecture_Slides.pptx', type: 'PPTX', ver: 'v1', date: '28 Sep', s: 'pass', sl: 'Extracted', ev: 12, used: 'Laws of Motion' },
+      { id: 'S3', name: 'Teacher_Notes_Forces.md', type: 'MD', ver: 'v1', date: '28 Sep', s: 'pass', sl: 'Extracted', ev: 4, used: 'Laws of Motion' },
+      { id: 'S4', name: 'NCERT_Bio_Ch13.pdf', type: 'PDF', ver: 'v1', date: '26 Sep', s: 'pass', sl: 'Extracted', ev: 58, used: 'Photosynthesis' },
+      { id: 'S5', name: 'Algebra_Notes.docx', type: 'DOCX', ver: 'v3', date: '22 Sep', s: 'pass', sl: 'Extracted', ev: 22, used: 'Quadratic Equations' },
+      { id: 'S6', name: 'Chem_Ch4_Slides.pptx', type: 'PPTX', ver: 'v1', date: 'Today, 10:58', s: 'running', sl: 'Extracting · 64%', ev: '—', used: 'Chemical Bonding' },
+      { id: 'S7', name: 'Worksheet_scan_0923.pdf', type: 'PDF', ver: 'v1', date: '23 Sep', s: 'fail', sl: 'Extraction failed', ev: 0, used: 'Not used', note: 'Scanned image with no text layer. Run OCR or upload a text PDF; nothing from this file can be cited until then.', noteFg: 'var(--color-accent-700)' },
+      ...s.extra
+    ];
+    return {
+      upload: () => this.setState((st) => ({ extra: [...st.extra, { id: 'S' + (8 + st.extra.length), name: 'New_Upload_' + (st.extra.length + 1) + '.pdf', type: 'PDF', ver: 'v1', date: 'Just now', s: 'running', sl: 'Processing', ev: '—', used: 'Not used' }] })),
+      rows: base.map((r) => ({ ...r, open: s.open === r.id && r.id === 'S1', bg: s.open === r.id ? 'var(--color-neutral-100)' : 'transparent', hasNote: !!r.note, noEv: r.id !== 'S1',
+        evLabel: s.open === r.id ? 'Hide evidence' : 'Evidence',
+        items: EVI.map(([id, loc, text]) => ({ id, loc, text, onOpen: () => p.onViewEvidence && p.onViewEvidence(id) })),
+        onView: () => p.onViewEvidence && p.onViewEvidence(r.id === 'S2' ? 'E121' : r.id === 'S3' ? 'E131' : 'E102'),
+        onToggle: () => this.setState({ open: s.open === r.id ? null : r.id }),
+        onNewVer: () => p.onToast && p.onToast(`Upload a new version of ${r.name}. Packs citing it will be revalidated and flagged if evidence changed.`) }))
+    };
+  }
+}
+</script>
+</body>
+</html>

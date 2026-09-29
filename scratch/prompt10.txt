@@ -1,0 +1,957 @@
+<USER_REQUEST>
+# LESSONFOUNDRY — FULL FRONTEND VISUAL REPAIR
+
+You are now responsible for a **complete frontend visual-quality and hydration repair pass** for LessonFoundry.
+
+The goal is NOT to redesign the product.
+
+The goal is:
+
+> **Make the existing frontend render correctly, consistently, and visually match the established LessonFoundry design system and intended UI structure.**
+
+Use an automated browser + screenshot iteration workflow:
+
+**Run → Screenshot → Inspect → Detect mismatch → Automatically crop affected region → Fix → Screenshot again → Repeat**
+
+Do not stop after identifying issues. Fix them and verify the fix visually.
+
+---
+
+# 0. CRITICAL SAFETY RULES
+
+## DO NOT TOUCH
+
+Do NOT modify:
+
+* backend business logic
+* FastAPI endpoints
+* database schema
+* migrations
+* Supabase configuration
+* RLS policies
+* S3 implementation
+* worker implementation
+* Claude/Anthropic provider
+* generation pipeline
+* validation engine
+* PDF renderer
+* classroom API behavior
+* authentication backend
+* existing API contracts
+
+Do NOT enable real Claude.
+
+Keep:
+
+```env
+LLM_PROVIDER=mock
+REAL_LLM_ENABLED=false
+```
+
+Do NOT create new classrooms, packs, generation jobs, or Claude requests.
+
+This task is **frontend only**, except for harmless frontend configuration required to fix hydration/startup.
+
+---
+
+# 1. FIRST — ESTABLISH CLEAN BASELINE
+
+Before changing anything:
+
+```powershell
+cd frontend
+```
+
+Stop stale Next.js processes if necessary.
+
+Remove stale build output:
+
+```powershell
+Remove-Item -Recurse -Force .next -ErrorAction SilentlyContinue
+```
+
+Start the frontend cleanly.
+
+Use the existing project scripts rather than inventing new ones.
+
+Verify:
+
+```text
+http://localhost:3000/login
+```
+
+The FIRST acceptance criterion is:
+
+> `/login` must render successfully without HTTP 500, hydration failure, blank screen, or uncaught React exception.
+
+---
+
+# 2. BROWSER AUTOMATION
+
+Use the available browser automation tooling.
+
+You must inspect the application as a real browser user.
+
+Test at minimum:
+
+```text
+/login
+
+/teacher
+
+/teacher/classrooms/[id]
+
+/teacher/packs/[id]
+
+/student
+
+/student/classrooms/[id]
+
+/student/packs/[id]
+```
+
+Use the retained E2E classroom and retained E2E pack where available.
+
+Do NOT create duplicate test data.
+
+---
+
+# 3. AUTOMATIC SCREENSHOT SYSTEM
+
+For every major page:
+
+1. Open the page.
+2. Wait for DOM/content stabilization.
+3. Wait for fonts/layout/images to settle.
+4. Take a full-page screenshot.
+5. Inspect the screenshot.
+6. Identify visual defects.
+7. Automatically crop the screenshot around each affected region.
+8. Use the cropped image to diagnose the specific component.
+9. Fix the component.
+10. Reload.
+11. Take another screenshot.
+12. Compare again.
+
+Do not rely only on DOM assertions.
+
+The screenshot is the visual source of truth.
+
+---
+
+# 4. SCREENSHOT CLIPPING / REGION ANALYSIS
+
+Implement a temporary local screenshot-analysis workflow if necessary.
+
+For each screenshot, inspect regions such as:
+
+```text
+┌───────────────────────────────────────┐
+│ Header / Top Navigation               │
+├───────────────┬───────────────────────┤
+│ Sidebar       │ Main Content           │
+│               │                       │
+│               │                       │
+├───────────────┴───────────────────────┤
+│ Footer / Bottom Controls               │
+└───────────────────────────────────────┘
+```
+
+When a mismatch is detected, automatically create focused crops such as:
+
+```text
+screenshots/
+  baseline/
+  crops/
+    login-header.png
+    login-form.png
+    teacher-sidebar.png
+    teacher-dashboard.png
+    classroom-header.png
+    classroom-content.png
+    pack-navigation.png
+    pack-editor.png
+    validation-panel.png
+    student-header.png
+    student-pack-card.png
+```
+
+Do not permanently add unnecessary screenshot tooling to the production application.
+
+Temporary analysis scripts may live outside the production source tree or be deleted after verification.
+
+---
+
+# 5. VISUAL ISSUES TO DETECT
+
+Inspect every page for:
+
+## Layout
+
+Check:
+
+* incorrect widths
+* incorrect max-width
+* excessive whitespace
+* cramped sections
+* sidebar width
+* content width
+* panel alignment
+* vertical rhythm
+* card spacing
+* section spacing
+* page margins
+* responsive breakpoints
+* overflow
+* horizontal scrolling
+* clipped content
+
+## Typography
+
+Check:
+
+* font family
+* font weight
+* font size
+* line height
+* letter spacing
+* heading hierarchy
+* muted text
+* button text
+* labels
+* navigation text
+* code/data text
+
+## Brand
+
+Use the established LessonFoundry brand system.
+
+Core colors:
+
+```text
+Canvas:     #f3f2f2
+Foundry:    #2f62ad
+Ink:        #1d2433
+```
+
+Do not randomly introduce new brand colors.
+
+Preserve semantic status colors for:
+
+```text
+PASS
+WARN
+INFO
+FAIL
+DRAFT
+APPROVED
+PUBLISHED
+```
+
+---
+
+# 6. LESSONFOUNDRY DESIGN LANGUAGE
+
+The UI must feel like the existing LessonFoundry product.
+
+Use:
+
+* geometric visual language
+* outline-first icons
+* restrained use of color
+* strong information hierarchy
+* clean cards
+* structured panels
+* professional education tooling aesthetic
+* trustworthy/technical visual language
+
+Avoid:
+
+* generic SaaS gradients
+* excessive rounded cards
+* random shadows
+* AI robot icons
+* generic sparkle icons
+* graduation-cap imagery
+* unnecessary glassmorphism
+* excessive animations
+* decorative UI that does not communicate information
+
+The product principle remains:
+
+> AI proposes. Validators verify. Teacher approves. Student learns.
+
+---
+
+# 7. REQUIRED BRAND COMPONENTS
+
+Find or implement centralized reusable components for:
+
+```text
+<LessonFoundryLogo />
+<LessonFoundryMark />
+<LessonFoundryWordmark />
+```
+
+Do NOT duplicate logo SVG/markup throughout pages.
+
+Use the existing logo/brand implementation if already present.
+
+If brand tokens are currently scattered, centralize them without changing application behavior.
+
+---
+
+# 8. ICON SYSTEM
+
+Audit all icons.
+
+Use a consistent outline/geometric icon family.
+
+Important semantic icons include:
+
+```text
+Source
+Evidence
+Objective
+Generation
+Validation
+Approval
+Version
+Student
+AI Teacher
+Resources
+```
+
+Do not mix unrelated icon libraries randomly.
+
+Do not replace meaningful existing icons with decorative symbols.
+
+---
+
+# 9. LOGIN PAGE
+
+Fix `/login` first.
+
+Acceptance:
+
+```text
+HTTP 200
+No React hydration error
+No console errors
+No blank state
+Form renders immediately
+```
+
+Verify:
+
+* LessonFoundry branding
+* login form
+* email/password
+* Google OAuth
+* loading state
+* error state
+* correct spacing
+* correct typography
+* correct button hierarchy
+* responsive layout
+
+Pay particular attention to hydration.
+
+Look for:
+
+```text
+window
+localStorage
+sessionStorage
+document
+navigator
+Date
+random values
+client-only auth state
+```
+
+being evaluated during server rendering.
+
+If needed, move browser-only behavior into:
+
+```tsx
+useEffect(...)
+```
+
+or a client-only boundary.
+
+Do not break authentication.
+
+---
+
+# 10. HYDRATION AUDIT
+
+Search the frontend for likely hydration causes.
+
+Inspect:
+
+```text
+localStorage
+sessionStorage
+window
+document
+navigator
+Date.now()
+new Date()
+Math.random()
+crypto.randomUUID()
+auth session initialization
+Supabase client initialization
+conditional rendering based on browser state
+```
+
+Do not simply add `"use client"` everywhere.
+
+Fix the actual server/client rendering mismatch.
+
+Preferred pattern:
+
+```text
+Server-stable initial render
+        ↓
+Client hydration
+        ↓
+Browser-only state initialization
+        ↓
+UI update
+```
+
+Avoid hydration hacks that merely suppress errors.
+
+Do NOT use:
+
+```text
+suppressHydrationWarning
+```
+
+as a blanket solution.
+
+Only use it when technically justified and documented.
+
+---
+
+# 11. TEACHER DASHBOARD
+
+Audit:
+
+```text
+/teacher
+```
+
+Verify:
+
+* page loads
+* navigation is stable
+* classroom cards align
+* learning pack cards align
+* empty states look intentional
+* buttons have consistent hierarchy
+* status badges are consistent
+* no layout shift
+* no hydration error
+
+The dashboard should clearly communicate:
+
+```text
+Classrooms
+Learning Packs
+Recent activity / relevant workspace content
+```
+
+Do not introduce new product concepts.
+
+---
+
+# 12. CLASSROOM UI
+
+Audit:
+
+```text
+/teacher/classrooms/[id]
+```
+
+Verify:
+
+* classroom header
+* classroom name
+* join code
+* student count
+* navigation
+* overview
+* stream
+* learning packs
+* students
+* create pack action
+
+Check the previously fixed classroom-card navigation behavior.
+
+Do not regress:
+
+```text
+exact classroom href
+waitForURL
+route binding
+```
+
+---
+
+# 13. TEACHER PACK STUDIO
+
+Audit:
+
+```text
+/teacher/packs/[id]
+```
+
+This is one of the most important screens.
+
+Maintain the established structure:
+
+```text
+LEFT ~20%
+Pack Navigation
+
+CENTER ~60%
+Asset Editor / Content
+
+RIGHT ~20%
+Trust / Validation
+```
+
+The layout must feel intentional and balanced.
+
+Inspect:
+
+* pack header
+* pack title
+* asset navigation
+* explanation
+* assessment
+* quiz
+* answer key
+* AI Teacher
+* exam focus
+* resources
+* evidence
+* validation
+* versions
+
+Ensure the active navigation item is visually obvious.
+
+---
+
+# 14. VALIDATION UI
+
+The actual heading is:
+
+```text
+Validation & provenance
+```
+
+Do NOT restore the old:
+
+```text
+Quality & grounding
+```
+
+unless the source code/documentation explicitly requires it.
+
+Verify:
+
+```text
+PASS
+WARN
+FAIL
+INFO
+```
+
+are displayed consistently.
+
+Critical acceptance:
+
+```text
+FAIL count = 0
+```
+
+Do not change validation logic just to make the UI look better.
+
+Warnings must remain warnings.
+
+---
+
+# 15. APPROVAL / PUBLICATION UI
+
+Audit the visual state transitions:
+
+```text
+DRAFT
+↓
+APPROVED
+↓
+PUBLISHED
+```
+
+The UI must make the distinction clear.
+
+Do not merge approval and publication.
+
+For approved classroom packs:
+
+```text
+Publish to classroom
+```
+
+must be visually distinct from ordinary editing controls.
+
+---
+
+# 16. STUDENT UI
+
+Audit:
+
+```text
+/student
+/student/classrooms/[id]
+/student/packs/[id]
+```
+
+Student navigation should expose only student-relevant functionality.
+
+Expected:
+
+```text
+My Classrooms
+Join Classroom
+
+Current Classroom:
+  Stream
+  Learning Packs
+
+Current Pack:
+  Learn
+  Practice
+  Revise
+  Watch
+  Resources
+  Download
+```
+
+Student UI must NOT expose:
+
+```text
+Validation
+Evidence/provenance internals
+Approval
+Publication
+Regeneration
+Teacher controls
+Generation controls
+Version management
+```
+
+---
+
+# 17. RESPONSIVE CHECK
+
+Test at minimum:
+
+```text
+1440 × 900
+1280 × 800
+1024 × 768
+768 × 1024
+390 × 844
+```
+
+For every viewport check:
+
+* no horizontal overflow
+* no clipped buttons
+* no overlapping panels
+* navigation remains usable
+* text remains readable
+* cards don't break
+* modal/dialog content fits
+* tables/data remain usable
+
+For mobile, do not merely shrink desktop UI.
+
+Use the existing product structure and make panels stack/collapse logically.
+
+---
+
+# 18. CONSOLE AUDIT
+
+The browser console must have:
+
+```text
+0 uncaught exceptions
+0 React hydration errors
+0 React hydration warnings
+0 failed dynamic imports
+0 missing critical assets
+```
+
+Normal development warnings that do not affect rendering may be documented, but do not ignore actual application errors.
+
+---
+
+# 19. NETWORK AUDIT
+
+Monitor browser requests.
+
+Identify:
+
+```text
+4xx
+5xx
+failed fetch
+CORS failures
+failed JS chunks
+failed CSS
+failed images
+failed API calls
+```
+
+For each failure determine:
+
+```text
+Frontend bug?
+Backend bug?
+Expected unauthorized request?
+Missing asset?
+Stale dev-server artifact?
+```
+
+Do not modify backend code merely to hide a frontend mistake.
+
+---
+
+# 20. AUTOMATED VISUAL ITERATION LOOP
+
+Repeat this loop until stable:
+
+```text
+START
+  ↓
+Clean frontend
+  ↓
+Open page
+  ↓
+Capture screenshot
+  ↓
+Inspect screenshot
+  ↓
+Find visual mismatch
+  ↓
+Crop mismatch region
+  ↓
+Inspect component/code
+  ↓
+Patch
+  ↓
+Reload
+  ↓
+Capture screenshot
+  ↓
+Compare
+  ↓
+Still wrong?
+  ├── YES → crop again → patch again
+  └── NO
+       ↓
+Next page
+```
+
+Do this for all critical pages.
+
+Do not declare success after one screenshot.
+
+---
+
+# 21. DO NOT OVER-ENGINEER
+
+Prefer:
+
+```text
+existing component
+existing token
+existing utility
+existing shadcn component
+existing layout
+```
+
+over introducing a new abstraction.
+
+Do not rewrite the frontend architecture.
+
+Do not migrate frameworks.
+
+Do not replace Next.js.
+
+Do not replace Tailwind.
+
+Do not replace shadcn/ui.
+
+Do not replace TanStack Query.
+
+Do not introduce a new UI library.
+
+---
+
+# 22. FINAL QUALITY BAR
+
+The frontend is complete only when:
+
+### Startup
+
+```text
+/login → HTTP 200
+```
+
+### Hydration
+
+```text
+No hydration errors
+No hydration warnings
+```
+
+### Visual
+
+All critical screens are visually coherent and consistent with the established LessonFoundry design system.
+
+### Functional
+
+```text
+Login
+Teacher dashboard
+Classroom
+Pack Studio
+Validation
+Approval
+Publication UI
+Student dashboard
+Student classroom
+Student pack
+```
+
+all render correctly.
+
+### Browser
+
+```text
+Console errors = 0
+Critical network failures = 0
+```
+
+### Build
+
+Run:
+
+```text
+backend tests
+TypeScript
+production build
+secret scan
+bundle scan
+```
+
+All must pass.
+
+### AI
+
+Anthropic must remain:
+
+```text
+0 requests
+```
+
+### Data
+
+Do not create:
+
+* duplicate classroom
+* duplicate pack
+* generation job
+* export
+* S3 object
+
+unless absolutely required by the existing frontend startup/test process.
+
+---
+
+# 23. FINAL REPORT
+
+At the end provide:
+
+```text
+PHASE — FRONTEND VISUAL REPAIR
+
+Login: PASS/FAIL
+Hydration: PASS/FAIL
+Teacher Dashboard: PASS/FAIL
+Classroom: PASS/FAIL
+Pack Studio: PASS/FAIL
+Validation UI: PASS/FAIL
+Approval UI: PASS/FAIL
+Publication UI: PASS/FAIL
+Student Dashboard: PASS/FAIL
+Student Classroom: PASS/FAIL
+Student Pack: PASS/FAIL
+
+Desktop visual audit: PASS/FAIL
+Tablet visual audit: PASS/FAIL
+Mobile visual audit: PASS/FAIL
+
+Screenshot iterations: <count>
+Regions automatically cropped: <count>
+Frontend files changed: <count>
+
+Browser console: PASS/FAIL
+Critical network requests: PASS/FAIL
+
+Backend tests: PASS/FAIL
+TypeScript: PASS/FAIL
+Production build: PASS/FAIL
+Secret scan: PASS/FAIL
+Bundle scan: PASS/FAIL
+
+Anthropic requests: 0
+Generation jobs: 0
+Regenerations: 0
+
+Final status:
+PASS / FAIL
+```
+
+Also list:
+
+```text
+1. Root cause of hydration/startup issue
+2. Frontend fixes made
+3. Visual inconsistencies fixed
+4. Screenshot regions inspected
+5. Any remaining visual issues
+```
+
+Do NOT modify backend behavior.
+
+Do NOT enable real Claude.
+
+Do NOT create new test data unnecessarily.
+
+The objective is:
+
+> **A clean, stable, production-quality LessonFoundry frontend whose actual rendered UI matches the established design language, verified through repeated automated browser screenshots and targeted screenshot clipping.**
+
+exactly same as claude design 
+
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-09-29T19:45:52+05:30.
+</ADDITIONAL_METADATA>

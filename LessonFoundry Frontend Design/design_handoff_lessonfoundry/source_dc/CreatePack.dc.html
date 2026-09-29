@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/modernist-2d405345-c880-4218-92f2-cddc1804b608/styles.css">
+<script src="_ds/modernist-2d405345-c880-4218-92f2-cddc1804b608/_ds_bundle.js"></script>
+</helmet>
+<div style="display:flex;flex-direction:column;min-height:100%;font-family:var(--font-body);color:var(--color-text)">
+  <div style="padding:24px 32px 0;display:flex;flex-direction:column;gap:4px">
+    <div style="display:flex;align-items:center;gap:8px;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;font-weight:600;color:var(--color-accent-700)"><dc-import name="LFIcon" icon="plus" size="14" hint-size="14px,14px"></dc-import>New learning pack</div>
+    <div style="font-size:28px;font-weight:800;letter-spacing:-0.02em">Create Learning Pack</div>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));margin:18px 32px 0;border-top:2px solid var(--color-divider);border-bottom:2px solid var(--color-divider)">
+    <sc-for list="{{ stepTabs }}" as="s" hint-placeholder-count="4">
+      <button onClick="{{ s.onClick }}" style="display:flex;flex-direction:column;gap:2px;padding:12px 14px;border:0;border-right:1px solid var(--color-neutral-300);background:{{ s.bg }};color:{{ s.fg }};text-align:left;cursor:pointer;font:inherit">
+        <span style="font-size:11px;font-weight:700;letter-spacing:0.06em">{{ s.n }} · {{ s.state }}</span><span style="font-size:15px;font-weight:800">{{ s.t }}</span>
+      </button>
+    </sc-for>
+  </div>
+
+  <div style="flex:1;padding:24px 32px 32px;max-width:1080px;display:flex;flex-direction:column;gap:20px">
+    <sc-if value="{{ isStep0 }}" hint-placeholder-val="{{ true }}">
+      <div style="display:flex;flex-direction:column;gap:18px">
+        <div style="font-size:14px;line-height:1.55;color:var(--color-neutral-800);max-width:64ch">Upload the materials you teach from. Everything in this pack is generated from evidence extracted from these files and nothing else.</div>
+        <button onClick="{{ addFile }}" style="display:flex;align-items:center;gap:16px;padding:22px 20px;border:2px dashed var(--color-divider);background:var(--color-surface);cursor:pointer;text-align:left;font:inherit;color:var(--color-text)">
+          <span style="font-size:22px;font-weight:800">+</span>
+          <span style="display:flex;flex-direction:column;gap:2px"><span style="font-size:15px;font-weight:800">Upload sources</span><span style="font-size:12px;color:var(--color-neutral-700)">PDF · PPT/PPTX · DOC/DOCX · TXT/Markdown · multiple files allowed</span></span>
+        </button>
+        <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px">
+          <sc-for list="{{ files }}" as="f" hint-placeholder-count="3">
+            <div style="display:flex;flex-direction:column;gap:10px;padding:14px 16px;background:var(--color-surface)">
+              <div style="display:flex;align-items:center;gap:10px"><span style="font-size:10px;font-weight:800;letter-spacing:0.06em;padding:2px 6px;border:1px solid var(--color-divider)">{{ f.type }}</span><span style="font-size:14px;font-weight:700;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ f.name }}</span><span style="font-size:11px;color:var(--color-neutral-700)">{{ f.ver }}</span></div>
+              <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));font-size:12px;border-top:1px solid var(--color-neutral-300);padding-top:8px">
+                <span><span style="color:var(--color-neutral-700)">Processing</span><br><b>{{ f.proc }}</b></span>
+                <span><span style="color:var(--color-neutral-700)">Size</span><br><b>{{ f.count }}</b></span>
+                <span><span style="color:var(--color-neutral-700)">Extraction</span><br><b style="color:{{ f.exFg }}">{{ f.ex }}</b></span>
+              </div>
+              <div style="height:4px;background:var(--color-neutral-300)"><div style="height:4px;width:{{ f.pct }};background:{{ f.bar }}"></div></div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isStep1 }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;flex-direction:column;gap:18px;max-width:820px">
+        <div class="field"><label>Topic</label><input class="input" value="{{ topic }}" onChange="{{ onTopic }}" style="font-size:16px;font-weight:700"></div>
+        <div class="field"><label>Teacher summary</label><textarea class="input" value="{{ summary }}" onChange="{{ onSummary }}" style="min-height:84px;line-height:1.5"></textarea></div>
+        <div style="display:flex;align-items:baseline;gap:10px"><span style="font-size:16px;font-weight:800">Learning objectives</span><span style="font-size:12px;color:var(--color-neutral-700)">Each objective is checked against source evidence before anything is generated.</span></div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <sc-for list="{{ objs }}" as="o" hint-placeholder-count="3">
+            <div style="display:flex;flex-direction:column;gap:10px;padding:12px 14px;background:var(--color-surface);outline:2px solid {{ o.frame }};outline-offset:-2px">
+              <div style="display:grid;grid-template-columns:96px 1fr auto auto;gap:12px;align-items:center">
+                <span style="font-size:12px;font-weight:800;letter-spacing:0.04em">Objective {{ o.n }}</span>
+                <input class="input" value="{{ o.text }}" onChange="{{ o.onText }}">
+                <dc-import name="StatusBadge" status="{{ o.s }}" label="{{ o.sl }}" hint-size="120px,20px"></dc-import>
+                <button class="btn btn-ghost" onClick="{{ o.onRemove }}" style="font-size:12px;color:var(--color-neutral-700)">Remove</button>
+              </div>
+              <sc-if value="{{ o.isGap }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;flex-direction:column;gap:8px;padding:10px 12px;background:oklch(0.94 0.05 80);color:oklch(0.38 0.09 65);font-size:13px;line-height:1.45">
+                  <b>Source coverage gap</b><span>This objective is not sufficiently supported by the selected sources. Best match: Physics_Textbook.pdf p.26, relevance 0.31 (minimum 0.60).</span>
+                  <div style="display:flex;gap:8px"><button class="btn btn-secondary" onClick="{{ o.onFocus }}" style="font-size:12px;padding:4px 8px">Modify objective</button><button class="btn btn-secondary" onClick="{{ goSources }}" style="font-size:12px;padding:4px 8px">Add source</button><button class="btn btn-ghost" onClick="{{ o.onContinue }}" style="font-size:12px;color:oklch(0.38 0.09 65)">Continue with warning</button></div>
+                </div>
+              </sc-if>
+            </div>
+          </sc-for>
+        </div>
+        <div style="display:flex;gap:8px"><button class="btn btn-secondary" onClick="{{ addObj }}">+ Add objective</button><button class="btn btn-secondary" onClick="{{ checkCoverage }}">{{ checkLabel }}</button></div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isStep2 }}" hint-placeholder-val="{{ false }}">
+      <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px 20px;max-width:960px">
+        <div class="field"><label>Subject</label><select class="input" value="{{ c.subject }}" onChange="{{ set.subject }}"><option>Physics</option><option>Chemistry</option><option>Biology</option><option>Mathematics</option></select></div>
+        <div class="field"><label>Academic level</label><select class="input" value="{{ c.level }}" onChange="{{ set.level }}"><option>Class 11</option><option>Class 12</option><option>Class 10</option></select></div>
+        <div class="field"><label>Exam</label><select class="input" value="{{ c.exam }}" onChange="{{ set.exam }}"><option>CBSE / JEE Main</option><option>CBSE</option><option>JEE Main</option><option>NEET</option></select></div>
+        <div class="field"><label>Language</label><select class="input" value="{{ c.language }}" onChange="{{ set.language }}"><option>English</option><option>Hindi</option><option>English + Hindi glossary</option></select></div>
+        <div class="field"><label>Difficulty</label><select class="input" value="{{ c.difficulty }}" onChange="{{ set.difficulty }}"><option>Easy</option><option>Medium</option><option>Hard</option></select></div>
+        <div class="field"><label>Vocabulary level</label><select class="input" value="{{ c.vocab }}" onChange="{{ set.vocab }}"><option>Foundation</option><option>Standard</option><option>Advanced</option></select></div>
+        <div class="field"><label>Explanation length</label><select class="input" value="{{ c.length }}" onChange="{{ set.length }}"><option>Short (~300 words)</option><option>Standard (~600 words)</option><option>Detailed (~1,200 words)</option></select></div>
+        <div class="field"><label>Quiz count</label><input class="input" type="number" min="3" max="30" value="{{ c.quiz }}" onChange="{{ set.quiz }}"></div>
+        <div class="field"><label>Answer reveal policy</label><select class="input" value="{{ c.reveal }}" onChange="{{ set.reveal }}"><option>After submission</option><option>After each question</option><option>Teacher releases manually</option><option>Never</option></select></div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isStep3 }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;flex-direction:column;gap:20px">
+        <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-top:2px solid var(--color-divider);border-bottom:2px solid var(--color-divider)">
+          <div style="padding:14px 16px 14px 0;display:flex;flex-direction:column;gap:6px"><span style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;font-weight:600;color:var(--color-neutral-700)">Sources</span><sc-for list="{{ files }}" as="f" hint-placeholder-count="3"><span style="font-size:13px"><b>{{ f.name }}</b> · {{ f.ver }} · {{ f.ex }}</span></sc-for></div>
+          <div style="padding:14px 16px;border-left:1px solid var(--color-neutral-300);display:flex;flex-direction:column;gap:6px"><span style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;font-weight:600;color:var(--color-neutral-700)">Intent</span><span style="font-size:15px;font-weight:800">{{ topic }}</span><sc-for list="{{ objs }}" as="o" hint-placeholder-count="3"><span style="font-size:13px;color:{{ o.fg }}"><b>{{ o.n }}</b> {{ o.text }}</span></sc-for></div>
+          <div style="padding:14px 16px;border-left:1px solid var(--color-neutral-300);display:flex;flex-direction:column;gap:4px;font-size:13px"><span style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;font-weight:600;color:var(--color-neutral-700)">Constraints</span><span>{{ c.subject }} · {{ c.level }} · {{ c.exam }}</span><span>{{ c.language }} · {{ c.difficulty }} · {{ c.vocab }} vocabulary</span><span>{{ c.length }} · {{ c.quiz }} quiz questions</span><span>Answers revealed: {{ c.reveal }}</span></div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:15px;font-weight:800">Will be generated</span><span style="font-size:13px;color:var(--color-neutral-800)">Explanation · Assessment · Quiz · Answer Key · Important &amp; Exam Focus · AI Teacher video script · Supplementary YouTube resources</span></div>
+        <sc-if value="{{ hasGapWarn }}" hint-placeholder-val="{{ false }}"><div style="padding:10px 12px;background:oklch(0.94 0.05 80);color:oklch(0.38 0.09 65);font-size:13px"><b>1 objective continues with a coverage warning.</b> No content will be generated for it until a supporting source is added.</div></sc-if>
+        <div style="padding:14px 16px;background:var(--color-surface);font-size:13px;line-height:1.5;max-width:70ch"><b>Generation boundary.</b> Only the sources above are used. Every section, question and answer must cite extracted evidence or it is not generated. All output starts as a draft and is validated before you review it.</div>
+      </div>
+    </sc-if>
+  </div>
+
+  <div style="display:flex;align-items:center;gap:10px;padding:12px 32px;border-top:2px solid var(--color-divider);position:sticky;bottom:0;background:var(--color-bg)">
+    <button class="btn btn-secondary" onClick="{{ back }}">{{ backLabel }}</button>
+    <span style="flex:1"></span>
+    <span style="font-size:12px;color:var(--color-neutral-700)">{{ footNote }}</span>
+    <sc-if value="{{ notLast }}" hint-placeholder-val="{{ true }}"><button class="btn btn-primary" onClick="{{ next }}" disabled="{{ nextDisabled }}">Continue →</button></sc-if>
+    <sc-if value="{{ isStep3 }}" hint-placeholder-val="{{ false }}"><button class="btn btn-primary" onClick="{{ generate }}">Generate Learning Pack →</button></sc-if>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1100,&quot;height&quot;:760},&quot;coverageGap&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;onGenerate&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(r:{gap:boolean}) =&gt; void&quot;},&quot;onCancel&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;() =&gt; void&quot;}}">
+const OK = 'oklch(0.45 0.11 150)', AMB = 'oklch(0.49 0.115 65)';
+class Component extends DCLogic {
+  state = {
+    step: 0, checked: false,
+    files: [
+      { name: 'Physics_Textbook.pdf', type: 'PDF', ver: 'v2', count: '48 pages', done: true, ev: 31 },
+      { name: 'Newton_Lecture_Slides.pptx', type: 'PPTX', ver: 'v1', count: '22 slides', done: true, ev: 12 },
+      { name: 'Teacher_Notes_Forces.md', type: 'MD', ver: 'v1', count: '1 file', done: true, ev: 4 }
+    ],
+    topic: "Newton's Laws of Motion",
+    summary: 'Introduce the three laws with everyday examples before formal statements. Keep numericals to one-step F = ma for most questions. Address the misconception that action–reaction forces cancel.',
+    objs: [
+      { id: 1, text: "Explain Newton's First Law." },
+      { id: 2, text: "Apply Newton's Second Law to simple problems." },
+      { id: 3, text: 'Identify action–reaction pairs using the Third Law.' }
+    ],
+    cont: {},
+    c: { subject: 'Physics', level: 'Class 11', exam: 'CBSE / JEE Main', language: 'English', difficulty: 'Medium', vocab: 'Foundation', length: 'Standard (~600 words)', quiz: 10, reveal: 'After submission' }
+  };
+  componentDidMount() {
+    if (this.props.coverageGap) this.setState((s) => ({ objs: [...s.objs, { id: 4, text: 'Analyse motion on an inclined plane with friction.' }] }));
+  }
+  isGapText(t) { return /inclin/i.test(t); }
+  renderVals() {
+    const s = this.state, p = this.props;
+    const titles = ['Sources', 'Learning intent', 'Constraints', 'Review & generate'];
+    const setC = (k) => (e) => { const v = e.target.value; this.setState((st) => ({ c: { ...st.c, [k]: k === 'quiz' ? Number(v) : v } })); };
+    const objs = s.objs.map((o, i) => {
+      const gap = s.checked && this.isGapText(o.text), cont = s.cont[o.id];
+      return {
+        n: String(i + 1).padStart(2, '0'), text: o.text, isGap: gap && !cont,
+        s: !s.checked ? 'pending' : gap ? 'review' : 'pass',
+        sl: !s.checked ? 'Not checked' : gap ? (cont ? 'Continue with warning' : 'Coverage gap') : `Supported · ${[9, 7, 5][i] || 4} evidence`,
+        frame: gap && !cont ? 'oklch(0.6 0.12 70)' : 'transparent', fg: gap ? AMB : 'var(--color-text)',
+        onText: (e) => { const v = e.target.value; this.setState((st) => ({ objs: st.objs.map((x) => x.id === o.id ? { ...x, text: v } : x) })); },
+        onRemove: () => this.setState((st) => ({ objs: st.objs.filter((x) => x.id !== o.id) })),
+        onFocus: () => this.setState((st) => ({ objs: st.objs.map((x) => x.id === o.id ? { ...x, text: 'Describe friction as a force that opposes motion.' } : x) })),
+        onContinue: () => this.setState((st) => ({ cont: { ...st.cont, [o.id]: true } }))
+      };
+    });
+    const files = s.files.map((f) => ({ ...f, proc: f.done ? 'Complete' : 'Parsing…', ex: f.done ? `${f.ev} evidence items` : 'Extracting…', exFg: f.done ? OK : 'var(--color-neutral-700)', pct: f.done ? '100%' : '46%', bar: f.done ? OK : 'var(--color-text)' }));
+    const hasBlockingGap = objs.some((o) => o.isGap);
+    return {
+      stepTabs: titles.map((t, i) => ({ n: String(i + 1).padStart(2, '0'), t, state: i < s.step ? 'Done' : i === s.step ? 'Current' : 'Next',
+        bg: i === s.step ? 'var(--color-text)' : 'transparent', fg: i === s.step ? 'var(--color-bg)' : i < s.step ? 'var(--color-text)' : 'var(--color-neutral-700)', onClick: () => this.setState({ step: i }) })),
+      isStep0: s.step === 0, isStep1: s.step === 1, isStep2: s.step === 2, isStep3: s.step === 3, notLast: s.step < 3,
+      files, objs, topic: s.topic, summary: s.summary, c: s.c,
+      set: Object.fromEntries(Object.keys(s.c).map((k) => [k, setC(k)])),
+      onTopic: (e) => this.setState({ topic: e.target.value }), onSummary: (e) => this.setState({ summary: e.target.value }),
+      addFile: () => {
+        const f = { name: 'Newton_Worksheet_Set2.docx', type: 'DOCX', ver: 'v1', count: '6 pages', done: false, ev: 6 };
+        if (s.files.some((x) => x.name === f.name)) return;
+        this.setState((st) => ({ files: [...st.files, f] }));
+        setTimeout(() => this.setState((st) => ({ files: st.files.map((x) => x.name === f.name ? { ...x, done: true } : x) })), 1800);
+      },
+      addObj: () => this.setState((st) => ({ objs: [...st.objs, { id: Date.now(), text: '' }], checked: false })),
+      checkCoverage: () => this.setState({ checked: true }), checkLabel: s.checked ? 'Coverage checked ✓' : 'Check source coverage',
+      goSources: () => this.setState({ step: 0 }),
+      hasGapWarn: s.checked && objs.some((o) => this.isGapText(o.text)),
+      back: () => (s.step === 0 ? p.onCancel && p.onCancel() : this.setState({ step: s.step - 1 })), backLabel: s.step === 0 ? 'Cancel' : '← Back',
+      next: () => this.setState({ step: s.step + 1, checked: s.step === 1 ? true : s.checked }),
+      nextDisabled: (s.step === 0 && s.files.some((f) => !f.done)) || (s.step === 1 && hasBlockingGap),
+      footNote: s.step === 0 ? `${s.files.length} sources · ${s.files.reduce((a, f) => a + (f.done ? f.ev : 0), 0)} evidence items` : s.step === 1 ? (hasBlockingGap ? 'Resolve the coverage gap to continue' : s.checked ? 'Coverage checked' : 'Coverage is checked when you continue') : s.step === 2 ? `${s.c.subject} · ${s.c.level} · ${s.c.difficulty}` : 'Generation takes about 90 seconds',
+      generate: () => p.onGenerate && p.onGenerate({ gap: objs.some((o) => this.isGapText(o.text)) })
+    };
+  }
+}
+</script>
+</body>
+</html>

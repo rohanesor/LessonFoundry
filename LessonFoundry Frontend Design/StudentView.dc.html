@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/modernist-2d405345-c880-4218-92f2-cddc1804b608/styles.css">
+<script src="_ds/modernist-2d405345-c880-4218-92f2-cddc1804b608/_ds_bundle.js"></script>
+</helmet>
+<div style="display:flex;flex-direction:column;height:100vh;background:#fbfafa;font-family:var(--font-body);color:var(--color-text)">
+  <div style="display:flex;align-items:center;gap:12px;padding:6px 24px;background:var(--color-text);color:var(--color-bg);font-size:12px;flex:none">
+    <span style="font-weight:800;letter-spacing:0.08em">STUDENT PREVIEW</span><span>{{ previewNote }}</span><span style="flex:1"></span>
+    <button onClick="{{ onExit }}" style="border:1px solid var(--color-bg);background:transparent;color:var(--color-bg);font:inherit;font-size:12px;padding:3px 10px;cursor:pointer;white-space:nowrap;flex:none">Exit to teacher studio</button>
+  </div>
+  <div style="display:flex;align-items:center;gap:12px;height:60px;padding:0 32px;border-bottom:2px solid var(--color-divider);flex:none">
+    <span style="width:12px;height:12px;background:var(--color-accent)"></span><span style="font-weight:800;font-size:16px">LessonFoundry</span>
+    <span style="color:var(--color-neutral-500)">/</span><span style="font-size:14px">Physics · Class 11</span>
+    <span style="flex:1"></span><span style="font-size:13px;color:var(--color-neutral-700)">Aarav Mehta · 11-B</span>
+  </div>
+  <sc-if value="{{ notApproved }}" hint-placeholder-val="{{ false }}">
+    <div style="flex:1;display:flex;flex-direction:column;gap:10px;padding:80px 32px;max-width:640px">
+      <div style="font-size:28px;font-weight:800;letter-spacing:-0.02em">Nothing here yet</div>
+      <div style="font-size:16px;line-height:1.6;color:var(--color-neutral-800)">Your teacher is still preparing Newton's Laws of Motion. It will appear here once it has been approved.</div>
+    </div>
+  </sc-if>
+  <sc-if value="{{ approved }}" hint-placeholder-val="{{ true }}">
+    <div style="flex:1;min-height:0;display:flex;flex-direction:column">
+      <nav style="border-right:2px solid var(--color-divider);padding:24px 0;overflow:auto;display:flex;flex-direction:column;gap:18px">
+        <div style="padding:0 24px;display:flex;flex-direction:column;gap:2px"><span style="font-size:11px;color:var(--color-neutral-700)">Topic</span><span style="font-size:18px;font-weight:800;line-height:1.2">Newton's Laws of Motion</span></div>
+        <sc-for list="{{ groups }}" as="g" hint-placeholder-count="5">
+          <div style="display:flex;flex-direction:column">
+            <span style="padding:0 24px 4px;font-size:11px;letter-spacing:0.1em;font-weight:700;color:var(--color-accent-700)">{{ g.label }}</span>
+            <sc-for list="{{ g.items }}" as="i" hint-placeholder-count="1">
+              <button onClick="{{ i.onClick }}" style="padding:8px 24px;border:0;text-align:left;font:inherit;font-size:15px;cursor:pointer;background:{{ i.bg }};color:{{ i.fg }};font-weight:{{ i.w }}">{{ i.label }}</button>
+            </sc-for>
+          </div>
+        </sc-for>
+      </nav>
+      <main style="overflow:auto">
+        <div style="max-width:720px;padding:40px 48px 80px;display:flex;flex-direction:column;gap:28px">
+          <sc-if value="{{ v.explanation }}" hint-placeholder-val="{{ true }}">
+            <div style="display:flex;flex-direction:column;gap:28px">
+              <div style="font-size:38px;font-weight:800;letter-spacing:-0.02em;line-height:1.08">Newton's Laws of Motion</div>
+              <sc-for list="{{ blocks }}" as="b" hint-placeholder-count="5">
+                <section style="display:flex;flex-direction:column;gap:8px"><h3 style="margin:0;font-size:21px">{{ b.title }}</h3><p style="margin:0;font-size:17px;line-height:1.75;text-wrap:pretty">{{ b.text }}</p></section>
+              </sc-for>
+              <button class="btn btn-primary" onClick="{{ goQuiz }}" style="align-self:flex-start">Practice with the quiz →</button>
+            </div>
+          </sc-if>
+          <sc-if value="{{ v.assessment }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;flex-direction:column;gap:22px">
+              <div style="font-size:32px;font-weight:800;letter-spacing:-0.02em">Assessment</div>
+              <sc-for list="{{ assessment }}" as="a" hint-placeholder-count="4">
+                <div style="display:flex;flex-direction:column;gap:8px"><div style="display:flex;gap:10px;align-items:baseline"><b style="font-size:15px">{{ a.n }}.</b><span style="font-size:16px;line-height:1.55;flex:1">{{ a.q }}</span><span style="font-size:12px;color:var(--color-neutral-700);white-space:nowrap">{{ a.marks }} marks</span></div><textarea class="input" placeholder="Your answer" style="min-height:80px;background:#fff"></textarea></div>
+              </sc-for>
+            </div>
+          </sc-if>
+          <sc-if value="{{ v.quiz }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;flex-direction:column;gap:22px">
+              <div style="display:flex;align-items:baseline;gap:12px"><span style="font-size:32px;font-weight:800;letter-spacing:-0.02em">Quiz</span><span style="font-size:14px;color:var(--color-neutral-700)">{{ quizMeta }}</span></div>
+              <sc-for list="{{ quiz }}" as="q" hint-placeholder-count="10">
+                <div style="display:flex;flex-direction:column;gap:10px;padding-bottom:18px;border-bottom:1px solid var(--color-neutral-300)">
+                  <div style="font-size:16px;font-weight:700;line-height:1.5">{{ q.n }}. {{ q.text }}</div>
+                  <div style="display:flex;flex-direction:column;gap:6px">
+                    <sc-for list="{{ q.opts }}" as="o" hint-placeholder-count="4">
+                      <button onClick="{{ o.onPick }}" style="display:flex;gap:12px;align-items:center;padding:10px 12px;border:1px solid {{ o.bd }};background:{{ o.bg }};text-align:left;font:inherit;font-size:15px;cursor:pointer;color:var(--color-text)"><b style="width:18px">{{ o.l }}</b><span style="flex:1">{{ o.t }}</span><span style="font-size:12px;font-weight:700;color:{{ o.markFg }}">{{ o.mark }}</span></button>
+                    </sc-for>
+                  </div>
+                </div>
+              </sc-for>
+              <sc-if value="{{ notSubmitted }}" hint-placeholder-val="{{ true }}"><button class="btn btn-primary" onClick="{{ submit }}" style="align-self:flex-start">Submit answers</button></sc-if>
+              <sc-if value="{{ submitted }}" hint-placeholder-val="{{ false }}"><div style="display:flex;align-items:center;gap:16px;padding:16px 18px;background:var(--color-surface)"><span style="font-size:28px;font-weight:800">{{ score }}</span><span style="font-size:14px;flex:1">Answers are shown now that you have submitted.</span><button class="btn btn-secondary" onClick="{{ reset }}">Try again</button></div></sc-if>
+            </div>
+          </sc-if>
+          <sc-if value="{{ v.watch }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;flex-direction:column;gap:16px">
+              <div style="font-size:32px;font-weight:800;letter-spacing:-0.02em">AI Teacher</div>
+              <sc-if value="{{ videoReady }}" hint-placeholder-val="{{ false }}">
+                <div style="aspect-ratio:16 / 9;background:repeating-linear-gradient(135deg, #2d2b2b 0 12px, #353232 12px 24px);display:grid;place-items:center"><span style="width:64px;height:64px;display:grid;place-items:center;background:var(--color-accent);color:#fff;font-size:22px">▶</span></div>
+                <div style="font-size:14px;color:var(--color-neutral-800)">Newton's Laws of Motion · 3 min 52 s</div>
+              </sc-if>
+              <sc-if value="{{ noVideo }}" hint-placeholder-val="{{ true }}"><div style="padding:24px;background:var(--color-surface);font-size:16px;line-height:1.6">The video lesson for this topic isn't available yet. Start with the explanation instead.</div></sc-if>
+            </div>
+          </sc-if>
+          <sc-if value="{{ v.revise }}" hint-placeholder-val="{{ false }}"><dc-import name="ExamFocus" student="{{ true }}" hint-size="100%,900px"></dc-import></sc-if>
+          <sc-if value="{{ v.explore }}" hint-placeholder-val="{{ false }}"><dc-import name="Resources" student="{{ true }}" hint-size="100%,700px"></dc-import></sc-if>
+        </div>
+      </main>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1200,&quot;height&quot;:800},&quot;approved&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;},&quot;version&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;v4&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;blocks&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;{title:string;text:string}[]&quot;},&quot;questions&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;{text:string;opts:string[];correct:number}[]&quot;},&quot;assessment&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;{n:number;q:string;marks:number}[]&quot;},&quot;videoReady&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;onExit&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;() =&gt; void&quot;}}">
+const L = 'ABCD';
+class Component extends DCLogic {
+  state = { view: 'learn', picks: {}, submitted: false };
+  renderVals() {
+    const s = this.state, p = this.props, qs = p.questions || [];
+    const G = [['LEARN', [['explanation', 'Explanation']]], ['PRACTICE', [['assessment', 'Assessment'], ['quiz', 'Quiz']]], ['WATCH', [['watch', 'AI Teacher']]], ['REVISE', [['revise', 'Important & Exam Focus']]], ['EXPLORE', [['explore', 'Supplementary Resources']]]];
+    const right = qs.filter((q, i) => s.picks[i] === q.correct).length;
+    return {
+      approved: !!p.approved, notApproved: !p.approved,
+      previewNote: p.approved ? `Shows approved version ${p.version || 'v4'} only. Drafts, validation and teacher controls are hidden.` : 'No approved version exists, so students see nothing.',
+      onExit: p.onExit,
+      groups: G.map(([label, items]) => ({ label, items: items.map(([id, l]) => ({ label: l, bg: s.view === id ? 'var(--color-surface)' : 'transparent', fg: 'var(--color-text)', w: s.view === id ? 800 : 400, onClick: () => this.setState({ view: id }) })) })),
+      v: { explanation: s.view === 'learn', assessment: s.view === 'practice', quiz: s.view === 'practice', watch: s.view === 'watch', revise: s.view === 'revise', explore: s.view === 'explore' },
+      tabs: [['learn', 'Learn'], ['practice', 'Practice'], ['watch', 'Watch'], ['revise', 'Revise'], ['explore', 'Resources']].map(([id, label]) => ({ label, line: s.view === id ? 'var(--color-accent)' : 'transparent', w: s.view === id ? 800 : 500, onClick: () => this.setState({ view: id }) })),
+      blocks: p.blocks || [], assessment: p.assessment || [],
+      quizMeta: `${qs.length} questions · answers shown after you submit`,
+      quiz: qs.map((q, i) => ({ n: i + 1, text: q.text, opts: q.opts.map((t, j) => {
+        const picked = s.picks[i] === j, correct = q.correct === j, show = s.submitted;
+        return { l: L[j], t, bg: show && correct ? 'oklch(0.95 0.03 150)' : show && picked ? 'var(--color-accent-100)' : picked ? 'var(--color-surface)' : '#fff',
+          bd: picked ? 'var(--color-text)' : 'var(--color-neutral-300)', mark: show && correct ? 'Correct answer' : show && picked ? 'Your answer' : '', markFg: correct ? 'oklch(0.45 0.11 150)' : 'var(--color-accent-700)',
+          onPick: () => !s.submitted && this.setState((st) => ({ picks: { ...st.picks, [i]: j } })) };
+      }) })),
+      submitted: s.submitted, notSubmitted: !s.submitted, score: `${right} / ${qs.length}`,
+      submit: () => this.setState({ submitted: true }), reset: () => this.setState({ submitted: false, picks: {} }),
+      goQuiz: () => this.setState({ view: 'quiz' }),
+      videoReady: !!p.videoReady, noVideo: !p.videoReady
+    };
+  }
+}
+</script>
+</body>
+</html>

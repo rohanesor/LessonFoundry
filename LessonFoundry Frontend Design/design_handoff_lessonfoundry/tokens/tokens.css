@@ -1,0 +1,52 @@
+:root {
+  /* LessonFoundry brand overrides on top of Modernist (styles.css) */
+  --color-bg: #f3f2f2; /* Page ground */
+  --color-surface: #eae9e9; /* Cards, selected rows, panels */
+  --color-text: oklch(0.24 0.025 262); /* #191f2b · Deep Ink · text, nav, headers, diagram lines */
+  --color-accent-100: oklch(0.97 0.014 256); /* #eff6ff */
+  --color-accent-200: oklch(0.93 0.034 256); /* #d9e9ff */
+  --color-accent-300: oklch(0.86 0.06 256); /* #b8d3f9 */
+  --color-accent-400: oklch(0.72 0.1 256); /* #7ba7e3 */
+  --color-accent-500: oklch(0.58 0.13 256); /* #427bc6 */
+  --color-accent: oklch(0.5 0.135 256); /* #2763ae · Foundry Blue · primary action, selection, links */
+  --color-accent-600: oklch(0.44 0.125 256); /* #1b5296 · hover/pressed */
+  --color-accent-700: oklch(0.4 0.115 256); /* #154784 · blue text on light */
+  --color-accent-800: oklch(0.32 0.095 256); /* #0b3262 */
+  --color-accent-900: oklch(0.24 0.07 256); /* #051f3f */
+  --lf-green: oklch(0.5 0.11 152); /* #267543 · Verification Green */
+  --lf-green-100: oklch(0.94 0.035 150); /* #dcf2df · validated tint */
+  --lf-green-700: oklch(0.45 0.11 150); /* #196632 · validated text / approved fill */
+  --lf-amber: oklch(0.72 0.13 75); /* #d49838 · Warm Amber */
+  --lf-amber-100: oklch(0.94 0.05 80); /* #fde8c6 · review tint */
+  --lf-amber-700: oklch(0.47 0.11 65); /* #844b00 · review text */
+  --lf-red: oklch(0.56 0.19 27); /* #cc3430 · Error Red · failures only */
+  --lf-red-100: oklch(0.94 0.035 25); /* #ffe3df · fail tint */
+  --lf-red-700: oklch(0.45 0.16 27); /* #9b1f1d · fail text */
+  --color-divider: color-mix(in srgb, var(--color-text) 40%, transparent); /* 2px rules */
+
+  /* Inherited from Modernist */
+  --color-neutral-100: #f8f4f4;
+  --color-neutral-200: #eae7e7;
+  --color-neutral-300: #d7d3d3;
+  --color-neutral-400: #bab6b6;
+  --color-neutral-500: #9b9797;
+  --color-neutral-600: #7d7979;
+  --color-neutral-700: #605d5d;
+  --color-neutral-800: #444141;
+  --color-neutral-900: #2d2b2b;
+  --font-heading: "Archivo", system-ui, sans-serif;
+  --font-heading-weight: 800;
+  --font-body: "Archivo", system-ui, sans-serif;
+  --space-1: 4.0px;
+  --space-2: 8.0px;
+  --space-3: 12.0px;
+  --space-4: 16.0px;
+  --space-6: 24.0px;
+  --space-8: 32.0px;
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  --shadow-sm: 0 1px 2px color-mix(in srgb, #2d2b2b 14%, transparent);
+  --shadow-md: 0 3px 10px color-mix(in srgb, #2d2b2b 16%, transparent);
+  --shadow-lg: 0 12px 32px color-mix(in srgb, #2d2b2b 22%, transparent);
+}

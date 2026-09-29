@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/modernist-2d405345-c880-4218-92f2-cddc1804b608/styles.css">
+<script src="_ds/modernist-2d405345-c880-4218-92f2-cddc1804b608/_ds_bundle.js"></script>
+</helmet>
+<div style="display:flex;flex-direction:column;height:100%;min-height:0;font-family:var(--font-body);color:var(--color-text)">
+  <div style="display:flex;align-items:flex-end;gap:20px;padding:22px 28px 16px;flex-wrap:wrap">
+    <div style="display:flex;flex-direction:column;gap:4px;flex:1 1 400px">
+      <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;font-weight:600;color:var(--color-accent-700)">Compiling learning pack · v1</div>
+      <div style="font-size:28px;font-weight:800;letter-spacing:-0.02em">Newton's Laws of Motion</div>
+      <div style="font-size:13px;color:var(--color-neutral-800)">3 sources · 4 objectives · Physics · Class 11 · CBSE / JEE Main · Medium</div>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-start;gap:6px">
+      <dc-import name="StatusBadge" status="{{ overall.s }}" label="{{ overall.l }}" hint-size="120px,20px"></dc-import>
+      <span style="font-size:12px;color:var(--color-neutral-700)">{{ overall.sub }}</span>
+    </div>
+    <sc-if value="{{ isDone }}" hint-placeholder-val="{{ false }}"><button class="btn btn-primary" onClick="{{ onOpenStudio }}">Open in Studio →</button></sc-if>
+    <sc-if value="{{ isFailed }}" hint-placeholder-val="{{ false }}"><button class="btn btn-primary" onClick="{{ retry }}">Retry Answer Key stage</button></sc-if>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(11,minmax(0,1fr));gap:2px;padding:0 28px 16px">
+    <sc-for list="{{ stages }}" as="s" hint-placeholder-count="11"><div style="height:10px;background:{{ s.bar }}"></div></sc-for>
+  </div>
+  <div style="flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) minmax(320px,440px);border-top:2px solid var(--color-divider)">
+    <div style="overflow:auto">
+      <sc-for list="{{ stages }}" as="s" hint-placeholder-count="11">
+        <button onClick="{{ s.onClick }}" style="display:grid;grid-template-columns:40px minmax(0,1fr) 150px 60px;gap:12px;align-items:center;width:100%;padding:12px 28px;border:0;border-bottom:1px solid var(--color-neutral-300);background:{{ s.bg }};cursor:pointer;text-align:left;font:inherit;color:var(--color-text);opacity:{{ s.op }}">
+          <span style="font-size:13px;font-weight:800;color:var(--color-neutral-600)">{{ s.n }}</span>
+          <span style="display:flex;flex-direction:column;gap:2px;min-width:0"><span style="font-size:15px;font-weight:800">{{ s.name }}</span><span style="font-size:12px;color:{{ s.detailFg }}">{{ s.detail }}</span></span>
+          <span><dc-import name="StatusBadge" status="{{ s.badge }}" label="{{ s.label }}" hint-size="90px,20px"></dc-import></span>
+          <span style="font-size:12px;color:var(--color-neutral-700);text-align:right">{{ s.time }}</span>
+        </button>
+      </sc-for>
+    </div>
+    <div style="border-left:2px solid var(--color-divider);display:flex;flex-direction:column;min-height:0">
+      <div style="padding:14px 18px;border-bottom:1px solid var(--color-neutral-300);display:flex;flex-direction:column;gap:2px">
+        <span style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;font-weight:600;color:var(--color-neutral-700)">Stage {{ cur.n }} output</span>
+        <span style="font-size:18px;font-weight:800">{{ cur.name }}</span>
+        <span style="font-size:13px;color:var(--color-neutral-800);line-height:1.45">{{ cur.what }}</span>
+      </div>
+      <div style="flex:1;overflow:auto;background:var(--color-neutral-900);color:var(--color-neutral-200);padding:14px 18px;font-family:ui-monospace, SFMono-Regular, Menlo, monospace;font-size:12px;line-height:1.7">
+        <sc-for list="{{ log }}" as="l" hint-placeholder-count="6"><div style="color:{{ l.fg }}">{{ l.t }}</div></sc-for>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1200,&quot;height&quot;:760},&quot;mode&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;running&quot;,&quot;warning&quot;,&quot;failed&quot;],&quot;default&quot;:&quot;running&quot;,&quot;tsType&quot;:&quot;'running'|'warning'|'failed'&quot;},&quot;onOpenStudio&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;() =&gt; void&quot;}}">
+const STAGES = [
+  ['Source Processing', 'Parse files into pages, slides and paragraphs.', '3 files · 70 pages and slides parsed', ['Physics_Textbook.pdf v2 · 48 pages', 'Newton_Lecture_Slides.pptx v1 · 22 slides', 'Teacher_Notes_Forces.md v1 · 38 lines']],
+  ['Evidence Extraction', 'Split sources into citable evidence items with exact locations.', '47 evidence items · E101–E147', ['E102  p.17 §5.2  "A body continues in its state of rest…"', 'E110  p.21 §5.4  "The rate of change of momentum…"', 'E121  slide 9     "Forces always occur in pairs…"']],
+  ['Objective Mapping', 'Match each learning objective to supporting evidence.', '4 objectives mapped', ['O1 → E102 E103 E104  relevance 0.91', 'O2 → E110 E114 E115  relevance 0.88', 'O3 → E121 E131       relevance 0.84'], 'Objective 04 below relevance threshold (0.31 / 0.60)', 'O4 → E126 relevance 0.31  BELOW THRESHOLD · will not generate'],
+  ['Grounding Check', 'Confirm every planned section has evidence before writing.', '5 planned sections grounded', ['§1–§5 each cite ≥1 evidence item', 'No external knowledge requested']],
+  ['Learning Content', 'Write the explanation from mapped evidence only.', '5 sections · 612 words', ['§3 Second Law · E110 · 118 words', 'Vocabulary profile: Foundation']],
+  ['Assessment', 'Short and long answer items with model answers.', '8 items · 24 marks', ['A4 · 5 marks · O2 · E114']],
+  ['Quiz', 'Multiple-choice questions tied to objectives.', '10 questions', ['Q1–Q10 · O1 ×3 · O2 ×5 · O3 ×2']],
+  ['Answer Key', 'Solve every question independently and compare.', '10 entries solved independently', ['Solver agreed on 10/10 answers'], null, null, 'Solver mismatch on Q6: key says B (1500 N), solver computes C (3000 N)'],
+  ['Exam Focus', 'Important concepts, flow and verified previous-year questions.', '6 concepts · 1 flow · 3 verified PYQs', ['1 PYQ unmatched → labelled practice question']],
+  ['Video Script', 'Narration for the AI teacher, from approved content only.', '4 scenes · 3 min 52 s', ['Scene 3 · Force, mass and acceleration · E110 E114']],
+  ['Quality Validation', 'Run all pack checks before teacher review.', '9 checks run', ['Schema ✓ Evidence ✓ Answers ✓ Leakage ✓'], 'Completed with warnings: 1 failed, 2 need review']
+];
+class Component extends DCLogic {
+  state = { idx: 0, sel: null, retried: false, t0: Date.now() };
+  componentDidMount() { this.start(); }
+  componentDidUpdate(prev) { if (prev.mode !== this.props.mode) { this.setState({ idx: 0, sel: null, retried: false }); this.start(); } }
+  componentWillUnmount() { clearInterval(this.iv); }
+  mode() { return this.props.mode || 'running'; }
+  start() {
+    clearInterval(this.iv);
+    this.iv = setInterval(() => {
+      const st = this.state;
+      if (this.mode() === 'failed' && !st.retried && st.idx === 7) return;
+      if (st.idx >= 11) return clearInterval(this.iv);
+      this.setState({ idx: st.idx + 1 });
+    }, 750);
+  }
+  statusOf(i) {
+    const m = this.mode(), s = this.state;
+    const failAt = m === 'failed' && !s.retried ? 7 : -1;
+    if (i === failAt && s.idx === 7) return 'failed';
+    if (i > failAt && failAt >= 0 && s.idx === 7) return 'blocked';
+    if (i < s.idx) return (m !== 'running' && (i === 2 || i === 10) && STAGES[i][4]) || (m === 'running' && i === 10) ? 'warning' : 'completed';
+    if (i === s.idx) return 'running';
+    return 'pending';
+  }
+  renderVals() {
+    const s = this.state, m = this.mode();
+    const MAP = {
+      completed: ['pass', 'Completed', 'oklch(0.62 0.12 150)'], running: ['running', 'Running', 'var(--color-text)'],
+      pending: ['pending', 'Pending', 'var(--color-neutral-300)'], warning: ['review', 'Warning', 'oklch(0.75 0.13 75)'],
+      failed: ['fail', 'Failed', 'var(--color-accent)'], blocked: ['pending', 'Blocked', 'var(--color-neutral-300)']
+    };
+    const selI = s.sel ?? Math.min(s.idx, 10);
+    const stages = STAGES.map((g, i) => {
+      const st = this.statusOf(i), [badge, label, bar] = MAP[st];
+      const detail = st === 'failed' ? g[6] : st === 'warning' && g[4] ? g[4] : st === 'pending' || st === 'blocked' ? g[1] : st === 'running' ? g[1] : g[2];
+      return { n: String(i + 1).padStart(2, '0'), name: g[0], detail, badge, label, bar,
+        detailFg: st === 'failed' ? 'var(--color-accent-700)' : st === 'warning' ? 'oklch(0.45 0.11 65)' : 'var(--color-neutral-700)',
+        time: st === 'completed' || st === 'warning' ? (1.2 + ((i * 7) % 9) / 3).toFixed(1) + 's' : st === 'running' ? '…' : '',
+        bg: i === selI ? 'var(--color-surface)' : 'transparent', op: st === 'pending' || st === 'blocked' ? 0.6 : 1, onClick: () => this.setState({ sel: i }) };
+    });
+    const log = [];
+    STAGES.forEach((g, i) => {
+      const st = this.statusOf(i);
+      if (st === 'pending' || st === 'blocked') return;
+      log.push({ t: `[${String(i + 1).padStart(2, '0')}] ${g[0].toUpperCase()}`, fg: '#fff' });
+      if (st === 'running') return log.push({ t: '     running…', fg: 'var(--color-neutral-500)' });
+      g[3].forEach((l) => log.push({ t: '     ' + l, fg: 'var(--color-neutral-300)' }));
+      if (st === 'warning' && g[5]) log.push({ t: '  !  ' + g[5], fg: 'oklch(0.82 0.13 80)' });
+      if (st === 'failed') { log.push({ t: '  ✕  ' + g[6], fg: 'var(--color-accent-400)' }); log.push({ t: '     Stages 09–11 blocked until the key is consistent.', fg: 'var(--color-neutral-500)' }); }
+    });
+    const done = s.idx >= 11, failed = stages.some((x) => x.label === 'Failed');
+    const warn = m !== 'running' || true;
+    const overall = failed ? { s: 'fail', l: 'Stage 08 failed', sub: 'Nothing is published. Retry this stage only.' }
+      : done ? (m === 'warning' ? { s: 'review', l: 'Compiled with warnings', sub: 'Objective 04 not generated · 1 failed check' } : { s: 'review', l: 'Compiled · review needed', sub: 'Draft v1 ready for teacher review' })
+      : { s: 'running', l: `Stage ${String(s.idx + 1).padStart(2, '0')} of 11`, sub: 'Every stage writes versioned, cited output' };
+    const g = STAGES[selI];
+    return { stages, log, overall, isDone: done, isFailed: failed, cur: { n: String(selI + 1).padStart(2, '0'), name: g[0], what: g[1] },
+      onOpenStudio: this.props.onOpenStudio, retry: () => { this.setState({ retried: true }); this.start(); }, warn };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,1028 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/modernist-2d405345-c880-4218-92f2-cddc1804b608/styles.css">
+<script src="_ds/modernist-2d405345-c880-4218-92f2-cddc1804b608/_ds_bundle.js"></script>
+<style>
+html,body{margin:0;height:100%;overflow:hidden}
+a{color:var(--color-accent-700)}a:hover{color:var(--color-accent-600)}
+textarea,select{font-family:inherit}
+</style>
+</helmet>
+<sc-if value="{{ isStudent }}" hint-placeholder-val="{{ false }}">
+  <div style="height:100vh;overflow:auto">
+    <dc-import name="StudentView" approved="{{ approved }}" version="{{ verLabel }}" blocks="{{ stBlocks }}" questions="{{ stQuestions }}" assessment="{{ stAssessment }}" video-ready="{{ videoReady }}" on-exit="{{ exitStudent }}" hint-size="100%,100vh"></dc-import>
+  </div>
+</sc-if>
+<sc-if value="{{ isShell }}" hint-placeholder-val="{{ true }}">
+<div style="display:grid;grid-template-columns:minmax(210px,20%) minmax(860px,1fr);height:100vh;overflow-x:auto;background:var(--color-bg);color:var(--color-text);font-family:var(--font-body);font-size:14px">
+
+  <aside style="display:flex;flex-direction:column;border-right:2px solid var(--color-divider);min-height:0;overflow:auto">
+    <div style="display:flex;align-items:center;gap:10px;height:56px;padding:0 18px;border-bottom:2px solid var(--color-divider);flex:none">
+      <span style="width:14px;height:14px;background:var(--color-accent);flex:none"></span>
+      <span style="font-weight:800;font-size:13px;letter-spacing:0.16em">LESSONFOUNDRY</span>
+    </div>
+    <sc-for list="{{ navGroups }}" as="g" hint-placeholder-count="3">
+      <div style="display:flex;flex-direction:column;padding:10px 0 8px;border-bottom:1px solid var(--color-neutral-300)">
+        <div style="display:flex;flex-direction:column;gap:2px;padding:2px 18px 6px">
+          <span style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;color:var(--color-neutral-700)">{{ g.label }}</span>
+          <sc-if value="{{ g.hasSub }}" hint-placeholder-val="{{ false }}"><span style="font-size:13px;font-weight:800;line-height:1.25;margin-top:2px">{{ g.sub }}</span><span style="font-size:11px;color:var(--color-neutral-700)">{{ g.subMeta }}</span></sc-if>
+        </div>
+        <sc-for list="{{ g.items }}" as="n" hint-placeholder-count="3">
+          <button onClick="{{ n.onClick }}" style="display:grid;grid-template-columns:1fr auto;align-items:center;gap:8px;height:31px;padding:0 12px 0 18px;border:0;cursor:pointer;text-align:left;font:inherit;font-size:13px;font-weight:{{ n.weight }};background:{{ n.bg }};color:{{ n.fg }}">
+            <span>{{ n.label }}</span>
+            <span style="display:flex;align-items:center;gap:6px;font-size:11px">{{ n.meta }}<sc-if value="{{ n.hasStatus }}" hint-placeholder-val="{{ false }}"><dc-import name="StatusBadge" status="{{ n.status }}" variant="glyph" label="{{ n.tip }}" hint-size="18px,18px"></dc-import></sc-if></span>
+          </button>
+        </sc-for>
+      </div>
+    </sc-for>
+    <div style="flex:1"></div>
+    <button onClick="{{ toggleDev }}" style="margin:12px;padding:8px 10px;border:1px dashed var(--color-neutral-600);background:transparent;cursor:pointer;text-align:left;font-family:ui-monospace, SFMono-Regular, Menlo, monospace;font-size:11px;color:var(--color-neutral-800);display:flex;justify-content:space-between;gap:8px"><span>Demo Controls</span><span>{{ devGlyph }}</span></button>
+    <div style="border-top:1px solid var(--color-neutral-300);padding:10px 18px;font-size:12px;color:var(--color-neutral-700)">Northfield School · Physics</div>
+  </aside>
+
+  <div style="display:flex;flex-direction:column;min-width:0;min-height:0">
+    <header style="display:flex;align-items:center;gap:14px;height:56px;padding:0 20px;border-bottom:2px solid var(--color-divider);flex:none">
+      <div style="display:flex;align-items:center;gap:8px;font-size:13px;min-width:0;flex:1 1 auto;overflow:hidden;white-space:nowrap">
+        <sc-for list="{{ crumbs }}" as="c" hint-placeholder-count="3"><span style="display:flex;gap:8px;color:{{ c.fg }};font-weight:{{ c.w }}"><sc-if value="{{ c.sep }}" hint-placeholder-val="{{ false }}"><span style="color:var(--color-neutral-500)">/</span></sc-if>{{ c.l }}</span></sc-for>
+      </div>
+      <input class="input" placeholder="Search packs, sources, evidence IDs" style="flex:0 1 240px;min-width:120px;width:auto;min-height:34px;font-size:13px">
+      <button class="btn btn-secondary" onClick="{{ openStudent }}" style="padding:6px 10px;font-size:13px;flex:none;white-space:nowrap">Student view</button>
+      <button class="btn btn-secondary" style="padding:6px 10px;font-size:13px;gap:8px;flex:none">Notifications <span style="background:var(--color-accent);color:#fff;font-size:11px;padding:0 5px">3</span></button>
+      <div style="display:flex;align-items:center;gap:8px;flex:none">
+        <span style="width:32px;height:32px;display:grid;place-items:center;background:var(--color-text);color:var(--color-bg);font-size:12px;font-weight:800">PN</span>
+        <div style="display:flex;flex-direction:column;line-height:1.2;white-space:nowrap"><span style="font-size:13px;font-weight:600">Priya Nair</span><span style="font-size:11px;color:var(--color-neutral-700)">Teacher · Physics</span></div>
+      </div>
+    </header>
+
+    <sc-if value="{{ inPack }}" hint-placeholder-val="{{ true }}">
+      <div style="display:flex;flex-direction:column;border-bottom:2px solid var(--color-divider);flex:none">
+        <div style="display:flex;align-items:center;flex-wrap:wrap;gap:12px 28px;padding:14px 24px 10px">
+          <div style="display:flex;flex-direction:column;gap:3px;min-width:0;flex:1 1 260px">
+            <div style="font-size:22px;font-weight:800;letter-spacing:-0.015em;line-height:1.1">Newton's Laws of Motion</div>
+            <div style="font-size:12px;color:var(--color-neutral-700)">Physics · Class 11 · CBSE / JEE Main · {{ objCountLabel }} · 3 sources</div>
+          </div>
+          <button onClick="{{ hdr.onStatus }}" title="Open validation" style="display:flex;align-items:stretch;border:0;padding:0;background:transparent;cursor:pointer;font:inherit;color:var(--color-text);text-align:left">
+            <span style="display:flex;flex-direction:column;gap:2px;padding-right:18px"><span style="font-size:10px;letter-spacing:0.12em;font-weight:700;color:var(--color-neutral-700)">STATUS</span><span style="font-size:15px;font-weight:800;white-space:nowrap;color:{{ hdr.stateFg }}">{{ hdr.state }}</span></span>
+            <span style="display:flex;flex-direction:column;gap:2px;padding:0 18px;border-left:1px solid var(--color-neutral-300)"><span style="font-size:10px;letter-spacing:0.12em;font-weight:700;color:var(--color-neutral-700)">VALIDATION</span><span style="font-size:15px;font-weight:800;white-space:nowrap">{{ hdr.checks }}</span></span>
+            <span style="display:flex;flex-direction:column;gap:2px;padding:0 18px;border-left:1px solid var(--color-neutral-300)"><span style="font-size:10px;letter-spacing:0.12em;font-weight:700;color:var(--color-neutral-700)">ATTENTION</span><span style="font-size:15px;font-weight:800;white-space:nowrap;color:{{ hdr.attnFg }}">{{ hdr.attn }}</span></span>
+          </button>
+          <div style="display:flex;gap:8px;flex:none">
+            <sc-if value="{{ hdr.draft }}" hint-placeholder-val="{{ true }}"><button class="btn btn-secondary" onClick="{{ saveDraft }}" style="white-space:nowrap">Save Draft</button><button class="btn btn-primary" onClick="{{ hdr.onApprove }}" style="white-space:nowrap;min-width:120px">Approve</button></sc-if>
+            <sc-if value="{{ approved }}" hint-placeholder-val="{{ false }}"><button class="btn btn-secondary" onClick="{{ newDraft }}" style="white-space:nowrap">Create New Version</button></sc-if>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;flex-wrap:wrap;padding:0 24px 10px;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;font-weight:700">
+          <sc-for list="{{ flow }}" as="f" hint-placeholder-count="7"><button onClick="{{ f.onClick }}" title="{{ f.tip }}" style="display:flex;align-items:center;gap:6px;border:0;background:transparent;padding:2px 0;cursor:pointer;font:inherit;color:{{ f.fg }}"><span style="width:7px;height:7px;background:{{ f.dot }}"></span>{{ f.l }}</button><sc-if value="{{ f.arrow }}" hint-placeholder-val="{{ true }}"><span style="padding:0 10px;color:var(--color-neutral-500)">→</span></sc-if></sc-for>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ lockedBanner }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;align-items:center;gap:12px;padding:9px 24px;background:oklch(0.45 0.11 150);color:#fff;font-size:13px;flex:none">
+        <dc-import name="StatusBadge" status="approved" variant="glyph" hint-size="18px,18px"></dc-import>
+        <span style="font-weight:800;letter-spacing:0.1em">APPROVED · {{ verLabel }}</span>
+        <span>Student Mode serves this exact version. Editing and regeneration are disabled until you create a new version.</span>
+      </div>
+    </sc-if>
+
+    <!-- ===== TEXT ASSET STUDIO (Explanation / Assessment / Answer Key) ===== -->
+    <sc-if value="{{ showText }}" hint-placeholder-val="{{ true }}">
+      <div style="flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,3fr) minmax(250px,1fr)">
+        <div style="overflow:auto;min-width:0">
+          <div style="max-width:860px;margin:0 auto;padding:26px 40px 56px;display:flex;flex-direction:column;gap:14px">
+            <div style="display:flex;flex-direction:column;gap:12px;padding-bottom:16px;border-bottom:2px solid var(--color-divider)">
+              <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;font-weight:600;color:var(--color-accent-700)">Asset {{ am.n }} · {{ am.kicker }}</div>
+              <div style="display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap"><div style="font-size:34px;font-weight:800;letter-spacing:-0.02em;line-height:1.05;flex:1 1 auto">{{ am.title }}</div><button class="btn btn-secondary" disabled="{{ barApproveDisabled }}" onClick="{{ barApprove }}" style="white-space:nowrap">{{ barApproveLabel }}</button></div>
+              <div style="display:flex;flex-wrap:wrap;gap:10px 28px;font-size:13px;align-items:center">
+                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span style="color:var(--color-neutral-700)">Objectives</span><sc-for list="{{ objBadges }}" as="o" hint-placeholder-count="3"><span style="font-size:12px;padding:2px 8px;white-space:nowrap;border:1px solid {{ o.border }};color:{{ o.fg }};background:{{ o.bg }}"><b>{{ o.n }}</b> {{ o.short }}</span></sc-for></div>
+                <div style="display:flex;align-items:center;gap:8px"><span style="color:var(--color-neutral-700)">Status</span><dc-import name="StatusBadge" status="{{ aStatus }}" label="{{ aStatusNote }}" hint-size="90px,20px"></dc-import></div>
+                <div style="display:flex;align-items:center;gap:8px"><span style="color:var(--color-neutral-700)">Version</span><b>{{ am.ver }}</b></div>
+              </div>
+              <sc-if value="{{ assetLockNote }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:oklch(0.94 0.035 150);font-size:13px;color:oklch(0.36 0.09 150)"><dc-import name="StatusBadge" status="approved" variant="glyph" hint-size="18px,18px"></dc-import><span><b>Approved {{ am.ver }} · locked.</b> Editing is disabled. Creating a new version keeps this one for students.</span><span style="flex:1"></span><button class="btn btn-secondary" disabled="{{ packLocked }}" onClick="{{ unlockAsset }}" style="padding:4px 10px;font-size:12px;white-space:nowrap">Create New Version</button></div>
+              </sc-if>
+            </div>
+
+            <sc-if value="{{ regenBanner.show }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:10px 14px;background:oklch(0.94 0.035 150);font-size:13px">
+                <span style="font-size:10px;font-weight:800;letter-spacing:0.1em;color:oklch(0.36 0.09 150)">CONTROLLED REGENERATION</span>
+                <b>{{ regenBanner.title }}</b><span style="color:var(--color-neutral-800)">{{ regenBanner.unchanged }}</span>
+                <span style="flex:1"></span><button class="btn btn-ghost" onClick="{{ openVersions }}" style="font-size:12px;padding:2px 6px">Version history →</button>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ loading }}" hint-placeholder-val="{{ false }}">
+              <sc-for list="{{ skel }}" as="k" hint-placeholder-count="4">
+                <div style="display:flex;flex-direction:column;gap:10px;padding:18px 22px;border:1px solid var(--color-neutral-300)">
+                  <div style="height:14px;width:30%;background:var(--color-neutral-300)"></div>
+                  <div style="height:10px;width:96%;background:var(--color-neutral-200)"></div>
+                  <div style="height:10px;width:{{ k.w }};background:var(--color-neutral-200)"></div>
+                  <div style="height:18px;width:220px;background:var(--color-neutral-200);margin-top:4px"></div>
+                </div>
+              </sc-for>
+            </sc-if>
+
+            <sc-if value="{{ notLoading }}" hint-placeholder-val="{{ true }}">
+              <sc-for list="{{ secs }}" as="b" hint-placeholder-count="5">
+                <div onClick="{{ b.onSelect }}" style="display:flex;flex-direction:column;gap:12px;padding:18px 22px 12px;cursor:pointer;background:{{ b.bgc }};border:1px solid var(--color-neutral-300);outline:2px solid {{ b.frame }};outline-offset:-2px">
+                  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+                    <span style="font-size:12px;font-weight:700;color:var(--color-neutral-600)">{{ b.tag }}</span>
+                    <span style="font-size:19px;font-weight:800;letter-spacing:-0.01em">{{ b.title }}</span>
+                    <span style="flex:1"></span>
+                    <dc-import name="StatusBadge" status="{{ b.status }}" label="{{ b.statusLabel }}" hint-size="80px,20px"></dc-import>
+                  </div>
+                  <div style="display:flex;gap:18px;font-size:12px;color:var(--color-neutral-700);margin-top:-6px"><span>Objective <b style="color:var(--color-text)">{{ b.objN }}</b> · {{ b.objShort }}</span><span>Version <b style="color:{{ b.verFg }}">v{{ b.ver }}</b></span></div>
+                  <sc-if value="{{ b.showText }}" hint-placeholder-val="{{ true }}"><p style="margin:0;font-size:16px;line-height:1.7;max-width:68ch;text-wrap:pretty">{{ b.text }}</p></sc-if>
+                  <sc-if value="{{ b.hasExtra }}" hint-placeholder-val="{{ false }}"><div style="display:flex;flex-direction:column;gap:4px;padding:10px 12px;border:1px solid var(--color-neutral-300);background:var(--color-bg)"><span style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;font-weight:700;color:var(--color-neutral-700)">{{ b.extraLabel }}</span><span style="font-size:14px;line-height:1.6">{{ b.extra }}</span></div></sc-if>
+                  <sc-if value="{{ b.isEditing }}" hint-placeholder-val="{{ false }}">
+                    <div onClick="{{ stop }}" style="display:flex;flex-direction:column;gap:8px">
+                      <textarea class="input" value="{{ draft }}" onChange="{{ onDraft }}" style="min-height:130px;font-size:15px;line-height:1.6"></textarea>
+                      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="btn btn-primary" onClick="{{ saveEdit }}">Save edit</button><button class="btn btn-secondary" onClick="{{ cancelEdit }}">Cancel</button><span style="font-size:12px;color:var(--color-neutral-700)">Saving re-runs grounding and terminology checks for this item only.</span></div>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{ b.isBusy }}" hint-placeholder-val="{{ false }}">
+                    <div style="display:flex;flex-direction:column;gap:8px">
+                      <div style="height:10px;width:94%;background:var(--color-neutral-300)"></div><div style="height:10px;width:80%;background:var(--color-neutral-300)"></div><div style="height:10px;width:56%;background:var(--color-neutral-300)"></div>
+                      <span style="font-size:12px;color:var(--color-neutral-700)">{{ b.busyLabel }}</span>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{ b.hasNote }}" hint-placeholder-val="{{ false }}">
+                    <div style="font-size:12px;line-height:1.5;padding:8px 10px;background:{{ b.noteBg }};color:{{ b.noteFg }}"><b>{{ b.noteLabel }} · </b>{{ b.note }}</div>
+                  </sc-if>
+                  <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding-top:10px;border-top:1px solid var(--color-neutral-300);font-size:12px">
+                    <span style="color:var(--color-neutral-700);margin-right:2px">Evidence</span>
+                    <sc-for list="{{ b.evs }}" as="e" hint-placeholder-count="1"><button onClick="{{ e.onOpen }}" title="Open evidence" style="display:inline-flex;border:1px solid var(--color-divider);padding:0;background:var(--color-bg);cursor:pointer;font:inherit;font-size:11px;color:var(--color-text)"><span style="padding:2px 6px;background:var(--color-text);color:var(--color-bg);font-weight:700">{{ e.id }}</span><span style="padding:2px 6px">{{ e.label }}</span></button></sc-for>
+                    <span style="flex:1"></span>
+                    <sc-if value="{{ b.canAct }}" hint-placeholder-val="{{ true }}">
+                      <sc-if value="{{ b.canEdit }}" hint-placeholder-val="{{ true }}"><button class="btn btn-ghost" onClick="{{ b.onEdit }}" style="font-size:12px;padding:3px 8px">Edit</button></sc-if>
+                      <button class="btn btn-ghost" onClick="{{ b.onRegen }}" style="font-size:12px;padding:3px 8px">{{ b.regenLabel }}</button>
+                    </sc-if>
+                    <button class="btn btn-ghost" onClick="{{ b.onEvidence }}" style="font-size:12px;padding:3px 8px">View Evidence</button>
+                    <button class="btn btn-ghost" onClick="{{ b.onDetails }}" style="font-size:12px;padding:3px 8px;color:var(--color-neutral-700)">Provenance {{ b.detGlyph }}</button>
+                  </div>
+                  <sc-if value="{{ b.showDetails }}" hint-placeholder-val="{{ false }}">
+                    <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;font-size:12px;background:var(--color-bg);border:1px solid var(--color-neutral-300)">
+                      <sc-for list="{{ b.detRows }}" as="r" hint-placeholder-count="4"><div style="display:flex;flex-direction:column;gap:2px;padding:8px 10px;border-left:1px solid var(--color-neutral-300)"><span style="color:var(--color-neutral-700)">{{ r.k }}</span><b style="word-break:break-word">{{ r.v }}</b></div></sc-for>
+                    </div>
+                  </sc-if>
+                </div>
+              </sc-for>
+
+              <sc-if value="{{ gapOpen }}" hint-placeholder-val="{{ false }}">
+                <div onClick="{{ selectGap }}" style="display:flex;flex-direction:column;gap:12px;padding:18px 22px;border:2px solid oklch(0.6 0.12 70);background:oklch(0.97 0.025 80)">
+                  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+                    <span style="font-size:12px;font-weight:700;color:var(--color-neutral-600)">§6</span>
+                    <span style="font-size:19px;font-weight:800">Source coverage gap</span>
+                    <span style="flex:1"></span>
+                    <dc-import name="StatusBadge" status="review" label="Not generated" hint-size="90px,20px"></dc-import>
+                  </div>
+                  <div style="font-size:15px;line-height:1.55"><b>Objective 04 · {{ obj4 }}</b><br>This objective is not sufficiently supported by the selected sources.</div>
+                  <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-top:1px solid oklch(0.8 0.08 75);border-bottom:1px solid oklch(0.8 0.08 75);font-size:12px">
+                    <div style="padding:8px 0"><div style="color:var(--color-neutral-700)">Best match</div><b>E126 · p.26, §5.6 Friction</b></div>
+                    <div style="padding:8px 12px;border-left:1px solid oklch(0.8 0.08 75)"><div style="color:var(--color-neutral-700)">Relevance</div><b>0.31 (min 0.60)</b></div>
+                    <div style="padding:8px 12px;border-left:1px solid oklch(0.8 0.08 75)"><div style="color:var(--color-neutral-700)">Missing</div><b>Inclined planes, resolving forces</b></div>
+                  </div>
+                  <sc-if value="{{ gapModifying }}" hint-placeholder-val="{{ false }}">
+                    <div onClick="{{ stop }}" style="display:flex;gap:8px"><input class="input" value="{{ gapDraft }}" onChange="{{ onGapDraft }}"><button class="btn btn-primary" onClick="{{ saveGapObj }}" style="white-space:nowrap">Save &amp; recheck</button><button class="btn btn-secondary" onClick="{{ cancelGapObj }}">Cancel</button></div>
+                  </sc-if>
+                  <sc-if value="{{ gapActions }}" hint-placeholder-val="{{ true }}">
+                    <div style="display:flex;gap:8px;flex-wrap:wrap">
+                      <button class="btn btn-secondary" disabled="{{ packLocked }}" onClick="{{ modifyObj }}">Modify objective</button>
+                      <button class="btn btn-secondary" disabled="{{ packLocked }}" onClick="{{ addSource }}">Add source</button>
+                      <button class="btn btn-ghost" disabled="{{ packLocked }}" onClick="{{ continueWarn }}" style="color:oklch(0.42 0.1 65)">Continue with warning</button>
+                    </div>
+                  </sc-if>
+                </div>
+              </sc-if>
+              <sc-if value="{{ gapContinued }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;align-items:center;gap:10px;padding:12px 18px;background:oklch(0.94 0.05 80);color:oklch(0.42 0.1 65);font-size:13px"><b>§6 · Objective 04 skipped with warning.</b><span>No content was generated for it. It stays flagged on the approval checklist.</span><span style="flex:1"></span><button class="btn btn-ghost" onClick="{{ reopenGap }}" style="color:oklch(0.42 0.1 65);font-size:13px">Undo</button></div>
+              </sc-if>
+              <sc-if value="{{ gapResolved }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;align-items:center;gap:10px;padding:12px 18px;border:1px solid var(--color-neutral-300);font-size:13px"><dc-import name="StatusBadge" status="regen" label="Queued" hint-size="70px,20px"></dc-import><span><b>§6 · Objective 04 revised:</b> "{{ obj4 }}". Coverage recheck found E126 (relevance 0.72). Section queued for generation.</span></div>
+              </sc-if>
+            </sc-if>
+          </div>
+        </div>
+
+        <div style="border-left:1px solid var(--color-neutral-300);overflow:auto;display:flex;flex-direction:column;font-size:12px">
+          <div style="padding:16px 16px 10px;display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;font-weight:700;color:var(--color-neutral-700)">Validation</span><span style="font-size:13px;font-weight:700">{{ ckSum.passed }}/{{ ckSum.total }} passed</span></div>
+          <sc-if value="{{ loading }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:6px 16px;display:flex;flex-direction:column;gap:12px"><sc-for list="{{ skel }}" as="k" hint-placeholder-count="4"><div style="height:12px;width:{{ k.w }};background:var(--color-neutral-200)"></div></sc-for></div>
+          </sc-if>
+          <sc-if value="{{ notLoading }}" hint-placeholder-val="{{ true }}">
+            <sc-for list="{{ checks }}" as="c" hint-placeholder-count="5">
+              <div style="display:grid;grid-template-columns:18px 1fr;gap:8px;padding:6px 16px">
+                <dc-import name="StatusBadge" status="{{ c.s }}" variant="glyph" hint-size="18px,18px"></dc-import>
+                <div style="display:flex;flex-direction:column;gap:2px;min-width:0;padding-top:1px">
+                  <span style="font-weight:600">{{ c.name }}</span>
+                  <sc-if value="{{ c.showDetail }}" hint-placeholder-val="{{ false }}"><span style="line-height:1.4;color:{{ c.fg }}">{{ c.detail }}</span></sc-if>
+                </div>
+              </div>
+            </sc-for>
+            <div style="padding:16px 16px 6px;margin-top:8px;border-top:1px solid var(--color-neutral-300);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;font-weight:700;color:var(--color-neutral-700)">Selected · {{ prov.label }}</div>
+            <div style="display:grid;grid-template-columns:78px 1fr;row-gap:4px;padding:0 16px 10px">
+              <sc-for list="{{ prov.short }}" as="r" hint-placeholder-count="4"><span style="color:var(--color-neutral-700)">{{ r.k }}</span><span style="font-weight:600;word-break:break-word">{{ r.v }}</span></sc-for>
+            </div>
+            <div style="padding:0 16px 14px"><button class="btn btn-secondary" onClick="{{ viewSelEvidence }}" style="justify-content:flex-start;width:100%;font-size:12px;padding:6px 10px">Open evidence {{ prov.evId }} →</button></div>
+            <div style="padding:14px 16px 6px;border-top:1px solid var(--color-neutral-300);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;font-weight:700;color:var(--color-neutral-700)">Objective alignment</div>
+            <sc-for list="{{ objAlign }}" as="o" hint-placeholder-count="3">
+              <div style="display:grid;grid-template-columns:18px 22px 1fr;gap:6px;align-items:start;padding:5px 16px">
+                <dc-import name="StatusBadge" status="{{ o.s }}" variant="glyph" hint-size="18px,18px"></dc-import>
+                <b style="padding-top:2px">{{ o.n }}</b>
+                <span style="display:flex;flex-direction:column;gap:1px;padding-top:2px"><span style="line-height:1.35">{{ o.text }}</span><span style="color:{{ o.fg }}">{{ o.count }}</span></span>
+              </div>
+            </sc-for>
+            <div style="padding:14px 16px 6px;margin-top:8px;border-top:1px solid var(--color-neutral-300);display:flex;justify-content:space-between;align-items:center"><span style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;font-weight:700;color:var(--color-neutral-700)">Version</span><button class="btn btn-ghost" onClick="{{ openVersions }}" style="font-size:12px;padding:2px 6px">History →</button></div>
+            <sc-for list="{{ recent }}" as="h" hint-placeholder-count="3">
+              <div style="display:grid;grid-template-columns:28px 1fr auto;gap:6px;padding:4px 16px"><b>v{{ h.v }}</b><span style="line-height:1.35">{{ h.title }}</span><span style="color:var(--color-neutral-700)">{{ h.t }}</span></div>
+            </sc-for>
+            <div style="margin-top:auto;padding:14px 16px;border-top:1px solid var(--color-neutral-300);line-height:1.5;color:var(--color-neutral-700)">Generated only from the 3 sources in scope. An objective without evidence is not generated.</div>
+          </sc-if>
+        </div>
+      </div>
+    </sc-if>
+
+    <!-- ===== QUIZ ASSET DETAIL ===== -->
+    <sc-if value="{{ showQuiz }}" hint-placeholder-val="{{ false }}">
+      <div style="flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,3fr) minmax(250px,1fr)">
+        <div style="overflow:auto;min-width:0">
+          <div style="max-width:860px;margin:0 auto;padding:26px 40px 56px;display:flex;flex-direction:column;gap:16px">
+            <div style="display:flex;flex-direction:column;gap:8px;padding-bottom:14px;border-bottom:2px solid var(--color-divider)">
+              <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;font-weight:600;color:var(--color-accent-700)">Asset 03 · Quiz · {{ quizVer }}</div>
+              <div style="display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap"><span style="font-size:34px;font-weight:800;letter-spacing:-0.02em;line-height:1.05;flex:1 1 auto">Quiz</span><button class="btn btn-secondary" disabled="{{ barApproveDisabled }}" onClick="{{ barApprove }}" style="white-space:nowrap">{{ barApproveLabel }}</button></div>
+              <div style="font-size:13px;color:var(--color-neutral-700)">10 questions · {{ quizCounts }}</div>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(10,minmax(0,1fr));border:1px solid var(--color-divider)">
+              <sc-for list="{{ qStrip }}" as="q" hint-placeholder-count="10">
+                <button onClick="{{ q.onClick }}" style="display:flex;flex-direction:column;align-items:flex-start;gap:4px;padding:8px 8px 7px;border:0;border-left:1px solid var(--color-neutral-300);background:{{ q.bg }};box-shadow:inset 0 -3px 0 {{ q.line }};cursor:pointer;font:inherit;text-align:left;color:var(--color-text)">
+                  <span style="display:flex;justify-content:space-between;align-items:center;width:100%"><b style="font-size:13px">Q{{ q.n }}</b><dc-import name="StatusBadge" status="{{ q.status }}" variant="glyph" hint-size="18px,18px"></dc-import></span>
+                  <span style="font-size:11px;font-weight:{{ q.vw }};color:{{ q.vfg }}">v{{ q.ver }}{{ q.vtag }}</span>
+                </button>
+              </sc-for>
+            </div>
+
+            <div style="display:flex;flex-direction:column;border:2px solid var(--color-divider)">
+              <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:14px 20px;border-bottom:1px solid var(--color-neutral-300)">
+                <span style="font-size:13px;letter-spacing:0.12em;font-weight:800;color:var(--color-accent-700)">QUESTION {{ cq.n2 }}</span>
+                <span style="font-size:12px;font-weight:600;padding:2px 8px;border:1px solid var(--color-divider)">{{ cq.diff }}</span>
+                <span style="font-size:12px;font-weight:600;padding:2px 8px;border:1px solid var(--color-divider)">Objective {{ cq.objN }}</span>
+                <span style="font-size:12px;font-weight:800;padding:2px 8px;background:{{ cq.verBg }};color:{{ cq.verFg }}">v{{ cq.ver }}</span>
+                <span style="flex:1"></span>
+                <dc-import name="StatusBadge" status="{{ cq.status }}" label="{{ cq.statusLabel }}" hint-size="80px,20px"></dc-import>
+              </div>
+
+              <sc-if value="{{ showQFlow }}" hint-placeholder-val="{{ false }}">
+                <div style="display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:2px;padding:12px 20px 0">
+                  <sc-for list="{{ qFlow }}" as="r" hint-placeholder-count="5"><div style="display:flex;justify-content:space-between;align-items:center;gap:6px;padding:8px 10px;background:{{ r.bg }};color:{{ r.fg }};font-size:12px;font-weight:600"><span>{{ r.l }}</span><b>{{ r.mark }}</b></div></sc-for>
+                </div>
+              </sc-if>
+              <sc-if value="{{ qReviewing }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:12px 20px 0;padding:12px 14px;background:oklch(0.94 0.035 150)">
+                  <div style="display:flex;flex-direction:column;gap:2px;flex:1 1 280px"><b style="font-size:14px">{{ qRev.title }}</b><span style="font-size:12px;color:var(--color-neutral-800)">{{ qRev.unchanged }}</span></div>
+                  <button class="btn btn-primary" onClick="{{ acceptQ }}" style="white-space:nowrap">Accept v{{ cq.ver }}</button>
+                  <button class="btn btn-secondary" onClick="{{ revertQ }}" style="white-space:nowrap">Revert to v{{ qRev.prevVer }}</button>
+                </div>
+              </sc-if>
+
+              <sc-if value="{{ cqBusy }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;flex-direction:column;gap:12px;padding:20px">
+                  <div style="height:16px;width:88%;background:var(--color-neutral-300)"></div><div style="height:16px;width:60%;background:var(--color-neutral-300)"></div>
+                  <sc-for list="{{ skel }}" as="k" hint-placeholder-count="4"><div style="display:grid;grid-template-columns:36px 1fr;gap:14px;align-items:center"><div style="height:36px;background:var(--color-neutral-200)"></div><div style="height:12px;width:{{ k.w }};background:var(--color-neutral-200)"></div></div></sc-for>
+                  <span style="font-size:12px;color:var(--color-neutral-700)">Generating Question {{ cq.n }} from {{ cq.ev }}. The other 9 questions are not touched.</span>
+                </div>
+              </sc-if>
+
+              <sc-if value="{{ cqReady }}" hint-placeholder-val="{{ true }}">
+                <div style="display:flex;flex-direction:column;gap:16px;padding:18px 20px">
+                  <textarea class="input" disabled="{{ quizLocked }}" value="{{ cq.text }}" onChange="{{ onQText }}" aria-label="Question text" style="min-height:64px;font-size:18px;line-height:1.45;font-weight:700"></textarea>
+                  <div style="display:flex;flex-direction:column;border-top:1px solid var(--color-neutral-300)">
+                    <sc-for list="{{ cq.opts }}" as="o" hint-placeholder-count="4">
+                      <button onClick="{{ o.onPick }}" disabled="{{ quizLocked }}" style="display:grid;grid-template-columns:36px 1fr auto;gap:14px;align-items:center;padding:8px 12px 8px 0;border:0;border-bottom:1px solid var(--color-neutral-300);cursor:pointer;text-align:left;font:inherit;font-size:15px;background:{{ o.rowBg }};color:var(--color-text)">
+                        <span style="width:36px;height:36px;display:grid;place-items:center;font-weight:800;background:{{ o.bg }};color:{{ o.fg }}">{{ o.letter }}</span>
+                        <span>{{ o.text }}</span>
+                        <span style="font-size:12px;font-weight:700;color:oklch(0.45 0.11 150)">{{ o.tag }}</span>
+                      </button>
+                    </sc-for>
+                  </div>
+                  <div style="display:flex;flex-wrap:wrap;gap:12px 32px;align-items:center;font-size:13px">
+                    <div style="display:flex;align-items:baseline;gap:10px"><span style="color:var(--color-neutral-700)">Correct answer</span><span style="font-size:24px;font-weight:800">{{ cq.correctL }}</span></div>
+                    <div style="display:flex;align-items:center;gap:10px"><span style="color:var(--color-neutral-700)">Difficulty</span><div style="display:flex;border:1px solid var(--color-divider)"><sc-for list="{{ cq.diffs }}" as="d" hint-placeholder-count="3"><button onClick="{{ d.onClick }}" disabled="{{ quizLocked }}" style="border:0;padding:4px 8px;font:inherit;font-size:12px;cursor:pointer;background:{{ d.bg }};color:{{ d.fg }}">{{ d.l }}</button></sc-for></div></div>
+                    <div style="display:flex;align-items:center;gap:8px"><span style="color:var(--color-neutral-700)">Evidence</span><button onClick="{{ openCqEv }}" style="display:inline-flex;border:1px solid var(--color-divider);padding:0;background:var(--color-bg);cursor:pointer;font:inherit;font-size:11px;color:var(--color-text)"><span style="padding:2px 6px;background:var(--color-text);color:var(--color-bg);font-weight:700">{{ cq.ev }}</span><span style="padding:2px 6px">{{ cq.evLoc }}</span></button></div>
+                  </div>
+                </div>
+              </sc-if>
+
+              <div style="padding:14px 20px;border-top:1px solid var(--color-neutral-300);display:flex;flex-direction:column;gap:10px">
+                <span style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;font-weight:700;color:var(--color-neutral-700)">Validation</span>
+                <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px 16px">
+                  <sc-for list="{{ cq.checks }}" as="c" hint-placeholder-count="6"><div title="{{ c.why }}" style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600"><dc-import name="StatusBadge" status="{{ c.s }}" variant="glyph" hint-size="18px,18px"></dc-import>{{ c.name }}</div></sc-for>
+                </div>
+                <sc-for list="{{ cq.issues }}" as="c" hint-placeholder-count="1"><div style="font-size:12px;line-height:1.45;padding:6px 10px;background:{{ c.bg }};color:{{ c.fg }}"><b>{{ c.name }} · </b>{{ c.why }}</div></sc-for>
+              </div>
+
+              <div style="padding:14px 20px 18px;border-top:2px solid var(--color-divider);display:flex;flex-direction:column;gap:10px;background:var(--color-surface)">
+                <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+                  <button class="btn btn-primary" disabled="{{ qRegenDisabled }}" onClick="{{ regenQ }}" style="white-space:nowrap">Regenerate Question</button>
+                  <input class="input" disabled="{{ quizLocked }}" placeholder="Optional instruction, e.g. use a real-world context" value="{{ instr }}" onChange="{{ onInstr }}" style="flex:1 1 240px;width:auto">
+                </div>
+                <div style="display:flex;gap:18px;flex-wrap:wrap;font-size:12px;align-items:center">
+                  <span style="color:var(--color-neutral-700)">Only Q{{ cq.n }} changes.</span>
+                  <sc-for list="{{ regenOpts }}" as="r" hint-placeholder-count="3">
+                    <button onClick="{{ r.onClick }}" disabled="{{ quizLocked }}" style="display:flex;align-items:center;gap:6px;border:0;padding:0;background:transparent;font:inherit;font-size:12px;cursor:pointer;color:var(--color-text)"><span style="width:14px;height:14px;display:grid;place-items:center;border:1.5px solid var(--color-text);background:{{ r.bg }};color:#fff;font-size:10px;font-weight:800">{{ r.mark }}</span>{{ r.l }}</button>
+                  </sc-for>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="border-left:1px solid var(--color-neutral-300);overflow:auto;display:flex;flex-direction:column;font-size:12px">
+          <div style="padding:16px 16px 8px;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;font-weight:700;color:var(--color-neutral-700)">Provenance · Q{{ cq.n }}</div>
+          <div style="display:grid;grid-template-columns:78px 1fr;row-gap:4px;padding:0 16px 12px">
+            <sc-for list="{{ cq.prov }}" as="r" hint-placeholder-count="7"><span style="color:var(--color-neutral-700)">{{ r.k }}</span><span style="font-weight:600;word-break:break-word">{{ r.v }}</span></sc-for>
+          </div>
+          <div style="padding:0 16px 14px"><button class="btn btn-secondary" onClick="{{ openCqEv }}" style="justify-content:flex-start;width:100%;font-size:12px;padding:6px 10px">Open evidence {{ cq.ev }} →</button></div>
+          <div style="padding:14px 16px 6px;border-top:1px solid var(--color-neutral-300);display:flex;justify-content:space-between;align-items:center"><span style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;font-weight:700;color:var(--color-neutral-700)">Question history</span><button class="btn btn-ghost" onClick="{{ openVersions }}" style="font-size:12px;padding:2px 6px">All →</button></div>
+          <sc-for list="{{ cq.history }}" as="h" hint-placeholder-count="1">
+            <div style="display:grid;grid-template-columns:26px 1fr auto;gap:6px;padding:4px 16px"><b>v{{ h.v }}</b><span style="line-height:1.35">{{ h.what }}</span><span style="color:var(--color-neutral-700)">{{ h.t }}</span></div>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+
+    <!-- ===== OVERVIEW / APPROVAL ===== -->
+    <sc-if value="{{ showOverview }}" hint-placeholder-val="{{ false }}">
+      <div style="flex:1;min-height:0;overflow:auto">
+        <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(300px,360px);min-height:100%">
+          <div style="display:flex;flex-direction:column;min-width:0">
+            <dc-import name="ApprovalPanel" items="{{ readiness }}" approved="{{ approved }}" meta="{{ approvalMeta }}" version="{{ verLabel }}" on-approve="{{ approvePack }}" on-go="{{ goTarget }}" on-student="{{ openStudent }}" hint-size="100%,560px"></dc-import>
+            <div style="padding:8px 36px 40px;display:flex;flex-direction:column;gap:8px">
+              <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;font-weight:700;color:var(--color-neutral-700)">Pack assets</div>
+              <div style="display:grid;grid-template-columns:minmax(160px,1.4fr) 90px 170px minmax(0,1fr) 70px;gap:12px;padding:8px 0;border-bottom:2px solid var(--color-divider);font-size:11px;letter-spacing:0.06em;text-transform:uppercase;font-weight:700;color:var(--color-neutral-700)"><span>Asset</span><span>Version</span><span>Status</span><span>Provenance</span><span></span></div>
+              <sc-for list="{{ assetRows }}" as="r" hint-placeholder-count="7">
+                <div style="display:grid;grid-template-columns:minmax(160px,1.4fr) 90px 170px minmax(0,1fr) 70px;gap:12px;align-items:center;padding:9px 0;border-bottom:1px solid var(--color-neutral-300);font-size:13px">
+                  <span style="font-weight:700">{{ r.name }}</span><span>{{ r.ver }}</span>
+                  <span><dc-import name="StatusBadge" status="{{ r.status }}" label="{{ r.note }}" hint-size="120px,20px"></dc-import></span>
+                  <span style="font-size:12px;color:var(--color-neutral-800)">{{ r.prov }}</span>
+                  <button class="btn btn-ghost" onClick="{{ r.onOpen }}" style="font-size:12px;padding:2px 6px">Open →</button>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+          <div style="border-left:2px solid var(--color-divider);display:flex;flex-direction:column">
+            <div style="padding:20px 20px 10px;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;font-weight:700;color:var(--color-neutral-700)">How this pack was made</div>
+            <sc-for list="{{ roles }}" as="r" hint-placeholder-count="4">
+              <div style="display:grid;grid-template-columns:18px 1fr;gap:10px;padding:12px 20px;border-top:1px solid var(--color-neutral-300)">
+                <dc-import name="StatusBadge" status="{{ r.s }}" variant="glyph" hint-size="18px,18px"></dc-import>
+                <div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:15px;font-weight:800">{{ r.k }}</span><span style="font-size:12px;line-height:1.45;color:var(--color-neutral-800)">{{ r.v }}</span></div>
+              </div>
+            </sc-for>
+            <div style="padding:20px 20px 8px;border-top:2px solid var(--color-divider);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;font-weight:700;color:var(--color-neutral-700)">Learning objectives</div>
+            <sc-for list="{{ objAlignAll }}" as="o" hint-placeholder-count="3"><div style="display:grid;grid-template-columns:18px 26px 1fr;gap:6px;padding:5px 20px;font-size:13px"><dc-import name="StatusBadge" status="{{ o.s }}" variant="glyph" hint-size="18px,18px"></dc-import><b style="padding-top:1px">{{ o.n }}</b><span style="line-height:1.4;padding-top:1px">{{ o.text }}</span></div></sc-for>
+            <div style="padding:14px 20px 8px;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;font-weight:700;color:var(--color-neutral-700)">Objective coverage</div>
+            <div style="display:grid;grid-template-columns:36px repeat(4,minmax(0,1fr));padding:0 20px;font-size:11px;color:var(--color-neutral-700);gap:4px"><span></span><span>Expl.</span><span>Assess.</span><span>Quiz</span><span>Exam</span></div>
+            <sc-for list="{{ objMatrix }}" as="o" hint-placeholder-count="3">
+              <div style="display:grid;grid-template-columns:36px repeat(4,minmax(0,1fr));gap:4px;padding:4px 20px">
+                <b style="font-size:12px;padding-top:6px">{{ o.n }}</b>
+                <sc-for list="{{ o.cells }}" as="c" hint-placeholder-count="4"><span style="padding:6px 0;text-align:center;font-size:12px;font-weight:700;background:{{ c.bg }};color:{{ c.fg }}">{{ c.v }}</span></sc-for>
+              </div>
+            </sc-for>
+            <div style="padding:8px 20px 20px;font-size:11px;color:var(--color-neutral-700)">Items per objective in each asset.</div>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ showValidation }}" hint-placeholder-val="{{ false }}">
+      <div style="flex:1;min-height:0;overflow:auto">
+        <dc-import name="ValidationPage" checks="{{ packChecks }}" pack-ver="{{ verLabel }}" locked="{{ approved }}" coverage="{{ coverage }}" initial-sel="{{ valSel }}" last-run="10:49" on-view-evidence="{{ openEvidence }}" on-action="{{ goTarget }}" hint-size="100%,760px"></dc-import>
+      </div>
+    </sc-if>
+    <sc-if value="{{ showVersions }}" hint-placeholder-val="{{ false }}">
+      <div style="flex:1;min-height:0;overflow:auto"><dc-import name="VersionTimeline" entries="{{ versionEntries }}" hint-size="100%,800px"></dc-import></div>
+    </sc-if>
+    <sc-if value="{{ showAI }}" hint-placeholder-val="{{ false }}">
+      <div style="flex:1;min-height:0;overflow:auto"><dc-import name="AITeacher" video-state="{{ videoDemo }}" locked="{{ approved }}" on-state-change="{{ onVideoState }}" hint-size="100%,860px"></dc-import></div>
+    </sc-if>
+    <sc-if value="{{ showExam }}" hint-placeholder-val="{{ false }}">
+      <div style="flex:1;min-height:0;overflow:auto"><dc-import name="ExamFocus" student="{{ false }}" hint-size="100%,1100px"></dc-import></div>
+    </sc-if>
+    <sc-if value="{{ showRes }}" hint-placeholder-val="{{ false }}">
+      <div style="flex:1;min-height:0;overflow:auto"><dc-import name="Resources" student="{{ false }}" hint-size="100%,760px"></dc-import></div>
+    </sc-if>
+    <sc-if value="{{ showDash }}" hint-placeholder-val="{{ false }}">
+      <div style="flex:1;min-height:0;overflow:auto"><dc-import name="Dashboard" empty="{{ dashEmpty }}" mode="{{ dashMode }}" current-pack="{{ currentPack }}" on-open-pack="{{ openPack }}" on-create="{{ openCreate }}" hint-size="100%,760px"></dc-import></div>
+    </sc-if>
+    <sc-if value="{{ showSources }}" hint-placeholder-val="{{ false }}">
+      <div style="flex:1;min-height:0;overflow:auto"><dc-import name="SourceLibrary" on-view-evidence="{{ openEvidence }}" on-toast="{{ onToast }}" hint-size="100%,760px"></dc-import></div>
+    </sc-if>
+    <sc-if value="{{ showCreate }}" hint-placeholder-val="{{ false }}">
+      <div style="flex:1;min-height:0;overflow:auto"><dc-import name="CreatePack" coverage-gap="{{ gap }}" on-generate="{{ onGenerate }}" on-cancel="{{ openDash }}" hint-size="100%,760px"></dc-import></div>
+    </sc-if>
+    <sc-if value="{{ showPipeline }}" hint-placeholder-val="{{ false }}">
+      <div style="flex:1;min-height:0;overflow:auto"><dc-import name="GenerationPipeline" mode="{{ pipeMode }}" on-open-studio="{{ pipeDone }}" hint-size="100%,760px"></dc-import></div>
+    </sc-if>
+    <sc-if value="{{ showSettings }}" hint-placeholder-val="{{ false }}">
+      <div style="flex:1;padding:36px;display:flex;flex-direction:column;gap:14px;max-width:640px">
+        <div style="font-size:28px;font-weight:800;letter-spacing:-0.02em">Settings</div>
+        <sc-for list="{{ settings }}" as="r" hint-placeholder-count="4"><div style="display:grid;grid-template-columns:220px 1fr;gap:12px;padding:10px 0;border-bottom:1px solid var(--color-neutral-300);font-size:13px"><span style="color:var(--color-neutral-700)">{{ r.k }}</span><b>{{ r.v }}</b></div></sc-for>
+      </div>
+    </sc-if>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ devOpen }}" hint-placeholder-val="{{ false }}">
+  <div style="position:fixed;left:12px;bottom:12px;z-index:45;width:300px;max-height:calc(100vh - 24px);overflow:auto;background:var(--color-neutral-900);color:#f3f2f2;font-family:ui-monospace, SFMono-Regular, Menlo, monospace;font-size:12px;box-shadow:var(--shadow-lg)">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:1px solid var(--color-neutral-700)"><span style="font-weight:700;letter-spacing:0.08em">PROTOTYPE CONTROLS</span><button onClick="{{ toggleDev }}" style="border:0;background:transparent;color:#f3f2f2;cursor:pointer;font:inherit;font-size:14px">×</button></div>
+    <div style="padding:6px 12px 8px;color:var(--color-neutral-400);font-size:11px;line-height:1.4">For demos only. Not part of the teacher product.</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;margin:0 12px 8px;border:1px solid var(--color-neutral-700)">
+      <sc-for list="{{ devTabs }}" as="t" hint-placeholder-count="2"><button onClick="{{ t.onClick }}" style="border:0;padding:6px;font:inherit;font-size:12px;cursor:pointer;background:{{ t.bg }};color:{{ t.fg }}">{{ t.l }}</button></sc-for>
+    </div>
+    <sc-if value="{{ devStates }}" hint-placeholder-val="{{ true }}">
+      <sc-for list="{{ devGroups }}" as="g" hint-placeholder-count="4">
+        <div style="padding:6px 12px 2px;color:var(--color-neutral-400);font-size:10px;letter-spacing:0.1em;text-transform:uppercase">{{ g.g }}</div>
+        <sc-for list="{{ g.items }}" as="i" hint-placeholder-count="3"><button onClick="{{ i.onClick }}" style="display:flex;gap:8px;width:100%;border:0;padding:5px 12px;font:inherit;font-size:12px;text-align:left;cursor:pointer;background:{{ i.bg }};color:{{ i.fg }}"><span>{{ i.mark }}</span>{{ i.l }}</button></sc-for>
+      </sc-for>
+    </sc-if>
+    <sc-if value="{{ devStory }}" hint-placeholder-val="{{ false }}">
+      <sc-for list="{{ story }}" as="i" hint-placeholder-count="9"><button onClick="{{ i.onClick }}" style="display:grid;grid-template-columns:22px 1fr;gap:6px;width:100%;border:0;padding:6px 12px;font:inherit;font-size:12px;text-align:left;cursor:pointer;background:{{ i.bg }};color:{{ i.fg }}"><span>{{ i.n }}</span><span style="display:flex;flex-direction:column;gap:1px"><b>{{ i.l }}</b><span style="opacity:0.75;font-size:11px">{{ i.c }}</span></span></button></sc-for>
+    </sc-if>
+    <div style="height:8px"></div>
+  </div>
+</sc-if>
+<sc-if value="{{ hasEv }}" hint-placeholder-val="{{ false }}">
+  <dc-import name="EvidenceViewer" ev="{{ evData }}" on-close="{{ closeEv }}" hint-size="100%,100%"></dc-import>
+</sc-if>
+<sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}">
+  <div style="position:fixed;right:24px;bottom:72px;z-index:40;max-width:420px;padding:12px 16px;background:var(--color-text);color:var(--color-bg);font-size:13px;line-height:1.45;box-shadow:var(--shadow-lg)">{{ toast }}</div>
+</sc-if>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;demoScenario&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;normal&quot;,&quot;gap&quot;,&quot;loading&quot;,&quot;approved&quot;,&quot;genRunning&quot;,&quot;genWarning&quot;,&quot;genFailed&quot;,&quot;vidQueued&quot;,&quot;vidRendering&quot;,&quot;vidDone&quot;,&quot;vidFailed&quot;,&quot;emptyDash&quot;],&quot;default&quot;:&quot;normal&quot;,&quot;tsType&quot;:&quot;DemoScenario&quot;,&quot;section&quot;:&quot;Prototype&quot;}}">
+// Mock data layer. Shapes mirror planned FastAPI responses; swap `api` + constants for fetch() calls.
+const G = 'oklch(0.45 0.11 150)', GB = 'oklch(0.94 0.035 150)', AF = 'oklch(0.42 0.1 65)', AB = 'oklch(0.94 0.05 80)';
+const SC = { pass: G, approved: G, review: 'oklch(0.49 0.115 65)', regen: 'oklch(0.49 0.115 65)', fail: 'var(--color-accent-700)', info: 'var(--color-neutral-700)', pending: 'var(--color-neutral-700)', running: 'var(--color-neutral-700)', edited: 'var(--color-text)' };
+const SRC = {
+  S1: { name: 'Physics_Textbook.pdf', type: 'PDF', ver: 'v2' },
+  S2: { name: 'Newton_Lecture_Slides.pptx', type: 'PPTX', ver: 'v1' },
+  S3: { name: 'Teacher_Notes_Forces.md', type: 'MD', ver: 'v1' }
+};
+const EV = {
+  E102: { src: 'S1', loc: 'Page 17', pageLabel: 'p. 17', sect: '§5.2 Inertia and the first law', where: 'Paragraph 2, lines 4–7', b: 4, a: 9, usedBy: 'Explanation §1, §2 · Assessment 1 · Quiz Q1, Q10', text: 'A body continues in its state of rest or of uniform motion in a straight line unless compelled by an external force to change that state. This property of a body is called inertia.' },
+  E103: { src: 'S1', loc: 'Page 18', pageLabel: 'p. 18', sect: '§5.2 Inertia and the first law', where: 'Paragraph 1, lines 1–3', b: 1, a: 11, usedBy: 'Explanation §2 · Assessment 2 · Quiz Q2', text: 'When a moving bus stops suddenly, passengers lurch forward, because their bodies tend to continue in the state of motion.' },
+  E110: { src: 'S1', loc: 'Page 21', pageLabel: 'p. 21', sect: '§5.4 Second law of motion', where: 'Paragraph 1, lines 2–6', b: 2, a: 10, usedBy: 'Explanation §3 · Assessment 3 · Quiz Q3, Q4, Q9', text: 'The rate of change of momentum of a body is directly proportional to the applied force and takes place in the direction in which the force acts. For a body of constant mass, F = ma.' },
+  E114: { src: 'S1', loc: 'Page 24', pageLabel: 'p. 24', sect: 'Worked example 5.3', where: 'Example box', b: 5, a: 6, usedBy: 'Explanation §4 · Assessment 3, 4 · Quiz Q6, Q7', text: 'A constant force of 12 N acts on a trolley of mass 3 kg initially at rest. Find its acceleration. Solution: a = F/m = 12/3 = 4 m s⁻².' },
+  E121: { src: 'S2', loc: 'Slide 9', pageLabel: 'Slide 9 / 22', sect: 'Third law of motion', where: 'Text box 2', b: 2, a: 5, usedBy: 'Explanation §5 · Assessment 5 · Quiz Q5, Q8', text: 'Forces always occur in pairs. Action and reaction act on different bodies, so they never cancel each other.' },
+  E131: { src: 'S3', loc: 'Lines 14–16', pageLabel: 'Lines 14–16', sect: 'Misconceptions', where: 'Lines 14–16', b: 3, a: 4, usedBy: 'Explanation §5 · Assessment 5', text: 'Common misconception: students think action–reaction pairs cancel out. Stress that they act on different objects.' },
+  E126: { src: 'S1', loc: 'Page 26', pageLabel: 'p. 26', sect: '§5.6 Friction', where: 'Paragraph 1', b: 3, a: 10, usedBy: 'None (best match for Objective 04)', note: 'Relevance to Objective 04 is 0.31, below the 0.60 minimum. The source discusses friction on flat surfaces only; inclined planes are not covered.', text: 'Friction opposes the relative motion between two surfaces in contact. Its magnitude depends on the nature of the surfaces and the normal reaction between them.' }
+};
+const OBJ = [
+  { id: 'O1', n: '01', text: "Explain Newton's First Law.", short: 'First Law' },
+  { id: 'O2', n: '02', text: "Apply Newton's Second Law to simple problems.", short: 'Second Law' },
+  { id: 'O3', n: '03', text: 'Identify action–reaction pairs using the Third Law.', short: 'Third Law' },
+  { id: 'O4', n: '04', text: 'Analyse motion on an inclined plane with friction.', short: 'Inclined planes' }
+];
+const BLOCKS = [
+  { id: 'b1', n: 1, title: 'Inertia', obj: 'O1', ev: ['E102'], status: 'pass', ver: 1, hist: 'v1 · Generated 10:32', text: "Inertia is the tendency of a body to resist any change in its state of rest or of uniform motion in a straight line. The greater a body's mass, the greater its inertia." },
+  { id: 'b2', n: 2, title: "Newton's First Law", obj: 'O1', ev: ['E102', 'E103'], status: 'pass', ver: 2, edited: true, hist: 'v2 · Teacher edited 10:48', text: 'A body stays at rest, or keeps moving in a straight line at constant speed, unless an external net force acts on it. A passenger lurching forward when a bus brakes suddenly is an everyday example: the body tends to keep moving while the bus slows.' },
+  { id: 'b3', n: 3, title: "Newton's Second Law", obj: 'O2', ev: ['E110'], status: 'review', ver: 1, hist: 'v1 · Generated 10:32', note: '"Rate of change of momentum" is above the Foundation vocabulary level set for this pack. Consider a simpler lead-in before the formal statement.', text: 'The rate of change of momentum of a body is proportional to the net external force and takes place in the direction of that force. For constant mass this reduces to F = ma, where F is in newtons, m in kilograms and a in m/s².' },
+  { id: 'b4', n: 4, title: 'Worked example', obj: 'O2', ev: ['E114'], status: 'pass', ver: 1, hist: 'v1 · Generated 10:32', text: 'A net force of 12 N acts on a 3 kg trolley at rest. Using a = F ÷ m, the acceleration is 12 ÷ 3 = 4 m/s², in the direction of the force.' },
+  { id: 'b5', n: 5, title: 'Third Law: action and reaction', obj: 'O3', ev: ['E121', 'E131'], status: 'pass', ver: 1, hist: 'v1 · Generated 10:32', text: 'To every action there is an equal and opposite reaction. The two forces act on different bodies, so they never cancel each other. When you push against a wall, the wall pushes back on your hands with a force of equal size.' }
+];
+const ALT_SEC = {
+  b3: 'A net force changes how quickly a body speeds up, slows down or turns. The larger the force, the larger the acceleration; the larger the mass, the smaller the acceleration. We write this as F = ma, with F in newtons, m in kilograms and a in m/s².',
+  b1: "Inertia is a body's resistance to any change in its motion. A heavier body has more inertia, so it is harder to start, stop or turn."
+};
+const ASSESS = [
+  { id: 'a1', n: 1, title: 'Short answer · 2 marks', marks: 2, obj: 'O1', ev: ['E102'], status: 'pass', ver: 1, hist: 'v1 · Approved 10:52', text: "State Newton's First Law of Motion and define inertia.", extraLabel: 'Model answer', extra: 'A body stays at rest or in uniform motion in a straight line unless an external force acts on it (1). Inertia is the tendency of a body to resist a change in its state of rest or motion (1).' },
+  { id: 'a2', n: 2, title: 'Short answer · 2 marks', marks: 2, obj: 'O1', ev: ['E103'], status: 'pass', ver: 1, hist: 'v1 · Approved 10:52', text: 'Why are passengers pushed backward when a bus starts suddenly?', extraLabel: 'Model answer', extra: 'Their feet move with the bus, but the upper body tends to stay at rest because of inertia (1). So the body appears to fall backward (1).' },
+  { id: 'a3', n: 3, title: 'Numerical · 3 marks', marks: 3, obj: 'O2', ev: ['E110', 'E114'], status: 'pass', ver: 1, hist: 'v1 · Approved 10:52', text: 'A net force of 20 N acts on a 5 kg body initially at rest for 4 s. Find (a) its acceleration and (b) its velocity after 4 s.', extraLabel: 'Model answer', extra: '(a) a = F/m = 20/5 = 4 m/s² (1.5). (b) v = u + at = 0 + 4 × 4 = 16 m/s (1.5).' },
+  { id: 'a4', n: 4, title: 'Numerical · 3 marks', marks: 3, obj: 'O2', ev: ['E114'], status: 'pass', ver: 1, hist: 'v1 · Approved 10:52', text: 'A 1200 kg car speeds up uniformly from rest to 20 m/s in 8 s. Find the net force on it.', extraLabel: 'Model answer', extra: 'a = (20 − 0)/8 = 2.5 m/s² (1.5). F = ma = 1200 × 2.5 = 3000 N (1.5).' },
+  { id: 'a5', n: 5, title: 'Long answer · 5 marks', marks: 5, obj: 'O3', ev: ['E121', 'E131'], status: 'pass', ver: 1, hist: 'v1 · Approved 10:52', text: '"Action and reaction are equal and opposite, so they cancel." Explain why this statement is wrong, using two everyday examples.', extraLabel: 'Model answer', extra: 'They act on different bodies, so they cannot cancel (2). A swimmer pushes water back and the water pushes the swimmer forward (1.5). A gun recoils as the bullet is pushed forward (1.5).' }
+];
+const h1 = [{ v: 1, what: 'Generated by Claude', t: '10:32' }];
+const h2 = [...h1, { v: 2, what: 'Regenerated after Physics_Textbook.pdf v2', t: '10:41' }];
+const QS = [
+  { id: 'q1', n: 1, obj: 'O1', diff: 'Easy', ev: 'E102', sim: 0.41, solver: 1, ver: 1, hist: h1, text: 'Which property of a body resists changes to its state of motion?', opts: ['Momentum', 'Inertia', 'Weight', 'Impulse'], sol: 'Inertia is the property that resists a change in the state of rest or uniform motion (E102). Momentum depends on velocity, weight is a force and impulse is a change in momentum.' },
+  { id: 'q2', n: 2, obj: 'O1', diff: 'Medium', ev: 'E103', sim: 0.38, solver: 0, ver: 1, hist: h1, text: 'A passenger falls forward when a moving bus brakes suddenly. Which law best explains this?', opts: ["Newton's First Law", "Newton's Second Law", "Newton's Third Law", 'Law of gravitation'], sol: 'The body keeps moving forward because of inertia of motion while the bus slows: First Law (E103).' },
+  { id: 'q3', n: 3, obj: 'O2', diff: 'Medium', ev: 'E110', sim: 0.94, dup: 'q9', solver: 1, ver: 1, hist: h1, text: 'A net force of 10 N acts on a 2 kg mass. What is its acceleration?', opts: ['20 m/s²', '5 m/s²', '0.2 m/s²', '12 m/s²'], sol: 'a = F/m = 10/2 = 5 m/s² (E110).' },
+  { id: 'q4', n: 4, obj: 'O2', diff: 'Medium', ev: 'E110', sim: 0.52, solver: 2, ver: 2, hist: h2, text: 'If the net force on a body is doubled while its mass stays the same, its acceleration:', opts: ['halves', 'stays the same', 'doubles', 'quadruples'], sol: 'a = F/m. With m fixed, doubling F doubles a (E110).' },
+  { id: 'q5', n: 5, obj: 'O3', diff: 'Easy', ev: 'E121', sim: 0.47, solver: 1, ver: 1, hist: h1, text: 'Action and reaction forces:', opts: ['act on the same body', 'act on different bodies', 'cancel each other', 'act in the same direction'], sol: 'Action and reaction act on different bodies (E121), so they never cancel.' },
+  { id: 'q6', n: 6, obj: 'O2', diff: 'Medium', ev: 'E114', sim: 0.61, solver: 2, ver: 2, hist: h2, text: 'What net force gives a 1500 kg car an acceleration of 2 m/s²?', opts: ['750 N', '1500 N', '3000 N', '3500 N'], sol: 'F = ma = 1500 × 2 = 3000 N (E114).' },
+  { id: 'q7', n: 7, obj: 'O2', diff: 'Hard', ev: 'E114', sim: 0.58, solver: 1, ver: 1, hist: h1, diffNote: 'Rated Hard: needs two steps (a from Δv/t, then F = ma). Pack target is Medium. Keep it if you want a stretch question.', text: 'A 4 kg block accelerates uniformly from rest to 6 m/s in 3 s. What is the net force on it?', opts: ['2 N', '8 N', '12 N', '24 N'], sol: 'a = Δv/t = 6/3 = 2 m/s²; F = ma = 4 × 2 = 8 N (E114).' },
+  { id: 'q8', n: 8, obj: 'O3', diff: 'Medium', ev: 'E121', sim: 0.44, solver: 2, ver: 1, hist: h1, text: 'A gun recoils when a bullet is fired. This is an example of:', opts: ["Newton's First Law", "Newton's Second Law", "Newton's Third Law", 'inertia of rest'], sol: 'The gun pushes the bullet forward and the bullet pushes the gun back with an equal force: Third Law (E121).' },
+  { id: 'q9', n: 9, obj: 'O2', diff: 'Easy', ev: 'E110', sim: 0.94, solver: 1, ver: 1, hist: h1, text: 'A 2 kg mass experiences a net force of 10 N. Find its acceleration.', opts: ['20 m/s²', '5 m/s²', '0.2 m/s²', '8 m/s²'], sol: 'a = 10/2 = 5 m/s² (E110).' },
+  { id: 'q10', n: 10, obj: 'O1', diff: 'Medium', ev: 'E102', sim: 0.36, solver: 1, ver: 1, hist: h1, text: 'A book at rest on a table stays at rest because:', opts: ['no forces act on it', 'the net force on it is zero', 'gravity does not act on it', 'its inertia is zero'], sol: 'Weight and normal reaction balance, so the net force is zero and the book stays at rest (E102).' }
+].map((q) => ({ ...q, keyFor: q.ver, keyVer: q.ver }));
+const ALT_Q = {
+  q3: { text: 'A 5 kg box is pushed across a smooth floor with a net force of 15 N. What is its acceleration?', opts: ['3 m/s²', '75 m/s²', '0.33 m/s²', '10 m/s²'], solver: 0, sim: 0.49, dup: null, sol: 'a = F/m = 15/5 = 3 m/s² (E110).' },
+  q7: { text: 'A net force of 8 N acts on a 4 kg block. What is its acceleration?', opts: ['0.5 m/s²', '2 m/s²', '4 m/s²', '32 m/s²'], solver: 1, sim: 0.63, diff: 'Medium', diffNote: null, ev: 'E110', sol: 'a = F/m = 8/4 = 2 m/s² (E110).' }
+};
+const EVENTS0 = [
+  { id: 'e1', v: 1, kind: 'ai', title: 'Learning pack generated', detail: '11-stage compile from 3 sources · 47 evidence items · 7 assets', scope: 'Whole pack', time: '10:32', by: 'Claude' },
+  { id: 'e2', v: 2, kind: 'source', title: 'Physics_Textbook.pdf updated v1 → v2', detail: 'Errata on p.21 (second law). E110 re-extracted; dependent items flagged.', scope: 'Source', time: '10:41', by: 'Priya Nair' },
+  { id: 'e3', v: 2, kind: 'ai', title: 'Quiz regenerated: Q4 and Q6', detail: 'Only the two questions citing the updated passages changed. Q1–Q3, Q5, Q7–Q10 unchanged.', scope: 'Quiz Q4, Q6', time: '10:41', by: 'Claude', before: 'Q4 v1', after: 'Q4 v2' },
+  { id: 'e4', v: 3, kind: 'teacher', title: 'Explanation §2 edited', detail: 'Added the bus example. Grounding and terminology re-checked: passed.', scope: 'Explanation §2', time: '10:48', by: 'Priya Nair', before: '§2 v1', after: '§2 v2' },
+  { id: 'e5', v: 3, kind: 'approved', title: 'Assessment approved', detail: 'Assessment v3 locked. Other assets remain in draft.', scope: 'Assessment', time: '10:52', by: 'Priya Nair' }
+];
+const L = 'ABCD';
+const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+const api = {
+  regenerateSection: async (id) => { await wait(1500); return ALT_SEC[id] || null; },
+  regenerateQuestion: async (id) => { await wait(2400); return ALT_Q[id] || null; },
+  regenerateKeyEntry: async () => { await wait(1200); },
+  revalidate: async () => { await wait(1100); }
+};
+const tstamp = () => new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+const bars = (n, seed) => Array.from({ length: n }, (_, i) => ({ w: (i === n - 1 ? 40 + ((seed * 7) % 30) : 82 + ((i * 13 + seed * 5) % 18)) + '%' }));
+const worst = (ss) => ss.includes('fail') ? 'fail' : ss.includes('running') ? 'running' : ss.includes('regen') ? 'regen' : ss.includes('review') ? 'review' : 'pass';
+const ANAME = { overview: 'Overview', explanation: 'Explanation', assessment: 'Assessment', quiz: 'Quiz', answerKey: 'Answer Key', ai: 'AI Teacher', exam: 'Exam Focus', resources: 'Resources', versions: 'Versions', validation: 'Validation', settings: 'Settings', dashboard: 'Dashboard', packs: 'Learning Packs', sources: 'Sources', create: 'Create Learning Pack', pipeline: 'Generating' };
+const NOTE = { pass: 'Validated', review: 'Needs review', fail: 'Failed check', approved: 'Approved · locked', running: 'Working…', regen: 'Regeneration required', pending: 'Not rendered', info: 'Supplementary' };
+const SCEN = [
+  { g: 'Studio', items: [['normal', 'Normal'], ['gap', 'Source coverage gap'], ['loading', 'Loading skeletons'], ['approved', 'Approved + locked pack']] },
+  { g: 'Generation', items: [['genRunning', 'Generation running'], ['genWarning', 'Generation warning'], ['genFailed', 'Generation failed']] },
+  { g: 'AI Teacher video', items: [['vidQueued', 'Video queued'], ['vidRendering', 'Video rendering'], ['vidDone', 'Video done'], ['vidFailed', 'Video failed']] },
+  { g: 'Dashboard', items: [['emptyDash', 'Empty dashboard']] }
+];
+const STORY = [
+  ['dashboard', "Open Newton's Laws pack", 'Dashboard → open the pack'],
+  ['overview', 'Show objectives', 'Objectives and coverage per asset'],
+  ['explanation', 'Open explanation', 'Each section cites its evidence'],
+  ['ev:E102', 'Click Evidence E102', 'Source, page, passage, usage'],
+  ['validation', 'Show validation', '9 checks, each tied to evidence'],
+  ['quiz', 'Open Quiz', 'Q3 flagged as a near-duplicate'],
+  ['regen', 'Regenerate Q3', 'Only Q3 is regenerated'],
+  ['quiz', 'Show Q3 v2', 'Q1, Q2, Q4–Q10 unchanged → accept'],
+  ['versions', 'Open Version History', 'AI · teacher · source · approved'],
+  ['overview', 'Approve pack', 'Readiness checklist → lock'],
+  ['student', 'Open Student Mode', 'Serves the approved version'],
+  ['student', 'Only approved content', 'No drafts, validation or controls'],
+  ['ai', 'Open AI Teacher', 'Approved script → HeyGen → video']
+];
+const EV_OBJ = { E102: 'O1', E103: 'O1', E110: 'O2', E114: 'O2', E121: 'O3', E131: 'O3', E126: 'O4' };
+const EV_EXAM = ['E102', 'E110', 'E121'];
+const ranges = (ns) => { const out = []; let i = 0; while (i < ns.length) { let j = i; while (j + 1 < ns.length && ns[j + 1] === ns[j] + 1) j++; out.push(j - i >= 2 ? ns[i] + '–' + ns[j] : j > i ? ns[i] + ', ' + ns[j] : String(ns[i])); i = j + 1; } return out.join(', '); };
+
+class Component extends DCLogic {
+  state = this.base();
+  base() {
+    return {
+      screen: 'explanation', devOpen: false, devTab: 'story', scenario: 'normal',
+      approved: false, approvedVer: null, approvedAt: null, approvedAssets: { assessment: true }, ver: 3, bumped: false,
+      gap: false, gapState: 'open', obj4: OBJ[3].text, gapDraft: OBJ[3].text, loading: false,
+      sections: { explanation: BLOCKS.map((b) => ({ ...b })), assessment: ASSESS.map((a) => ({ ...a })) },
+      sel: { explanation: 'b3', assessment: 'a3', answerKey: 'kq3' }, qReview: null, details: {}, storyIdx: -1,
+      editing: null, draft: '', busy: {}, lastRegen: null, lastQRegen: null,
+      qs: QS.map((q) => ({ ...q, correct: q.solver })), qSel: 'q3', qBusy: null, qStep: 0,
+      keepObj: true, keepDiff: true, avoidDup: true, instr: '',
+      valSel: 'duplicate', pipeMode: 'running', videoDemo: 'none', videoLive: 'none', dashEmpty: false,
+      events: EVENTS0.map((e) => ({ ...e })), ev: null, toast: null
+    };
+  }
+  componentDidMount() { if (this.props.demoScenario && this.props.demoScenario !== 'normal') this.applyScenario(this.props.demoScenario); }
+  componentDidUpdate(prev) { if (this.props.demoScenario !== prev.demoScenario && this.props.demoScenario) this.applyScenario(this.props.demoScenario); }
+  componentWillUnmount() { clearInterval(this.stepT); clearTimeout(this._t); }
+
+  flash(msg) { clearTimeout(this._t); this.setState({ toast: msg }); this._t = setTimeout(() => this.setState({ toast: null }), 3800); }
+  pushEvent(kind, title, detail, scope, extra = {}, bump = true) {
+    this.setState((st) => {
+      const ver = bump && !st.bumped ? st.ver + 1 : st.ver;
+      return { ver, bumped: st.bumped || bump, events: [...st.events, { id: 'e' + Date.now() + Math.random(), v: ver, kind, title, detail, scope, time: tstamp(), by: kind === 'ai' ? 'Claude' : 'Priya Nair', ...extra }] };
+    });
+  }
+  gapOpen() { return this.state.gap && this.state.gapState !== 'modified'; }
+  isLocked(a) { return this.state.approved || !!this.state.approvedAssets[a]; }
+
+  approvedPatch(b) {
+    const qs = b.qs.map((q) => q.id === 'q3' ? { ...q, ...ALT_Q.q3, ver: 2, correct: ALT_Q.q3.solver, keyFor: 2, keyVer: 2, hist: [...q.hist, { v: 2, what: 'Regenerated (this question only)', t: '11:08' }] } : q);
+    const all = { explanation: true, assessment: true, quiz: true, answerKey: true, ai: true, exam: true, resources: true };
+    return { qs, approved: true, ver: 4, bumped: true, approvedVer: 4, approvedAt: '29 Sep 2026, 11:20', approvedAssets: all, screen: 'overview', lastQRegen: { id: 'q3', to: 2 },
+      events: [...b.events,
+        { id: 'x1', v: 4, kind: 'ai', title: 'Quiz Q3 regenerated', detail: 'Near-duplicate of Q9 replaced. Q1, Q2 and Q4–Q10 unchanged.', scope: 'Quiz Q3', time: '11:08', by: 'Claude', before: 'Q3 v1', after: 'Q3 v2' },
+        { id: 'x2', v: 4, kind: 'ai', title: 'Answer Key entry Q3 regenerated', detail: 'Only the Q3 entry changed.', scope: 'Answer Key Q3', time: '11:09', by: 'Claude' },
+        { id: 'x3', v: 4, kind: 'teacher', title: 'Quiz Q7 difficulty set to Hard (kept)', detail: 'Teacher kept Q7 as a stretch question.', scope: 'Quiz Q7', time: '11:14', by: 'Priya Nair' },
+        { id: 'x4', v: 4, kind: 'approved', pack: true, title: 'Learning pack approved', detail: 'v4 locked and published to Student Mode.', scope: 'Whole pack', time: '11:20', by: 'Priya Nair' }] };
+  }
+  applyScenario(id) {
+    clearInterval(this.stepT);
+    const b = { ...this.base(), devOpen: this.state.devOpen, devTab: this.state.devTab, scenario: id };
+    const m = {
+      normal: {}, gap: { gap: true, sel: { ...b.sel, explanation: 'gap' } }, loading: { loading: true }, approved: this.approvedPatch(b),
+      genRunning: { screen: 'blank', pipeMode: 'running' }, genWarning: { screen: 'blank', pipeMode: 'warning' }, genFailed: { screen: 'blank', pipeMode: 'failed' },
+      vidQueued: { screen: 'ai', videoDemo: 'queued', videoLive: 'queued' }, vidRendering: { screen: 'ai', videoDemo: 'rendering', videoLive: 'rendering' },
+      vidDone: { screen: 'ai', videoDemo: 'done', videoLive: 'done' }, vidFailed: { screen: 'ai', videoDemo: 'failed', videoLive: 'failed' },
+      emptyDash: { screen: 'dashboard', dashEmpty: true }
+    }[id] || {};
+    this.setState({ ...b, ...m });
+    if (m.screen === 'blank') setTimeout(() => this.setState({ screen: 'pipeline' }), 30);
+  }
+  runStory(target, idx) {
+    this.setState({ storyIdx: idx });
+    if (target === 'ev:E102') return this.setState({ screen: 'explanation', sel: { ...this.state.sel, explanation: 'b1' }, ev: 'E102' });
+    if (target === 'regen') { this.setState({ screen: 'quiz', qSel: 'q3' }); const q = this.state.qs.find((x) => x.id === 'q3'); if (q.ver === 1 && !this.isLocked('quiz')) setTimeout(() => this.regenQuestion(), 250); return; }
+    const extra = { explanation: { sel: { ...this.state.sel, explanation: 'b3' } }, quiz: { qSel: 'q3' }, validation: { valSel: 'duplicate' } }[target] || {};
+    this.setState({ screen: target, ...extra });
+  }
+
+  keyEntry(q) {
+    const stale = q.keyFor !== q.ver, bad = q.correct !== q.solver;
+    return { id: 'k' + q.id, qid: q.id, n: q.n, title: `Q${q.n} · Answer ${L[q.correct]}`, obj: q.obj, ev: [q.ev], text: q.sol, ver: q.keyVer,
+      status: bad ? 'fail' : stale ? 'regen' : 'pass', hist: `v${q.keyVer} · ${q.keyVer > 1 ? 'Regenerated' : 'Generated'} ${q.keyT || (q.keyVer > 1 ? '10:41' : '10:32')}`,
+      note: bad ? `Marked answer ${L[q.correct]} disagrees with the independent solver (${L[q.solver]}).` : stale ? `Quiz Q${q.n} is now v${q.ver}. This entry still explains v${q.keyFor}. Regenerate this entry only.` : null };
+  }
+  secsRaw(a) { return a === 'answerKey' ? this.state.qs.map((q) => this.keyEntry(q)) : (this.state.sections[a] || []); }
+  qChecks(q) {
+    const o = OBJ.find((x) => x.id === q.obj), e = EV[q.ev], stale = q.keyFor !== q.ver;
+    const flaggedBy = this.state.qs.find((x) => x.dup === q.id);
+    return [
+      q.correct === q.solver ? { name: 'Answer valid', s: 'pass', why: `Solved independently from ${q.ev}: ${L[q.solver]} is the only correct option.` } : { name: 'Answer valid', s: 'fail', why: `Marked answer ${L[q.correct]} does not match the solver result ${L[q.solver]}.` },
+      { name: 'Evidence supported', s: 'pass', why: `Stem and answer trace to ${q.ev} · ${SRC[e.src].name}, ${e.loc}.` },
+      { name: 'Objective aligned', s: 'pass', why: `Assesses Objective ${o.n}: ${o.text}` },
+      q.dup ? { name: 'No duplicate', s: 'fail', why: `Similarity ${q.sim} with ${q.dup.toUpperCase()}: same mass, force and answer. Threshold 0.85.` } : { name: 'No duplicate', s: 'pass', why: flaggedBy ? `Q${flaggedBy.n} is flagged as a near-duplicate of this question.` : `Highest similarity to another question: ${q.sim}. Threshold 0.85.` },
+      stale ? { name: 'Answer key consistent', s: 'review', why: `Answer Key still holds the v${q.keyFor} entry for Q${q.n}. Regenerate that entry.` } : { name: 'Answer key consistent', s: q.correct === q.solver ? 'pass' : 'review', why: q.correct === q.solver ? `Answer Key lists ${L[q.correct]}; matches the solver.` : 'Key follows your marked answer once validity passes.' },
+      q.diffNote ? { name: 'Difficulty on target', s: 'review', why: q.diffNote } : { name: 'Difficulty on target', s: 'pass', why: `Rated ${q.diff}; within the pack's difficulty mix.` }
+    ];
+  }
+  qStatus(q) { if (this.state.qBusy === q.id) return 'running'; return worst(this.qChecks(q).map((c) => c.s)); }
+  assetStatus(a) {
+    const s = this.state;
+    if (s.approved) return a === 'resources' ? 'info' : 'approved';
+    if (s.approvedAssets[a]) return 'approved';
+    if (['explanation', 'assessment', 'answerKey'].includes(a)) {
+      const ss = this.secsRaw(a).map((x) => s.busy[a + ':' + x.id] ? 'running' : x.status);
+      if (a === 'explanation' && this.gapOpen()) ss.push('review');
+      return worst(ss);
+    }
+    if (a === 'quiz') return worst(s.qs.map((q) => this.qStatus(q)));
+    if (a === 'ai') return { none: 'pending', queued: 'running', rendering: 'running', done: 'pass', failed: 'fail' }[s.videoLive] || 'pending';
+    if (a === 'exam') return 'pass';
+    return 'info';
+  }
+  assetChecks(a) {
+    const s = this.state, gap = this.gapOpen();
+    if (a === 'explanation') {
+      const rev = s.sections.explanation.filter((b) => b.status === 'review');
+      return [
+        { name: 'Grounding', s: 'pass', result: 'Supported by source', detail: '5 of 5 sections cite evidence · 7 citations' },
+        { name: 'Objective alignment', s: gap ? 'review' : 'pass', result: gap ? 'O4 not covered' : 'All objectives', detail: gap ? 'Objectives 01–03 covered. Objective 04 has a source coverage gap.' : 'Each section maps to one objective.' },
+        { name: 'Terminology', s: 'pass', result: 'Consistent', detail: '"Net force", "inertia" and SI units match source usage.' },
+        { name: 'Answer leakage', s: 'pass', result: 'None', detail: 'No quiz answers revealed (policy: after submission).' },
+        { name: 'Difficulty', s: rev.length ? 'review' : 'pass', result: rev.length ? 'Teacher review recommended' : 'On target', detail: rev.length ? `§${rev.map((b) => b.n).join(', §')} vocabulary is above the Foundation level.` : 'Medium difficulty, Foundation vocabulary.' }
+      ];
+    }
+    if (a === 'assessment') return [
+      { name: 'Grounding', s: 'pass', result: 'Supported by source', detail: '5 of 5 items and model answers cite evidence.' },
+      { name: 'Objective alignment', s: 'pass', result: 'O1 · O2 · O3', detail: 'O1: 2 items · O2: 2 items · O3: 1 item' },
+      { name: 'Marking scheme', s: 'pass', result: '15 marks', detail: 'Every mark maps to a step in the model answer.' },
+      { name: 'Difficulty', s: 'pass', result: 'On target', detail: '2 easy · 2 medium · 1 hard' },
+      { name: 'Answer leakage', s: 'pass', result: 'None', detail: 'Model answers hidden until submission.' }
+    ];
+    const stale = s.qs.filter((q) => q.keyFor !== q.ver), bad = s.qs.filter((q) => q.correct !== q.solver);
+    return [
+      { name: 'Answer-key consistency', s: stale.length ? 'review' : 'pass', result: stale.length ? `${stale.map((q) => 'Q' + q.n).join(', ')} stale` : 'Matches quiz', detail: stale.length ? 'The quiz question changed after this entry was written.' : 'All 10 entries match the current quiz questions.' },
+      { name: 'Independent solve', s: bad.length ? 'fail' : 'pass', result: bad.length ? `${bad.length} mismatch` : '10 / 10', detail: 'Each answer re-solved from evidence without seeing the key.' },
+      { name: 'Grounding', s: 'pass', result: 'Supported by source', detail: 'Every worked solution cites evidence.' },
+      { name: 'Format', s: 'pass', result: 'Complete', detail: 'Answer, working and evidence for each entry.' }
+    ];
+  }
+  packChecks() {
+    const s = this.state, gap = this.gapOpen();
+    const q7 = s.qs.find((q) => q.id === 'q7'), dupQ = s.qs.find((q) => q.dup), b3 = s.sections.explanation.find((b) => b.id === 'b3');
+    const invalid = s.qs.filter((q) => q.correct !== q.solver), stale = s.qs.filter((q) => q.keyFor !== q.ver);
+    const diffItems = [q7.diffNote ? 'Quiz Q7' : null, b3.status === 'review' ? 'Explanation §3' : null].filter(Boolean);
+    const T = (id) => EV[id] ? EV[id].text : '';
+    return [
+      { k: 'schema', name: 'Schema validity', s: 'pass', reason: 'All 7 assets match pack schema 1.4. Required fields are present and typed correctly.', ev: null, evLabel: 'Not applicable', asset: 'All assets', action: 'No action needed' },
+      { k: 'evidence', name: 'Evidence support', s: gap ? 'review' : 'pass', reason: gap ? 'Objective 04 has no supporting evidence above the 0.60 relevance threshold, so no content was generated for it.' : 'Every generated section and question cites at least one evidence item (31 citations).', ev: gap ? 'E126' : 'E102', evText: T(gap ? 'E126' : 'E102'), evLabel: gap ? 'E126 · p.26 · relevance 0.31' : 'E102 and 30 more', asset: gap ? 'Explanation §6' : 'All assets', action: gap ? 'Resolve coverage gap' : 'No action needed', go: gap ? 'gap' : null },
+      { k: 'coverage', name: 'Objective coverage', s: gap ? 'review' : 'pass', reason: gap ? '3 of 4 objectives covered. O4 has no items.' : 'Every objective is covered by at least one section and one question.', ev: gap ? 'E126' : null, evText: T('E126'), evLabel: gap ? 'E126 · p.26' : 'Not applicable', asset: 'Explanation · Quiz', action: gap ? 'Resolve coverage gap' : 'No action needed', go: gap ? 'gap' : null },
+      { k: 'validity', name: 'Answer validity', s: invalid.length ? 'fail' : 'pass', reason: invalid.length ? `Marked answer for ${invalid.map((q) => 'Q' + q.n).join(', ')} does not match the independent solver.` : '10 of 10 quiz answers re-solved independently from evidence and matched.', ev: 'E110', evText: T('E110'), evLabel: 'E110, E114', asset: invalid.length ? invalid.map((q) => 'Quiz Q' + q.n).join(', ') : 'Quiz', action: invalid.length ? `Review Q${invalid[0].n}` : 'No action needed', go: invalid.length ? invalid[0].id : null },
+      { k: 'key', name: 'Answer-key consistency', s: stale.length ? 'review' : 'pass', reason: stale.length ? `Quiz ${stale.map((q) => 'Q' + q.n).join(', ')} changed after the Answer Key was written. Those entries are stale.` : 'Answer Key matches all 10 quiz answers.', ev: 'E110', evText: T('E110'), evLabel: 'E110 · p.21', asset: 'Answer Key', action: stale.length ? `Regenerate Q${stale[0].n} key entry` : 'No action needed', go: stale.length ? 'key:' + stale[0].id : null },
+      { k: 'difficulty', name: 'Difficulty', s: diffItems.length ? 'review' : 'pass', reason: diffItems.length ? `${diffItems.join(' and ')} ${diffItems.length > 1 ? 'are' : 'is'} above the target (Medium difficulty, Foundation vocabulary).` : 'All items are within the target difficulty and vocabulary level.', ev: 'E114', evText: T('E114'), evLabel: 'E114 · p.24', asset: diffItems.join(', ') || 'Quiz · Explanation', action: q7.diffNote ? 'Review Quiz Q7' : b3.status === 'review' ? 'Review Explanation §3' : 'No action needed', go: q7.diffNote ? 'q7' : b3.status === 'review' ? 'b3' : null },
+      { k: 'duplicate', name: 'Duplicate detection', s: dupQ ? 'fail' : 'pass', reason: dupQ ? `Quiz Q${dupQ.n} is a near-duplicate of ${dupQ.dup.toUpperCase()} (similarity ${dupQ.sim}): same mass, same force, same answer.` : 'No pair of questions is above 0.85 similarity.', ev: 'E110', evText: T('E110'), evLabel: 'E110 · p.21', asset: dupQ ? `Quiz Q${dupQ.n}` : 'Quiz', action: dupQ ? `Regenerate Q${dupQ.n} only` : 'No action needed', go: dupQ ? dupQ.id : null },
+      { k: 'terminology', name: 'Terminology consistency', s: 'pass', reason: '"Net force", "inertia" and SI units are used as in the source across all assets.', ev: 'E110', evText: T('E110'), evLabel: 'E110 · p.21', asset: 'All assets', action: 'No action needed' },
+      { k: 'leakage', name: 'Answer leakage', s: 'pass', reason: 'Reveal policy is "After submission". No quiz answers appear in the Explanation, Exam Focus or video script.', ev: null, evLabel: 'Not applicable', asset: 'Explanation · Exam Focus · Video script', action: 'No action needed' }
+    ];
+  }
+  evData(id) {
+    const e = EV[id]; if (!e) return null; const s = SRC[e.src], o = OBJ.find((x) => x.id === EV_OBJ[id]);
+    const used = e.usedBy.split(' · ').concat(EV_EXAM.includes(id) ? ['Exam Focus'] : []);
+    const v = this.state.approved ? this.state.approvedVer : this.state.ver;
+    return { id, sourceName: s.name, sourceType: s.type, sourceVer: s.ver, loc: e.loc, pageLabel: e.pageLabel, sect: e.sect, where: e.where, extracted: '29 Sep, 10:21', text: e.text, note: e.note || null,
+      supports: o ? `Objective ${o.n} · ${o.text}` : '—', supportsOk: id !== 'E126', usedBy: used.map((u) => ({ u })),
+      genAsset: id === 'E126' ? 'None · content withheld' : `${used[0].split(' ')[0]} v${v}`, before: bars(e.b, id.length + e.b), after: bars(e.a, e.a) };
+  }
+  goTarget(t) {
+    if (!t) return;
+    if (t === 'gap') return this.setState({ screen: 'explanation', sel: { ...this.state.sel, explanation: 'gap' } });
+    if (t === 'b3') return this.setState({ screen: 'explanation', sel: { ...this.state.sel, explanation: 'b3' } });
+    if (t.startsWith('key:')) return this.setState({ screen: 'answerKey', sel: { ...this.state.sel, answerKey: 'k' + t.slice(4) } });
+    if (t.startsWith('q')) return this.setState({ screen: 'quiz', qSel: t });
+    this.setState({ screen: t });
+  }
+
+  async regenItem(a, id) {
+    const s = this.state, key = a + ':' + id;
+    this.setState({ busy: { ...s.busy, [key]: true }, sel: { ...s.sel, [a]: id } });
+    if (a === 'answerKey') {
+      const qid = id.slice(1);
+      await api.regenerateKeyEntry();
+      const t = tstamp();
+      this.setState((st) => ({ busy: { ...st.busy, [key]: false }, lastRegen: { a, id }, qs: st.qs.map((q) => q.id === qid ? { ...q, keyFor: q.ver, keyVer: q.keyVer + 1, keyT: t } : q) }));
+      const q = s.qs.find((x) => x.id === qid);
+      this.pushEvent('ai', `Answer Key entry Q${q.n} regenerated`, 'Only this entry changed. Other 9 entries unchanged.', `Answer Key Q${q.n}`, { before: `v${q.keyVer}`, after: `v${q.keyVer + 1}` });
+      return this.flash(`Answer Key entry Q${q.n} regenerated and validated. Other entries unchanged.`);
+    }
+    const old = s.sections[a].find((x) => x.id === id);
+    const alt = await api.regenerateSection(id);
+    const t = tstamp();
+    this.setState((st) => ({ busy: { ...st.busy, [key]: false }, lastRegen: { a, id },
+      sections: { ...st.sections, [a]: st.sections[a].map((x) => x.id === id ? { ...x, text: alt || x.text, status: 'pass', note: null, ver: x.ver + 1, regen: true, hist: `v${x.ver + 1} · AI regenerated ${t}` } : x) } }));
+    const tag = a === 'explanation' ? `§${old.n}` : `Item ${old.n}`;
+    this.pushEvent('ai', `${ANAME[a]} ${tag} regenerated`, `From ${old.ev.join(', ')}. Other items unchanged.`, `${ANAME[a]} ${tag}`, { before: `v${old.ver}`, after: `v${old.ver + 1}` });
+    this.flash(`${tag} → v${old.ver + 1}. Regenerated from ${old.ev[0]} and revalidated. Other items unchanged.`);
+  }
+  async regenQuestion() {
+    const s = this.state, id = s.qSel, old = s.qs.find((q) => q.id === id);
+    this.setState({ qBusy: id, qStep: 0, qReview: null });
+    this.stepT = setInterval(() => this.setState((st) => ({ qStep: Math.min(st.qStep + 1, 3) })), 650);
+    const alt = await api.regenerateQuestion(id);
+    clearInterval(this.stepT);
+    const t = tstamp();
+    this.setState((st) => ({ qBusy: null, instr: '', lastQRegen: { id, to: old.ver + 1 }, qReview: { id, prev: old },
+      qs: st.qs.map((q) => {
+        if (q.id !== id) return q;
+        const nq = { ...q, ...(alt || {}), ver: q.ver + 1 };
+        if (st.keepDiff) { nq.diff = q.diff; if (alt && 'diffNote' in alt && q.diffNote) nq.diffNote = q.diffNote; }
+        nq.correct = nq.solver; nq.hist = [...q.hist, { v: q.ver + 1, what: 'Regenerated (this question only)', t }];
+        return nq;
+      }) }));
+    this.pushEvent('ai', `Quiz Q${old.n} regenerated`, `Only Q${old.n} changed. Other 9 questions unchanged. Awaiting teacher review.`, `Quiz Q${old.n}`, { before: `Q${old.n} v${old.ver}`, after: `Q${old.n} v${old.ver + 1}` });
+  }
+  acceptQ() {
+    const r = this.state.qReview; if (!r) return; const q = this.state.qs.find((x) => x.id === r.id);
+    this.setState((st) => ({ qReview: null, qs: st.qs.map((x) => x.id === r.id ? { ...x, hist: [...x.hist, { v: x.ver, what: 'Accepted by teacher', t: tstamp() }] } : x) }));
+    this.pushEvent('teacher', `Quiz Q${q.n} v${q.ver} accepted`, 'Teacher reviewed the regenerated question.', `Quiz Q${q.n}`);
+    this.flash(`Q${q.n} v${q.ver} accepted. Its Answer Key entry is flagged for regeneration.`);
+  }
+  revertQ() {
+    const r = this.state.qReview; if (!r) return; const cur = this.state.qs.find((x) => x.id === r.id);
+    this.setState((st) => ({ qReview: null, lastQRegen: null, qs: st.qs.map((x) => x.id === r.id ? { ...r.prev, hist: [...cur.hist, { v: r.prev.ver, what: `Reverted to v${r.prev.ver}`, t: tstamp() }] } : x) }));
+    this.pushEvent('teacher', `Quiz Q${cur.n} reverted to v${r.prev.ver}`, 'Regenerated version discarded.', `Quiz Q${cur.n}`);
+  }
+
+  renderVals() {
+    const s = this.state, scr = s.screen;
+    const PACK = ['overview', 'explanation', 'assessment', 'quiz', 'answerKey', 'ai', 'exam', 'resources', 'versions', 'validation'];
+    const inPack = PACK.includes(scr);
+    const pcs = this.packChecks();
+    const nPass = pcs.filter((c) => c.s === 'pass').length, nRev = pcs.filter((c) => c.s === 'review').length, nFail = pcs.filter((c) => c.s === 'fail').length;
+    const verLabel = `v${s.approved ? s.approvedVer : s.ver}`;
+    const go = (screen) => () => this.setState({ screen });
+    const ast = {}; ['explanation', 'assessment', 'quiz', 'answerKey', 'ai', 'exam', 'resources'].forEach((a) => { ast[a] = this.assetStatus(a); });
+    const packStatus = s.approved ? 'approved' : nFail ? 'fail' : nRev ? 'review' : 'pass';
+    const aVer = { explanation: `v${s.ver}`, assessment: 'v3', quiz: `v${s.ver}`, answerKey: `v${s.ver}`, ai: 'Script v3', exam: 'v3', resources: 'v1' };
+    const gapOpen = this.gapOpen();
+
+    const navItem = (id, label, opt = {}) => {
+      const act = scr === id || (id === 'packs' && false);
+      return { label, meta: opt.meta || '', hasStatus: !!opt.status, status: opt.status, tip: opt.tip || '', weight: act ? 700 : 500, bg: act ? 'var(--color-text)' : 'transparent', fg: act ? 'var(--color-bg)' : 'var(--color-text)', onClick: () => id === 'student' ? this.setState({ screen: 'student' }) : this.setState({ screen: id }) };
+    };
+    const navGroups = [
+      { label: 'Workspace', items: [navItem('dashboard', 'Dashboard'), navItem('packs', 'Learning Packs', { meta: '12' }), navItem('sources', 'Sources', { meta: '9' })] },
+      { label: 'Current pack', hasSub: true, sub: "Newton's Laws of Motion", subMeta: `${verLabel} · ${s.approved ? 'Approved' : 'Draft'}`, items: [
+        navItem('overview', 'Overview', { status: packStatus, tip: s.approved ? 'Approved' : 'Readiness' }),
+        ...['explanation', 'assessment', 'quiz', 'answerKey', 'ai', 'exam', 'resources'].map((a) => navItem(a, ANAME[a], { status: ast[a], tip: a === 'ai' && ast[a] === 'pending' ? 'Script approved · not rendered' : NOTE[ast[a]] }))
+      ] },
+      { label: 'System', items: [navItem('versions', 'Versions', { meta: verLabel }), navItem('validation', 'Validation', { status: s.approved ? 'approved' : packStatus }), navItem('settings', 'Settings')] }
+    ];
+    const crumbs = (inPack ? ['Learning Packs', "Newton's Laws of Motion", ANAME[scr]] : [ANAME[scr] || '']).map((l, i, arr) => ({ l, sep: i > 0, fg: i === arr.length - 1 ? 'var(--color-text)' : 'var(--color-neutral-700)', w: i === arr.length - 1 ? 600 : 400 }));
+
+    const teacherEdits = s.events.filter((e) => e.kind === 'teacher').length;
+    const approvedCount = s.approved ? 7 : Object.keys(s.approvedAssets).filter((k) => s.approvedAssets[k]).length;
+    const verifyText = `${nPass}/9 passed${nRev ? ` · ${nRev} review` : ''}${nFail ? ` · ${nFail} failed` : ''}`;
+    const lifecycle = [
+      { k: 'AI generates', v: `${verLabel} · Claude`, status: 'pass', onClick: go('versions'), tip: 'Generated by Claude from 3 sources · open version history', hl: 'versions' },
+      { k: 'System verifies', v: verifyText, status: nFail ? 'fail' : nRev ? 'review' : 'pass', onClick: go('validation'), tip: 'Open validation', hl: 'validation' },
+      { k: 'Teacher approves', v: s.approved ? `Approved ${verLabel}` : `${approvedCount} of 7 assets`, status: s.approved ? 'approved' : 'pending', onClick: go('overview'), tip: 'Open approval', hl: 'overview' },
+      { k: 'Student learns', v: s.approved ? 'Live' : 'Not published', status: s.approved ? 'pass' : 'pending', onClick: go('student'), tip: 'Open Student View', hl: 'student' }
+    ].map((l) => ({ ...l, bg: scr === l.hl ? 'var(--color-surface)' : 'transparent' }));
+    const stateChip = { label: s.approved ? `Approved · ${verLabel}` : `● Draft · ${verLabel}`, bg: s.approved ? G : 'transparent', fg: s.approved ? '#fff' : 'var(--color-text)', onClick: go('overview') };
+
+    // text assets
+    const isText = ['explanation', 'assessment', 'answerKey'].includes(scr);
+    const A = isText ? scr : 'explanation';
+    const raw = this.secsRaw(A), aLocked = this.isLocked(A), selId = s.sel[A];
+    const tagOf = (b) => A === 'explanation' ? `§${b.n}` : A === 'assessment' ? `Item ${b.n}` : `Entry ${b.n}`;
+    const secs = raw.map((b) => {
+      const key = A + ':' + b.id, sel = selId === b.id, busy = !!s.busy[key], editing = s.editing === key;
+      const o = OBJ.find((x) => x.id === b.obj);
+      const status = busy ? 'running' : aLocked ? 'approved' : (b.edited && b.status === 'pass') ? 'edited' : b.status;
+      const changed = s.lastRegen && s.lastRegen.a === A && s.lastRegen.id === b.id;
+      return {
+        tag: tagOf(b), title: b.title, text: b.text, extra: b.extra, extraLabel: b.extraLabel, note: b.note, ver: b.ver, history: b.hist,
+        objN: o.n, objFg: b.status === 'fail' ? SC.fail : G, status,
+        statusLabel: { running: 'Regenerating', approved: 'Approved', edited: 'Teacher edited', pass: 'Validated', review: 'Needs review', fail: 'Failed', regen: 'Regeneration required' }[status],
+        verBg: changed ? GB : 'transparent', verBorder: changed ? G : 'var(--color-divider)',
+        evs: b.ev.map((id) => ({ id, label: `${SRC[EV[id].src].name} · ${EV[id].loc}`, onOpen: (e) => { e.stopPropagation(); this.setState({ ev: id }); } })),
+        bgc: sel ? 'var(--color-surface)' : 'var(--color-bg)', frame: sel ? 'var(--color-text)' : 'transparent',
+        showText: !editing && !busy, isEditing: editing, isBusy: busy, hasExtra: !!b.extra && !busy && !editing, hasNote: !!b.note && !busy,
+        busyLabel: `Regenerating ${tagOf(b)} from ${b.ev.join(', ')} · keeping Objective ${o.n} · other items untouched`,
+        noteLabel: b.status === 'fail' ? 'Failed' : b.status === 'regen' ? 'Regeneration required' : 'Teacher review', noteBg: b.status === 'fail' ? 'var(--color-accent-200)' : AB, noteFg: b.status === 'fail' ? 'var(--color-accent-700)' : AF,
+        showActions: sel && !editing && !busy && !aLocked, canEdit: A !== 'answerKey', regenLabel: A === 'answerKey' ? 'Regenerate this entry' : `Regenerate ${tagOf(b)}`,
+        onSelect: () => this.setState({ sel: { ...this.state.sel, [A]: b.id } }),
+        onEdit: (e) => { e.stopPropagation(); this.setState({ editing: key, draft: b.text }); },
+        onRegen: (e) => { e.stopPropagation(); this.regenItem(A, b.id); },
+        onEvidence: (e) => { e.stopPropagation(); this.setState({ ev: b.ev[0] }); }
+      };
+    });
+    secs.forEach((x, i) => { const b = raw[i], key = A + ':' + b.id, o = OBJ.find((y) => y.id === b.obj), e0 = EV[b.ev[0]];
+      Object.assign(x, { objShort: o.short, verFg: x.verBorder === G ? G : 'var(--color-text)', canAct: !aLocked && !x.isBusy && !x.isEditing,
+        detGlyph: s.details[key] ? '▴' : '▾', showDetails: !!s.details[key],
+        detRows: [{ k: 'Source', v: `${SRC[e0.src].name} ${SRC[e0.src].ver}` }, { k: 'Location', v: `${e0.loc} · ${e0.sect}` }, { k: 'Model', v: 'Claude' }, { k: 'History', v: b.hist }],
+        onDetails: (ev) => { ev.stopPropagation(); this.setState((st) => ({ details: { ...st.details, [key]: !st.details[key] } })); } }); });
+    const selRaw = raw.find((x) => x.id === selId) || (selId === 'gap' && A === 'explanation' ? null : raw[0]);
+    const provEv = selRaw ? selRaw.ev[0] : 'E126', pe = EV[provEv];
+    const prov = selRaw ? { label: `${tagOf(selRaw)} ${A === 'answerKey' ? '' : selRaw.title}`, evId: provEv, excerpt: pe.text, rows: [
+      { k: 'Source', v: SRC[pe.src].name }, { k: 'Source ver.', v: SRC[pe.src].ver }, { k: 'Location', v: `${pe.loc} · ${pe.sect}` }, { k: 'Evidence', v: selRaw.ev.join(', ') },
+      { k: 'Supports', v: `Objective ${OBJ.find((o) => o.id === selRaw.obj).n}` }, { k: 'Model', v: 'Claude' }, { k: 'Generated', v: '29 Sep 2026, 10:32' }, { k: 'Item version', v: selRaw.hist }
+    ] } : { label: '§6 Coverage gap', evId: 'E126', excerpt: pe.text, rows: [{ k: 'Source', v: SRC.S1.name }, { k: 'Location', v: `${pe.loc} · ${pe.sect}` }, { k: 'Evidence', v: 'E126 (best match, 0.31)' }, { k: 'Supports', v: 'Objective 04 (insufficient)' }, { k: 'Model', v: 'Not run' }, { k: 'Generated', v: 'Withheld' }] };
+    const checks = this.assetChecks(A).map((c) => ({ ...c, fg: SC[c.s], showDetail: c.s !== 'pass' }));
+    const cPass = checks.filter((c) => c.s === 'pass').length;
+    prov.short = prov.rows.filter((r) => ['Source', 'Location', 'Evidence', 'Supports'].includes(r.k));
+    const objsShown = OBJ.filter((o) => o.id !== 'O4' || s.gap);
+    const objAlign = objsShown.map((o) => {
+      const n = raw.filter((x) => x.obj === o.id).length, isGap = o.id === 'O4';
+      return { n: o.n, text: isGap ? s.obj4 : o.text, s: n ? 'pass' : isGap ? 'review' : 'pending', fg: n ? 'var(--color-neutral-700)' : isGap ? SC.review : 'var(--color-neutral-700)',
+        count: n ? `${n} ${n === 1 ? 'item' : 'items'} in this asset` : isGap ? (s.gapState === 'modified' ? 'Revised · queued' : 'Source coverage gap') : 'Not in this asset' };
+    });
+    const objBadges = objsShown.map((o) => { const g = o.id === 'O4' && gapOpen; return { n: o.n, short: g ? 'Coverage gap' : o.short, border: g ? 'oklch(0.6 0.12 70)' : 'var(--color-divider)', fg: g ? AF : 'var(--color-text)', bg: g ? AB : 'transparent' }; });
+    const recent = s.events.slice(-3).reverse().map((e) => ({ v: e.v, title: e.title, t: e.time }));
+    const rb = s.lastRegen && s.lastRegen.a === A ? raw.find((x) => x.id === s.lastRegen.id) : null;
+    const regenBanner = rb ? { show: true, title: `${tagOf(rb)} → v${rb.ver}`, unchanged: `${raw.filter((x) => x.id !== rb.id).map(tagOf).join(', ')} unchanged` } : { show: false };
+    const AM = {
+      explanation: { n: '01', kicker: 'Topic explanation', title: "Newton's Laws of Motion" },
+      assessment: { n: '02', kicker: 'Written assessment · 5 items · 15 marks', title: 'Assessment' },
+      answerKey: { n: '04', kicker: 'Answer key · 10 entries linked to Quiz', title: 'Answer Key' }
+    }[A];
+
+    // quiz
+    const quizLocked = this.isLocked('quiz');
+    const cqRaw = s.qs.find((q) => q.id === s.qSel), cqChecks = this.qChecks(cqRaw), cqStatus = this.qStatus(cqRaw), ce = EV[cqRaw.ev];
+    const qCounts = s.qs.reduce((acc, q) => { const st = this.qStatus(q); acc[st] = (acc[st] || 0) + 1; return acc; }, {});
+    const lq = s.lastQRegen;
+    const cq = {
+      n: cqRaw.n, ver: cqRaw.ver, text: cqRaw.text, ev: cqRaw.ev, objN: OBJ.find((o) => o.id === cqRaw.obj).n, objText: OBJ.find((o) => o.id === cqRaw.obj).text,
+      status: quizLocked ? 'approved' : cqStatus, statusLabel: quizLocked ? 'Approved' : { pass: 'All checks passed', review: 'Needs review', fail: 'Check failed', running: 'Regenerating' }[cqStatus],
+      n2: String(cqRaw.n).padStart(2, '0'), diff: cqRaw.diff, verBg: lq && lq.id === cqRaw.id ? G : 'var(--color-neutral-200)', verFg: lq && lq.id === cqRaw.id ? '#fff' : 'var(--color-text)',
+      issues: cqChecks.filter((c) => c.s !== 'pass').map((c) => ({ ...c, bg: c.s === 'fail' ? 'var(--color-accent-200)' : AB, fg: c.s === 'fail' ? 'var(--color-accent-700)' : AF })),
+      correctL: L[cqRaw.correct], evLoc: `${SRC[ce.src].name} — ${ce.loc}`, evText: ce.text, checks: cqChecks, passCount: cqChecks.filter((c) => c.s === 'pass').length, history: cqRaw.hist.slice().reverse(),
+      prov: [{ k: 'Source', v: SRC[ce.src].name }, { k: 'Source ver.', v: SRC[ce.src].ver }, { k: 'Location', v: `${ce.loc} · ${ce.sect}` }, { k: 'Evidence', v: cqRaw.ev }, { k: 'Model', v: 'Claude' }, { k: 'Generated', v: cqRaw.hist[cqRaw.hist.length - 1].t + ' · 29 Sep 2026' }, { k: 'Question ver.', v: `v${cqRaw.ver}` }],
+      opts: cqRaw.opts.map((t, i) => { const c = i === cqRaw.correct; return { letter: L[i], text: t, tag: c ? 'Correct answer' : '', bg: c ? G : 'var(--color-neutral-200)', fg: c ? '#fff' : 'var(--color-text)', rowBg: c ? 'oklch(0.96 0.025 150)' : 'transparent',
+        onPick: () => { this.setState((st) => ({ qs: st.qs.map((q) => q.id === cqRaw.id ? { ...q, correct: i } : q) })); } }; }),
+      diffs: ['Easy', 'Medium', 'Hard'].map((d) => ({ l: d, bg: cqRaw.diff === d ? 'var(--color-text)' : 'transparent', fg: cqRaw.diff === d ? 'var(--color-bg)' : 'var(--color-text)',
+        onClick: () => { const had = cqRaw.diffNote; this.setState((st) => ({ qs: st.qs.map((q) => q.id === cqRaw.id ? { ...q, diff: d, diffNote: null, hist: [...q.hist, { v: q.ver, what: `Teacher set difficulty to ${d}`, t: tstamp() }] } : q) })); this.pushEvent('teacher', `Quiz Q${cqRaw.n} difficulty set to ${d}`, had ? 'Review note cleared by teacher decision.' : 'Difficulty changed.', `Quiz Q${cqRaw.n}`); } }))
+    };
+    const qStrip = s.qs.map((q) => { const sel = q.id === s.qSel, changed = lq && lq.id === q.id; return { n: q.n, ver: q.ver, status: quizLocked ? 'approved' : this.qStatus(q), vtag: changed ? ' · new' : '', vw: changed ? 800 : 500, vfg: changed ? G : 'var(--color-neutral-700)',
+      bg: sel ? 'var(--color-surface)' : 'transparent', line: sel ? 'var(--color-text)' : 'transparent', onClick: () => this.setState({ qSel: q.id }) }; });
+    const lqQ = lq ? s.qs.find((q) => q.id === lq.id) : null;
+    const others = lqQ ? s.qs.filter((q) => q.id !== lqQ.id).map((q) => q.n) : [];
+    const qBanner = lqQ ? { show: true, title: `Question ${lqQ.n} → v${lqQ.ver}`, unchanged: `Questions ${others.length === 9 && others[others.length - 1] === 10 && lqQ.n === 9 ? '1–8 and 10' : others.join(', ')} unchanged`, keyStale: lqQ.keyFor !== lqQ.ver && !s.approved, openKey: () => this.setState({ screen: 'answerKey', sel: { ...this.state.sel, answerKey: 'k' + lqQ.id } }) } : { show: false };
+    const stepNames = ['Retrieve evidence', 'Generate question', 'Solve & check key', 'Validate'];
+    const regenSteps = stepNames.map((l, i) => ({ n: String(i + 1).padStart(2, '0'), l: i < s.qStep ? l + ' ✓' : i === s.qStep ? l + '…' : l, bg: i < s.qStep ? GB : i === s.qStep ? 'var(--color-text)' : 'var(--color-neutral-200)', fg: i === s.qStep ? 'var(--color-bg)' : 'var(--color-text)' }));
+    const toggle = (k) => () => this.setState((st) => ({ [k]: !st[k] }));
+    const regenOpts = [{ l: `Keep Objective ${cq.objN}`, on: s.keepObj, k: 'keepObj' }, { l: `Keep difficulty (${cqRaw.diff})`, on: s.keepDiff, k: 'keepDiff' }, { l: 'Avoid overlap with other questions', on: s.avoidDup, k: 'avoidDup' }]
+      .map((r) => ({ l: r.l, mark: r.on ? '✓' : '', bg: r.on ? 'var(--color-text)' : 'transparent', onClick: toggle(r.k) }));
+
+    // bottom bar
+    const isQuiz = scr === 'quiz', showBar = isText || isQuiz;
+    const barAsset = isQuiz ? 'quiz' : A, barLocked = this.isLocked(barAsset), barSt = ast[barAsset];
+    const selTag = isQuiz ? `Question ${cqRaw.n}` : selRaw ? (A === 'answerKey' ? `Q${selRaw.n} entry` : tagOf(selRaw)) : '§6';
+    const barRegenDisabled = barLocked || (isQuiz ? !!s.qBusy : !selRaw || !!s.busy[A + ':' + selRaw.id]);
+    const blocked = barSt === 'fail' || barSt === 'running' || barSt === 'regen' || (isQuiz && !!s.qReview);
+    const barNote = barLocked ? `${ANAME[barAsset]} approved · locked. ${s.approved ? 'Create a new draft to make changes.' : 'Unlock to edit.'}` : blocked ? `${ANAME[barAsset]} · resolve failed or stale items before approving. Selected: ${selTag}` : barSt === 'review' ? `${ANAME[barAsset]} · review notes can be accepted on approval. Selected: ${selTag}` : `${ANAME[barAsset]} · all checks passed. Selected: ${selTag}`;
+
+    // overview
+    const byK = (k) => pcs.find((c) => c.k === k);
+    const valIssues = pcs.filter((c) => ['validity', 'key', 'duplicate', 'difficulty', 'schema', 'terminology', 'leakage'].includes(c.k) && c.s !== 'pass');
+    const readiness = [
+      { label: 'Required assets generated', detail: '7 of 7 assets · video script approved (render optional)', s: 'pass' },
+      { label: 'Evidence available', detail: byK('evidence').reason, s: byK('evidence').s, go: byK('evidence').go, goLabel: 'Resolve' },
+      { label: 'Objectives covered', detail: byK('coverage').reason, s: byK('coverage').s, go: byK('coverage').go, goLabel: 'Resolve' },
+      { label: 'Validation completed', detail: valIssues.length ? valIssues.map((c) => c.reason).join(' ') : '9 checks passed: answers re-solved, key consistent, no duplicates, terminology consistent.', s: worst(valIssues.map((c) => c.s)), go: (valIssues.find((c) => c.s === 'fail') || valIssues[0] || {}).go, goLabel: valIssues.some((c) => c.s === 'fail') ? 'Fix' : 'Review' }
+    ];
+    const assetRows = ['explanation', 'assessment', 'quiz', 'answerKey', 'ai', 'exam', 'resources'].map((a) => ({
+      name: ANAME[a], ver: aVer[a], status: ast[a], note: a === 'ai' && ast[a] === 'pending' ? 'Script approved · not rendered' : NOTE[ast[a]],
+      prov: { explanation: '7 citations · E102–E131', assessment: '6 citations · Physics_Textbook.pdf, slides, notes', quiz: '10 citations · 5 evidence items', answerKey: 'Solved from E102–E121', ai: 'From approved script v3 · HeyGen', exam: 'E102–E124 · PYQs matched to official papers', resources: 'Supplementary · not evidence' }[a],
+      onOpen: go(a) }));
+    const roles = [
+      { k: 'AI generates', s: 'pass', v: `Claude compiled 7 assets from 3 sources in 11 stages. ${s.events.filter((e) => e.kind === 'ai').length - 1} targeted regenerations since.` },
+      { k: 'System verifies', s: nFail ? 'fail' : nRev ? 'review' : 'pass', v: `${verifyText}. Every check links to evidence.` },
+      { k: 'Teacher approves', s: s.approved ? 'approved' : 'pending', v: s.approved ? `Approved ${verLabel} by Priya Nair · ${s.approvedAt}.` : `${teacherEdits} teacher edits · ${approvedCount} of 7 assets approved · pack approval pending.` },
+      { k: 'Student learns', s: s.approved ? 'pass' : 'pending', v: s.approved ? `Students see ${verLabel} only.` : 'Nothing is published. Students see no drafts.' }
+    ];
+    const cell = (v, gapRow) => ({ v: v || '—', bg: v ? 'var(--color-neutral-200)' : gapRow ? AB : 'transparent', fg: v ? 'var(--color-text)' : gapRow ? AF : 'var(--color-neutral-500)' });
+    const EXAM_OBJ = { O1: 2, O2: 3, O3: 1 };
+    const objMatrix = objsShown.map((o) => ({ n: o.n, cells: [cell(s.sections.explanation.filter((b) => b.obj === o.id).length, o.id === 'O4'), cell(s.sections.assessment.filter((b) => b.obj === o.id).length, o.id === 'O4'), cell(s.qs.filter((q) => q.obj === o.id).length, o.id === 'O4'), cell(EXAM_OBJ[o.id], o.id === 'O4')] }));
+
+    const devTabs = [['states', 'States'], ['story', 'Story']].map(([id, l]) => ({ l, bg: s.devTab === id ? '#f3f2f2' : 'transparent', fg: s.devTab === id ? 'var(--color-neutral-900)' : '#f3f2f2', onClick: () => this.setState({ devTab: id }) }));
+    const devGroups = SCEN.map((g) => ({ g: g.g, items: g.items.map(([id, l]) => ({ l, mark: s.scenario === id ? '●' : '○', bg: s.scenario === id ? '#f3f2f2' : 'transparent', fg: s.scenario === id ? 'var(--color-neutral-900)' : '#f3f2f2', onClick: () => this.applyScenario(id) })) }));
+    const story = STORY.map(([id, l, c], i) => ({ n: String(i + 1).padStart(2, '0'), l, c, bg: s.storyIdx === i ? '#f3f2f2' : 'transparent', fg: s.storyIdx === i ? 'var(--color-neutral-900)' : '#f3f2f2', onClick: () => this.runStory(id, i) }));
+
+    return {
+      isStudent: scr === 'student', isShell: scr !== 'student', approved: s.approved, verLabel, nextVer: `v${(s.approvedVer || s.ver) + 1}`,
+      stBlocks: s.sections.explanation.map((b) => ({ title: b.title, text: b.text })),
+      stQuestions: s.qs.map((q) => ({ text: q.text, opts: q.opts, correct: q.correct })),
+      stAssessment: s.sections.assessment.map((a) => ({ n: a.n, q: a.text, marks: a.marks })),
+      videoReady: s.videoLive === 'done', exitStudent: () => this.setState({ screen: 'overview' }),
+      navGroups, crumbs, toggleDev: () => this.setState((st) => ({ devOpen: !st.devOpen })), devGlyph: s.devOpen ? '▾' : '▸',
+      openStudent: go('student'), inPack, lifecycle, stateChip, lockedBanner: s.approved && inPack,
+      objCountLabel: `${s.gap ? 4 : 3} objectives`,
+      newDraft: () => { const nv = (s.approvedVer || s.ver) + 1; this.setState({ approved: false, ver: nv, bumped: true, approvedAssets: {} }); this.pushEvent('teacher', `${'v' + nv} draft created from approved v${s.approvedVer}`, `Student Mode keeps serving v${s.approvedVer} until v${nv} is approved.`, 'Whole pack', {}, false); this.flash(`v${nv} draft created. Students keep seeing v${s.approvedVer}.`); },
+
+      showText: isText, am: { ...AM, ver: aVer[A] }, objBadges, secs, loading: s.loading, notLoading: !s.loading, skel: [{ w: '55%' }, { w: '72%' }, { w: '40%' }, { w: '64%' }],
+      assetLockNote: isText && aLocked, packLocked: s.approved,
+      unlockAsset: () => { this.setState((st) => ({ approvedAssets: { ...st.approvedAssets, [A]: false } })); this.pushEvent('teacher', `${ANAME[A]} unlocked for editing`, 'Approved version kept in history.', ANAME[A]); },
+      regenBanner, openVersions: go('versions'),
+      aStatus: ast[A], aStatusNote: NOTE[ast[A]], checks, ckSum: { passed: cPass, total: checks.length, text: `checks passed${checks.length - cPass ? ` · ${checks.length - cPass} need attention` : ''}` },
+      prov, objAlign, recent, viewSelEvidence: () => this.setState({ ev: provEv }),
+      draft: s.draft, onDraft: (e) => this.setState({ draft: e.target.value }), stop: (e) => e.stopPropagation(), cancelEdit: () => this.setState({ editing: null }),
+      saveEdit: async () => {
+        const [a, id] = s.editing.split(':'), t = tstamp(), old = s.sections[a].find((x) => x.id === id);
+        this.setState((st) => ({ editing: null, busy: { ...st.busy, [s.editing]: true }, sections: { ...st.sections, [a]: st.sections[a].map((x) => x.id === id ? { ...x, text: st.draft, edited: true, ver: x.ver + 1, hist: `v${x.ver + 1} · Teacher edited ${t}` } : x) } }));
+        await api.revalidate();
+        this.setState((st) => ({ busy: { ...st.busy, [a + ':' + id]: false }, sections: { ...st.sections, [a]: st.sections[a].map((x) => x.id === id ? { ...x, status: 'pass', note: null } : x) } }));
+        this.pushEvent('teacher', `${ANAME[a]} ${a === 'explanation' ? '§' : 'Item '}${old.n} edited`, 'Grounding and terminology re-checked: passed.', `${ANAME[a]} ${old.n}`, { before: `v${old.ver}`, after: `v${old.ver + 1}` });
+        this.flash('Edit saved. Grounding and terminology re-checked for this item: passed.');
+      },
+      gapOpen: A === 'explanation' && gapOpen && s.gapState !== 'continued', gapContinued: A === 'explanation' && s.gap && s.gapState === 'continued', gapResolved: A === 'explanation' && s.gap && s.gapState === 'modified',
+      gapModifying: s.gapState === 'modifying', gapActions: s.gapState === 'open', obj4: s.obj4, gapDraft: s.gapDraft,
+      selectGap: () => this.setState({ sel: { ...this.state.sel, explanation: 'gap' } }), onGapDraft: (e) => this.setState({ gapDraft: e.target.value }),
+      modifyObj: (e) => { e.stopPropagation(); this.setState({ gapState: 'modifying' }); }, cancelGapObj: () => this.setState({ gapState: 'open', gapDraft: s.obj4 }),
+      saveGapObj: () => { const t = s.gapDraft === OBJ[3].text ? 'Describe friction as a force that opposes motion.' : s.gapDraft; this.setState({ gapState: 'modified', obj4: t }); this.pushEvent('teacher', 'Objective 04 revised', `"${t}" · coverage recheck passed (E126, 0.72).`, 'Objectives'); this.flash('Objective 04 revised. Coverage recheck passed; §6 queued for generation.'); },
+      addSource: (e) => { e.stopPropagation(); this.setState({ screen: 'sources' }); this.flash('Upload a source that covers inclined planes. Coverage is rechecked after extraction.'); },
+      continueWarn: (e) => { e.stopPropagation(); this.setState({ gapState: 'continued' }); this.flash('Continuing with warning. Objective 04 stays flagged on the approval checklist.'); },
+      reopenGap: () => this.setState({ gapState: 'open' }),
+
+      showQuiz: isQuiz, quizVer: aVer.quiz, quizLocked, quizCounts: quizLocked ? 'Approved · locked' : `${qCounts.pass || 0} passed · ${qCounts.review || 0} review · ${qCounts.fail || 0} failed`,
+      qStrip, qBanner, cq, cqBusy: s.qBusy === cqRaw.id, cqReady: s.qBusy !== cqRaw.id, regenSteps, regenOpts, instr: s.instr,
+      onInstr: (e) => this.setState({ instr: e.target.value }),
+      onQText: (e) => { const v = e.target.value; this.setState((st) => ({ qs: st.qs.map((q) => q.id === cqRaw.id ? { ...q, text: v } : q) })); },
+      qRegenDisabled: quizLocked || !!s.qBusy, regenQ: () => this.regenQuestion(),
+      openCqEv: (e) => { e && e.preventDefault && e.preventDefault(); this.setState({ ev: cqRaw.ev }); },
+
+      showBar, barNote, barLocked, barRegenDisabled, barRegenLabel: `Regenerate ${selTag}`,
+      barRegen: () => isQuiz ? this.regenQuestion() : selRaw ? this.regenItem(A, selRaw.id) : null,
+      barEvidence: () => this.setState({ ev: isQuiz ? cqRaw.ev : provEv }),
+      saveDraft: () => { this.flash(`Draft saved · ${ANAME[barAsset]} ${aVer[barAsset]}. Nothing is published until the pack is approved.`); },
+      barApproveDisabled: barLocked || blocked, barApproveLabel: barLocked ? 'Approved ✓' : `Approve ${ANAME[barAsset]}`,
+      barApprove: () => { this.setState((st) => ({ approvedAssets: { ...st.approvedAssets, [barAsset]: true } })); this.pushEvent('approved', `${ANAME[barAsset]} approved`, `${ANAME[barAsset]} ${aVer[barAsset]} locked${barSt === 'review' ? ' with review notes accepted' : ''}.`, ANAME[barAsset], {}, false); this.flash(`${ANAME[barAsset]} approved and locked.`); },
+
+      showOverview: scr === 'overview', readiness, approvalMeta: { version: verLabel, by: 'Priya Nair', at: s.approvedAt || '' },
+      approvePack: () => { const at = '29 Sep 2026, ' + tstamp(); this.setState((st) => ({ approved: true, approvedVer: st.ver, approvedAt: at })); this.pushEvent('approved', 'Learning pack approved', `${verLabel} locked and published to Student Mode.`, 'Whole pack', { pack: true }, false); this.flash(`${verLabel} approved and locked. Student Mode now serves ${verLabel}.`); },
+      goTarget: (t) => this.goTarget(t), assetRows, roles, objMatrix,
+
+      showValidation: scr === 'validation', packChecks: pcs, valSel: s.valSel, coverage: { covered: gapOpen ? 3 : s.gap ? 4 : 3, total: s.gap ? 4 : 3 }, openEvidence: (id) => EV[id] ? this.setState({ ev: id }) : this.flash(`${id} belongs to another pack.`),
+      showVersions: scr === 'versions',
+      versionEntries: s.events.slice().reverse().map((e) => ({ ...e, v: 'v' + e.v, current: e.v === s.ver && !s.approved })),
+      showAI: scr === 'ai', videoDemo: s.videoDemo, onVideoState: (vs) => { this.setState({ videoLive: vs }); if (vs === 'done') this.pushEvent('ai', 'AI Teacher video rendered', 'HeyGen · generated from approved script v3 · 3:52', 'AI Teacher', {}, false); },
+      showExam: scr === 'exam', showRes: scr === 'resources',
+      showDash: scr === 'dashboard' || scr === 'packs', dashEmpty: s.dashEmpty, dashMode: scr === 'packs' ? 'packs' : 'dashboard',
+      currentPack: { stage: s.approved ? 'Approved' : 'Draft', vs: s.approved ? 'approved' : packStatus, vl: s.approved ? 'Approved' : verifyText },
+      openPack: go('explanation'), openCreate: go('create'), openDash: go('dashboard'),
+      showSources: scr === 'sources', onToast: (m) => this.flash(m),
+      showCreate: scr === 'create', gap: s.gap,
+      onGenerate: (r) => { this.setState({ screen: 'blank', pipeMode: r && r.gap ? 'warning' : 'running', gap: !!(r && r.gap) }); setTimeout(() => this.setState({ screen: 'pipeline' }), 30); },
+      showPipeline: scr === 'pipeline', pipeMode: s.pipeMode,
+      pipeDone: () => this.setState({ screen: 'explanation', gap: s.pipeMode === 'warning' ? true : s.gap, sel: { ...s.sel, explanation: s.pipeMode === 'warning' ? 'gap' : 'b3' } }),
+      showSettings: scr === 'settings',
+      settings: [{ k: 'Default model', v: 'Claude' }, { k: 'Evidence relevance threshold', v: '0.60' }, { k: 'Duplicate similarity threshold', v: '0.85' }, { k: 'Avatar provider', v: 'HeyGen (script-locked rendering)' }, { k: 'Default answer reveal policy', v: 'After submission' }, { k: 'Approval', v: 'Required before Student Mode' }],
+
+      hdr: { state: s.approved ? `Approved · ${verLabel}` : `Draft · ${verLabel}`, stateFg: s.approved ? G : 'var(--color-text)', checks: `${nPass}/9 checks passed`,
+        attn: s.approved ? 'Locked' : ([nRev ? `${nRev} needs review` : '', nFail ? `${nFail} failed` : ''].filter(Boolean).join(' · ') || 'None'),
+        attnFg: s.approved ? G : nFail ? SC.fail : nRev ? SC.review : 'var(--color-text)', draft: !s.approved, onStatus: go('validation'), onApprove: go('overview') },
+      flow: [['Source', 'sources', 'pass', '3 trusted sources'], ['Evidence', 'validation', gapOpen ? 'review' : 'pass', '47 evidence items'], ['Objective', 'overview', gapOpen ? 'review' : 'pass', 'Objectives mapped to evidence'], ['AI generation', 'versions', 'pass', 'Claude · 7 assets'], ['Validation', 'validation', nFail ? 'fail' : nRev ? 'review' : 'pass', verifyText], ['Teacher approval', 'overview', s.approved ? 'pass' : 'pending', s.approved ? 'Approved' : 'Pending'], ['Student', 'student', s.approved ? 'pass' : 'pending', s.approved ? 'Live' : 'Not published']]
+        .map(([l, t, st, tip], i, arr) => ({ l, tip, arrow: i < arr.length - 1, dot: { pass: G, review: 'oklch(0.72 0.13 75)', fail: 'var(--color-accent)', pending: 'var(--color-neutral-400)' }[st], fg: st === 'pending' ? 'var(--color-neutral-700)' : 'var(--color-text)', onClick: () => this.setState({ screen: t }) })),
+      objAlignAll: objsShown.map((o) => ({ n: o.n, text: o.id === 'O4' ? s.obj4 : o.text, s: o.id === 'O4' && gapOpen ? 'review' : 'pass' })),
+      showQFlow: s.qBusy === cqRaw.id || (s.qReview && s.qReview.id === cqRaw.id),
+      qFlow: (() => { const busyQ = s.qBusy === cqRaw.id, rv = s.qReview && s.qReview.id === cqRaw.id; const st = busyQ ? [1, 1, 2, 3][s.qStep] : rv ? 4 : -1;
+        return ['Regenerate', 'Generating', `Q${cqRaw.n} v${busyQ ? cqRaw.ver + 1 : cqRaw.ver}`, 'Validation', 'Teacher review'].map((l, i) => ({ l, bg: i < st ? GB : i === st ? 'var(--color-text)' : 'var(--color-neutral-200)', fg: i === st ? 'var(--color-bg)' : 'var(--color-text)', mark: i < st ? '✓' : i === st ? (i === 4 ? '!' : '…') : '' })); })(),
+      qReviewing: !!(s.qReview && s.qReview.id === cqRaw.id) && s.qBusy !== cqRaw.id,
+      qRev: s.qReview ? { title: `Question ${cqRaw.n} → v${cqRaw.ver} generated and validated. Review before approving the quiz.`, unchanged: `Questions ${ranges(s.qs.filter((q) => q.id !== s.qReview.id).map((q) => q.n))} unchanged.`, prevVer: s.qReview.prev.ver } : { title: '', unchanged: '', prevVer: 1 },
+      acceptQ: () => this.acceptQ(), revertQ: () => this.revertQ(),
+      devOpen: s.devOpen, devTabs, devStates: s.devTab === 'states', devStory: s.devTab === 'story', devGroups, story,
+      hasEv: !!s.ev && !!EV[s.ev], evData: s.ev ? this.evData(s.ev) : null, closeEv: () => this.setState({ ev: null }),
+      hasToast: !!s.toast, toast: s.toast
+    };
+  }
+}
+</script>
+</body>
+</html>

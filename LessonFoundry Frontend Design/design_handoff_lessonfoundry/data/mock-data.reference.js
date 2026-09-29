@@ -1,0 +1,65 @@
+// Mock data lifted verbatim from the prototype (LessonFoundry v4.dc.html).
+// Replace with FastAPI responses; shapes are documented in README → API contracts.
+const SRC = {
+  S1: { name: 'Physics_Textbook.pdf', type: 'PDF', ver: 'v2' },
+  S2: { name: 'Newton_Lecture_Slides.pptx', type: 'PPTX', ver: 'v1' },
+  S3: { name: 'Teacher_Notes_Forces.md', type: 'MD', ver: 'v1' }
+};
+const EV = {
+  E102: { src: 'S1', loc: 'Page 17', pageLabel: 'p. 17', sect: '§5.2 Inertia and the first law', where: 'Paragraph 2, lines 4–7', b: 4, a: 9, usedBy: 'Explanation §1, §2 · Assessment 1 · Quiz Q1, Q10', text: 'A body continues in its state of rest or of uniform motion in a straight line unless compelled by an external force to change that state. This property of a body is called inertia.' },
+  E103: { src: 'S1', loc: 'Page 18', pageLabel: 'p. 18', sect: '§5.2 Inertia and the first law', where: 'Paragraph 1, lines 1–3', b: 1, a: 11, usedBy: 'Explanation §2 · Assessment 2 · Quiz Q2', text: 'When a moving bus stops suddenly, passengers lurch forward, because their bodies tend to continue in the state of motion.' },
+  E110: { src: 'S1', loc: 'Page 21', pageLabel: 'p. 21', sect: '§5.4 Second law of motion', where: 'Paragraph 1, lines 2–6', b: 2, a: 10, usedBy: 'Explanation §3 · Assessment 3 · Quiz Q3, Q4, Q9', text: 'The rate of change of momentum of a body is directly proportional to the applied force and takes place in the direction in which the force acts. For a body of constant mass, F = ma.' },
+  E114: { src: 'S1', loc: 'Page 24', pageLabel: 'p. 24', sect: 'Worked example 5.3', where: 'Example box', b: 5, a: 6, usedBy: 'Explanation §4 · Assessment 3, 4 · Quiz Q6, Q7', text: 'A constant force of 12 N acts on a trolley of mass 3 kg initially at rest. Find its acceleration. Solution: a = F/m = 12/3 = 4 m s⁻².' },
+  E121: { src: 'S2', loc: 'Slide 9', pageLabel: 'Slide 9 / 22', sect: 'Third law of motion', where: 'Text box 2', b: 2, a: 5, usedBy: 'Explanation §5 · Assessment 5 · Quiz Q5, Q8', text: 'Forces always occur in pairs. Action and reaction act on different bodies, so they never cancel each other.' },
+  E131: { src: 'S3', loc: 'Lines 14–16', pageLabel: 'Lines 14–16', sect: 'Misconceptions', where: 'Lines 14–16', b: 3, a: 4, usedBy: 'Explanation §5 · Assessment 5', text: 'Common misconception: students think action–reaction pairs cancel out. Stress that they act on different objects.' },
+  E126: { src: 'S1', loc: 'Page 26', pageLabel: 'p. 26', sect: '§5.6 Friction', where: 'Paragraph 1', b: 3, a: 10, usedBy: 'None (best match for Objective 04)', note: 'Relevance to Objective 04 is 0.31, below the 0.60 minimum. The source discusses friction on flat surfaces only; inclined planes are not covered.', text: 'Friction opposes the relative motion between two surfaces in contact. Its magnitude depends on the nature of the surfaces and the normal reaction between them.' }
+};
+const OBJ = [
+  { id: 'O1', n: '01', text: "Explain Newton's First Law.", short: 'First Law' },
+  { id: 'O2', n: '02', text: "Apply Newton's Second Law to simple problems.", short: 'Second Law' },
+  { id: 'O3', n: '03', text: 'Identify action–reaction pairs using the Third Law.', short: 'Third Law' },
+  { id: 'O4', n: '04', text: 'Analyse motion on an inclined plane with friction.', short: 'Inclined planes' }
+];
+const BLOCKS = [
+  { id: 'b1', n: 1, title: 'Inertia', obj: 'O1', ev: ['E102'], status: 'pass', ver: 1, hist: 'v1 · Generated 10:32', text: "Inertia is the tendency of a body to resist any change in its state of rest or of uniform motion in a straight line. The greater a body's mass, the greater its inertia." },
+  { id: 'b2', n: 2, title: "Newton's First Law", obj: 'O1', ev: ['E102', 'E103'], status: 'pass', ver: 2, edited: true, hist: 'v2 · Teacher edited 10:48', text: 'A body stays at rest, or keeps moving in a straight line at constant speed, unless an external net force acts on it. A passenger lurching forward when a bus brakes suddenly is an everyday example: the body tends to keep moving while the bus slows.' },
+  { id: 'b3', n: 3, title: "Newton's Second Law", obj: 'O2', ev: ['E110'], status: 'review', ver: 1, hist: 'v1 · Generated 10:32', note: '"Rate of change of momentum" is above the Foundation vocabulary level set for this pack. Consider a simpler lead-in before the formal statement.', text: 'The rate of change of momentum of a body is proportional to the net external force and takes place in the direction of that force. For constant mass this reduces to F = ma, where F is in newtons, m in kilograms and a in m/s².' },
+  { id: 'b4', n: 4, title: 'Worked example', obj: 'O2', ev: ['E114'], status: 'pass', ver: 1, hist: 'v1 · Generated 10:32', text: 'A net force of 12 N acts on a 3 kg trolley at rest. Using a = F ÷ m, the acceleration is 12 ÷ 3 = 4 m/s², in the direction of the force.' },
+  { id: 'b5', n: 5, title: 'Third Law: action and reaction', obj: 'O3', ev: ['E121', 'E131'], status: 'pass', ver: 1, hist: 'v1 · Generated 10:32', text: 'To every action there is an equal and opposite reaction. The two forces act on different bodies, so they never cancel each other. When you push against a wall, the wall pushes back on your hands with a force of equal size.' }
+];
+const ALT_SEC = {
+  b3: 'A net force changes how quickly a body speeds up, slows down or turns. The larger the force, the larger the acceleration; the larger the mass, the smaller the acceleration. We write this as F = ma, with F in newtons, m in kilograms and a in m/s².',
+  b1: "Inertia is a body's resistance to any change in its motion. A heavier body has more inertia, so it is harder to start, stop or turn."
+};
+const ASSESS = [
+  { id: 'a1', n: 1, title: 'Short answer · 2 marks', marks: 2, obj: 'O1', ev: ['E102'], status: 'pass', ver: 1, hist: 'v1 · Approved 10:52', text: "State Newton's First Law of Motion and define inertia.", extraLabel: 'Model answer', extra: 'A body stays at rest or in uniform motion in a straight line unless an external force acts on it (1). Inertia is the tendency of a body to resist a change in its state of rest or motion (1).' },
+  { id: 'a2', n: 2, title: 'Short answer · 2 marks', marks: 2, obj: 'O1', ev: ['E103'], status: 'pass', ver: 1, hist: 'v1 · Approved 10:52', text: 'Why are passengers pushed backward when a bus starts suddenly?', extraLabel: 'Model answer', extra: 'Their feet move with the bus, but the upper body tends to stay at rest because of inertia (1). So the body appears to fall backward (1).' },
+  { id: 'a3', n: 3, title: 'Numerical · 3 marks', marks: 3, obj: 'O2', ev: ['E110', 'E114'], status: 'pass', ver: 1, hist: 'v1 · Approved 10:52', text: 'A net force of 20 N acts on a 5 kg body initially at rest for 4 s. Find (a) its acceleration and (b) its velocity after 4 s.', extraLabel: 'Model answer', extra: '(a) a = F/m = 20/5 = 4 m/s² (1.5). (b) v = u + at = 0 + 4 × 4 = 16 m/s (1.5).' },
+  { id: 'a4', n: 4, title: 'Numerical · 3 marks', marks: 3, obj: 'O2', ev: ['E114'], status: 'pass', ver: 1, hist: 'v1 · Approved 10:52', text: 'A 1200 kg car speeds up uniformly from rest to 20 m/s in 8 s. Find the net force on it.', extraLabel: 'Model answer', extra: 'a = (20 − 0)/8 = 2.5 m/s² (1.5). F = ma = 1200 × 2.5 = 3000 N (1.5).' },
+  { id: 'a5', n: 5, title: 'Long answer · 5 marks', marks: 5, obj: 'O3', ev: ['E121', 'E131'], status: 'pass', ver: 1, hist: 'v1 · Approved 10:52', text: '"Action and reaction are equal and opposite, so they cancel." Explain why this statement is wrong, using two everyday examples.', extraLabel: 'Model answer', extra: 'They act on different bodies, so they cannot cancel (2). A swimmer pushes water back and the water pushes the swimmer forward (1.5). A gun recoils as the bullet is pushed forward (1.5).' }
+];
+const h1 = [{ v: 1, what: 'Generated by Claude', t: '10:32' }];
+const h2 = [...h1, { v: 2, what: 'Regenerated after Physics_Textbook.pdf v2', t: '10:41' }];
+const QS = [
+  { id: 'q1', n: 1, obj: 'O1', diff: 'Easy', ev: 'E102', sim: 0.41, solver: 1, ver: 1, hist: h1, text: 'Which property of a body resists changes to its state of motion?', opts: ['Momentum', 'Inertia', 'Weight', 'Impulse'], sol: 'Inertia is the property that resists a change in the state of rest or uniform motion (E102). Momentum depends on velocity, weight is a force and impulse is a change in momentum.' },
+  { id: 'q2', n: 2, obj: 'O1', diff: 'Medium', ev: 'E103', sim: 0.38, solver: 0, ver: 1, hist: h1, text: 'A passenger falls forward when a moving bus brakes suddenly. Which law best explains this?', opts: ["Newton's First Law", "Newton's Second Law", "Newton's Third Law", 'Law of gravitation'], sol: 'The body keeps moving forward because of inertia of motion while the bus slows: First Law (E103).' },
+  { id: 'q3', n: 3, obj: 'O2', diff: 'Medium', ev: 'E110', sim: 0.94, dup: 'q9', solver: 1, ver: 1, hist: h1, text: 'A net force of 10 N acts on a 2 kg mass. What is its acceleration?', opts: ['20 m/s²', '5 m/s²', '0.2 m/s²', '12 m/s²'], sol: 'a = F/m = 10/2 = 5 m/s² (E110).' },
+  { id: 'q4', n: 4, obj: 'O2', diff: 'Medium', ev: 'E110', sim: 0.52, solver: 2, ver: 2, hist: h2, text: 'If the net force on a body is doubled while its mass stays the same, its acceleration:', opts: ['halves', 'stays the same', 'doubles', 'quadruples'], sol: 'a = F/m. With m fixed, doubling F doubles a (E110).' },
+  { id: 'q5', n: 5, obj: 'O3', diff: 'Easy', ev: 'E121', sim: 0.47, solver: 1, ver: 1, hist: h1, text: 'Action and reaction forces:', opts: ['act on the same body', 'act on different bodies', 'cancel each other', 'act in the same direction'], sol: 'Action and reaction act on different bodies (E121), so they never cancel.' },
+  { id: 'q6', n: 6, obj: 'O2', diff: 'Medium', ev: 'E114', sim: 0.61, solver: 2, ver: 2, hist: h2, text: 'What net force gives a 1500 kg car an acceleration of 2 m/s²?', opts: ['750 N', '1500 N', '3000 N', '3500 N'], sol: 'F = ma = 1500 × 2 = 3000 N (E114).' },
+  { id: 'q7', n: 7, obj: 'O2', diff: 'Hard', ev: 'E114', sim: 0.58, solver: 1, ver: 1, hist: h1, diffNote: 'Rated Hard: needs two steps (a from Δv/t, then F = ma). Pack target is Medium. Keep it if you want a stretch question.', text: 'A 4 kg block accelerates uniformly from rest to 6 m/s in 3 s. What is the net force on it?', opts: ['2 N', '8 N', '12 N', '24 N'], sol: 'a = Δv/t = 6/3 = 2 m/s²; F = ma = 4 × 2 = 8 N (E114).' },
+  { id: 'q8', n: 8, obj: 'O3', diff: 'Medium', ev: 'E121', sim: 0.44, solver: 2, ver: 1, hist: h1, text: 'A gun recoils when a bullet is fired. This is an example of:', opts: ["Newton's First Law", "Newton's Second Law", "Newton's Third Law", 'inertia of rest'], sol: 'The gun pushes the bullet forward and the bullet pushes the gun back with an equal force: Third Law (E121).' },
+  { id: 'q9', n: 9, obj: 'O2', diff: 'Easy', ev: 'E110', sim: 0.94, solver: 1, ver: 1, hist: h1, text: 'A 2 kg mass experiences a net force of 10 N. Find its acceleration.', opts: ['20 m/s²', '5 m/s²', '0.2 m/s²', '8 m/s²'], sol: 'a = 10/2 = 5 m/s² (E110).' },
+  { id: 'q10', n: 10, obj: 'O1', diff: 'Medium', ev: 'E102', sim: 0.36, solver: 1, ver: 1, hist: h1, text: 'A book at rest on a table stays at rest because:', opts: ['no forces act on it', 'the net force on it is zero', 'gravity does not act on it', 'its inertia is zero'], sol: 'Weight and normal reaction balance, so the net force is zero and the book stays at rest (E102).' }
+].map((q) => ({ ...q, keyFor: q.ver, keyVer: q.ver }));
+const ALT_Q = {
+  q3: { text: 'A 5 kg box is pushed across a smooth floor with a net force of 15 N. What is its acceleration?', opts: ['3 m/s²', '75 m/s²', '0.33 m/s²', '10 m/s²'], solver: 0, sim: 0.49, dup: null, sol: 'a = F/m = 15/5 = 3 m/s² (E110).' },
+  q7: { text: 'A net force of 8 N acts on a 4 kg block. What is its acceleration?', opts: ['0.5 m/s²', '2 m/s²', '4 m/s²', '32 m/s²'], solver: 1, sim: 0.63, diff: 'Medium', diffNote: null, ev: 'E110', sol: 'a = F/m = 8/4 = 2 m/s² (E110).' }
+};
+const EVENTS0 = [
+  { id: 'e1', v: 1, kind: 'ai', title: 'Learning pack generated', detail: '11-stage compile from 3 sources · 47 evidence items · 7 assets', scope: 'Whole pack', time: '10:32', by: 'Claude' },
+  { id: 'e2', v: 2, kind: 'source', title: 'Physics_Textbook.pdf updated v1 → v2', detail: 'Errata on p.21 (second law). E110 re-extracted; dependent items flagged.', scope: 'Source', time: '10:41', by: 'Priya Nair' },
+  { id: 'e3', v: 2, kind: 'ai', title: 'Quiz regenerated: Q4 and Q6', detail: 'Only the two questions citing the updated passages changed. Q1–Q3, Q5, Q7–Q10 unchanged.', scope: 'Quiz Q4, Q6', time: '10:41', by: 'Claude', before: 'Q4 v1', after: 'Q4 v2' },
+  { id: 'e4', v: 3, kind: 'teacher', title: 'Explanation §2 edited', detail: 'Added the bus example. Grounding and terminology re-checked: passed.', scope: 'Explanation §2', time: '10:48', by: 'Priya Nair', before: '§2 v1', after: '§2 v2' },
+  { id: 'e5', v: 3, kind: 'approved', title: 'Assessment approved', detail: 'Assessment v3 locked. Other assets remain in draft.', scope: 'Assessment', time: '10:52', by: 'Priya Nair' }
+];

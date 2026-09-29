@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/modernist-2d405345-c880-4218-92f2-cddc1804b608/styles.css">
+<script src="_ds/modernist-2d405345-c880-4218-92f2-cddc1804b608/_ds_bundle.js"></script>
+</helmet>
+<sc-if value="{{ isGlyph }}" hint-placeholder-val="{{ false }}"><span title="{{ label }}" style="display:inline-grid;place-items:center;width:18px;height:18px;flex:none;color:{{ fg }};background:{{ bg }}"><dc-import name="LFIcon" icon="{{ icon }}" size="12" hint-size="12px,12px"></dc-import></span></sc-if>
+<sc-if value="{{ isChip }}" hint-placeholder-val="{{ true }}"><span style="display:inline-flex;align-items:center;gap:5px;padding:2px 8px 2px 6px;font-family:var(--font-body);font-size:11px;font-weight:600;letter-spacing:0.02em;line-height:16px;white-space:nowrap;color:{{ fg }};background:{{ bg }}"><dc-import name="LFIcon" icon="{{ icon }}" size="12" hint-size="12px,12px"></dc-import><span>{{ label }}</span></span></sc-if>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:200,&quot;height&quot;:40},&quot;status&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;pass&quot;,&quot;review&quot;,&quot;fail&quot;,&quot;info&quot;,&quot;pending&quot;,&quot;draft&quot;,&quot;approved&quot;,&quot;locked&quot;,&quot;regen&quot;,&quot;running&quot;,&quot;queued&quot;,&quot;ready&quot;,&quot;edited&quot;],&quot;default&quot;:&quot;pass&quot;,&quot;tsType&quot;:&quot;AssetStatus&quot;},&quot;label&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Validated&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;variant&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;chip&quot;,&quot;glyph&quot;],&quot;default&quot;:&quot;chip&quot;,&quot;tsType&quot;:&quot;'chip'|'glyph'&quot;}}">
+// Semantic status language. Colour is never the only signal: every state has its own icon and label.
+// validated = system checks passed (frame + check) · approved = teacher authorised (check + lock, solid)
+const GRN = 'oklch(0.45 0.11 150)', GRN_BG = 'oklch(0.94 0.035 150)', AMB = 'oklch(0.47 0.11 65)', AMB_BG = 'oklch(0.94 0.05 80)';
+const RED = 'var(--lf-red-700, oklch(0.45 0.16 27))', RED_BG = 'var(--lf-red-100, oklch(0.94 0.035 25))';
+const ST = {
+  pass: { fg: GRN, bg: GRN_BG, i: 'validation', l: 'Validated' },
+  review: { fg: AMB, bg: AMB_BG, i: 'warning', l: 'Review' },
+  fail: { fg: RED, bg: RED_BG, i: 'fail', l: 'Failed' },
+  info: { fg: 'var(--color-accent-700)', bg: 'var(--color-accent-100)', i: 'info', l: 'Info' },
+  pending: { fg: 'var(--color-neutral-700)', bg: 'var(--color-neutral-200)', i: 'pending', l: 'Pending' },
+  draft: { fg: 'var(--color-neutral-800)', bg: 'var(--color-neutral-200)', i: 'draft', l: 'Draft' },
+  approved: { fg: '#fff', bg: GRN, i: 'approval', l: 'Approved' },
+  locked: { fg: '#fff', bg: 'var(--color-text)', i: 'lock', l: 'Locked' },
+  regen: { fg: AMB, bg: AMB_BG, i: 'regenerate', l: 'Regeneration required' },
+  running: { fg: 'var(--color-accent-700)', bg: 'var(--color-accent-100)', i: 'running', l: 'Running' },
+  queued: { fg: 'var(--color-accent-700)', bg: 'var(--color-accent-100)', i: 'queued', l: 'Queued' },
+  ready: { fg: GRN, bg: GRN_BG, i: 'ready', l: 'Ready' },
+  edited: { fg: 'var(--color-text)', bg: 'var(--color-neutral-300)', i: 'edited', l: 'Teacher edited' }
+};
+class Component extends DCLogic {
+  renderVals() {
+    const s = ST[this.props.status] || ST.info;
+    const isGlyph = this.props.variant === 'glyph';
+    return { fg: s.fg, bg: s.bg, icon: s.i, label: this.props.label ?? s.l, isGlyph, isChip: !isGlyph };
+  }
+}
+</script>
+</body>
+</html>

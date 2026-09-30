@@ -18,6 +18,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    env:
+      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
     steps:
       - uses: actions/checkout@v4
 
@@ -62,10 +64,8 @@ jobs:
           distribution: "temurin"
 
       - name: Build Android APK with EAS
-        if: ${{ secrets.EXPO_TOKEN != '' }}
+        if: ${{ env.EXPO_TOKEN != '' }}
         working-directory: mobile
-        env:
-          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
         run: |
           npx eas-cli@latest build --platform android --profile preview --non-interactive --wait --output ../lessonfoundry-android-${{ inputs.version }}.apk || {
             npx eas-cli@latest build:list --platform android --limit 1 --json > ../eas-build.json
@@ -74,7 +74,7 @@ jobs:
           }
 
       - name: Build Android APK with local Gradle
-        if: ${{ secrets.EXPO_TOKEN == '' }}
+        if: ${{ env.EXPO_TOKEN == '' }}
         working-directory: mobile
         run: |
           npx expo prebuild --platform android --clean

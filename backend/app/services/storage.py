@@ -123,15 +123,22 @@ class S3ObjectStore:
     def __init__(self, bucket: str | None = None):
         import boto3
         from botocore.client import Config
-        self.bucket = bucket or os.environ["AWS_S3_BUCKET"]
-        self.region = os.getenv("AWS_REGION", "us-east-1")
+        self.bucket = os.environ.get("AWS_S3_BUCKET") or (bucket or "sources")
+        self.prefix = bucket if (bucket and bucket != self.bucket) else ""
+        self.region = os.getenv("AWS_REGION", "ap-south-1")
         endpoint = f"https://s3.{self.region}.amazonaws.com"
         config = Config(signature_version="s3v4", s3={"addressing_style": "virtual"})
         self.client = boto3.client("s3", region_name=self.region, endpoint_url=endpoint, config=config)
 
+    def _full_key(self, key: str) -> str:
+        prefix = getattr(self, "prefix", "")
+        if prefix and not key.startswith(f"{prefix}/"):
+            return f"{prefix}/{key}"
+        return key
+
     def put(self, key, data, content_type="application/octet-stream"):
         self.client.put_object(
-            Bucket=self.bucket, Key=key, Body=data, ContentType=content_type,
+            Bucket=self.bucket, Key=self._full_key(key), Body=data, ContentType=content_type,
             ServerSideEncryption="AES256",
         )
 
@@ -139,12 +146,12 @@ class S3ObjectStore:
         return self.put(key, data, content_type)
 
     def delete(self, key):
-        self.client.delete_object(Bucket=self.bucket, Key=key)
+        self.client.delete_object(Bucket=self.bucket, Key=self._full_key(key))
 
     def create_download_url(self, key, expires=300):
         url = self.client.generate_presigned_url(
             "get_object",
-            Params={"Bucket": self.bucket, "Key": key},
+            Params={"Bucket": self.bucket, "Key": self._full_key(key)},
             ExpiresIn=expires,
         )
         return {"url": url, "expires_in": expires}

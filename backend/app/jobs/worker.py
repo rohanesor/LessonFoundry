@@ -18,13 +18,18 @@ from app.services.storage import get_store
 def run_job(jid):
     started_at = datetime.now(timezone.utc)
     user_id = "unknown"
+    kind = "unknown"
+    unit_id = "unknown"
     try:
         with transaction() as s:
             j = s.get(Job, jid)
+            if not j:
+                return
+            kind = j.kind
+            unit_id = j.unit_id
             u = s.get(Unit, j.unit_id)
             user_id = u.owner_id
             data = pack_dict(s, u)
-            kind = j.kind
             aid = j.asset_id
             expected = j.expected_revision
             export_id = None
@@ -231,7 +236,7 @@ def run_job(jid):
         log_job(
             job_id=jid,
             job_type=kind,
-            unit_id=u.id,
+            unit_id=unit_id,
             user_id=user_id,
             status="Failed",
             started_at=started_at,

@@ -205,8 +205,9 @@ export function VideoWorkflow({
   const [avatarId, setAvatarId] = useState("");
   const [uploading, setUploading] = useState(false);
   const [message, setMessage] = useState("");
+  const [previewUrl, setPreviewUrl] = useState("");
   const avatars = useQuery({ queryKey: ["avatars"], queryFn: () => api<{id:string;name:string;description:string;status:string}[]>("/avatars") });
-  const videos = useQuery({ queryKey: ["videos", pack.id], queryFn: () => api<{id:string;title:string;status:string;approved:boolean;published:boolean}[]>(`/videos?pack_id=${pack.id}`) });
+  const videos = useQuery({ queryKey: ["videos", pack.id], queryFn: () => api<{id:string;title:string;status:string;approved:boolean;published:boolean;is_demo:boolean}[]>(`/videos?pack_id=${pack.id}`) });
   async function createAvatar(file: File) {
     const form = new FormData(); form.append("file", file); form.append("name", file.name.replace(/\\.[^.]+$/, ""));
     setUploading(true); setMessage(""); try { await api("/avatars", { method: "POST", body: form }); await avatars.refetch(); setMessage("Avatar profile created. It is private to your teacher account."); } catch(e) { setMessage((e as Error).message); } finally { setUploading(false); }
@@ -296,7 +297,7 @@ export function VideoWorkflow({
           </Empty>
         )}
         {message && <div className="alert" role="status">{message}</div>}
-        {videos.data?.map(v => <div className="row" key={v.id}><span>{v.title}</span><Status state={v.approved ? "APPROVED" : v.status} /><Button disabled={v.approved} onClick={() => run(async () => { await post(`/videos/${v.id}/approve`); await videos.refetch(); }, "Existing video approved")}>{v.approved ? "Approved" : "Approve video"}</Button></div>)}
+        {videos.data?.map(v => <div className="asset-card stack" key={v.id}><div className="row spread"><span><b>{v.title}</b>{v.is_demo && <small className="muted"> · Supplied development recording</small>}</span><Status state={v.approved ? "APPROVED" : v.status} /></div>{previewUrl && <video src={previewUrl} controls preload="metadata" style={{width:"100%",maxHeight:360}} /> }<div className="row"><Button onClick={async()=>{try{const r=await api<{url:string}>(`/videos/${v.id}/download`);setPreviewUrl(r.url);}catch(e){setMessage((e as Error).message);}}}>Preview</Button><Button disabled={v.approved} onClick={() => run(async () => { await post(`/videos/${v.id}/approve`); await videos.refetch(); }, "Existing video approved")}>{v.approved ? "Approved" : "Approve video"}</Button></div></div>)}
         <div className="row">
           <label className="btn btn-secondary">Upload existing video<input hidden type="file" accept="video/mp4,video/webm,video/quicktime" disabled={uploading} onChange={e => { const f=e.target.files?.[0]; if(f) void uploadVideo(f); e.currentTarget.value=""; }} /></label>
           <Button

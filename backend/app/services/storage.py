@@ -32,6 +32,14 @@ class ObjectStore:
             raise ValueError("Invalid object path")
         return p
 
+    def put_server(self, key, data, content_type="application/octet-stream"):
+        if not self.remote:
+            return self.put(key, data, content_type)
+        key_value = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+        if not key_value: raise ValueError("Server storage credentials are not configured")
+        r = httpx.post(self.object_url(key), headers={"Authorization": f"Bearer {key_value}", "apikey": key_value, "Content-Type": content_type, "x-upsert": "true"}, content=data, timeout=60)
+        if not r.is_success: raise ValueError("Private server storage rejected upload")
+
     def put(self, key, data, content_type="application/octet-stream"):
         if self.remote:
             r = httpx.post(
@@ -126,6 +134,9 @@ class S3ObjectStore:
             Bucket=self.bucket, Key=key, Body=data, ContentType=content_type,
             ServerSideEncryption="AES256",
         )
+
+    def put_server(self, key, data, content_type="application/octet-stream"):
+        return self.put(key, data, content_type)
 
     def delete(self, key):
         self.client.delete_object(Bucket=self.bucket, Key=key)

@@ -425,8 +425,19 @@ def _media_key(owner: str, kind: str, ident: str, filename: str) -> str:
 
 @router.get("/avatars")
 def list_avatars(user=Depends(teacher)):
+    demo_path = Path(os.getenv("AI_TEACHER_DEMO_AVATAR_PATH", "backend/integration/fixtures/ai_teacher_demo_avatar.png"))
+    if not demo_path.is_absolute():
+        candidates = [Path.cwd() / demo_path, Path(__file__).resolve().parents[3] / demo_path]
+        demo_path = next((p for p in candidates if p.is_file()), candidates[-1])
     with transaction() as s:
-        return [dict(id=a.id, name=a.name, description=a.description, mime_type=a.mime_type, status=a.status, created_at=a.created_at) for a in s.scalars(select(Avatar).where(Avatar.owner_id == user).order_by(Avatar.created_at.desc()))]
+        demo = s.scalar(select(Avatar).where(Avatar.owner_id == user, Avatar.is_demo == True))
+        if demo_path.is_file() and not demo:
+            demo = Avatar(owner_id=user, name="LessonFoundry Demo Teacher", description="Supplied development avatar image", storage_key="", mime_type="image/png", is_demo=True, source="supplied_demo_asset")
+            s.add(demo); s.flush(); demo.storage_key = _media_key(user, "avatars", demo.id, "demo-avatar.png")
+            try: get_store("media").put(demo.storage_key, demo_path.read_bytes(), "image/png")
+            except Exception: pass
+        rows = s.scalars(select(Avatar).where(Avatar.owner_id == user).order_by(Avatar.created_at.desc()))
+        return [dict(id=a.id, name=a.name, description=a.description, mime_type=a.mime_type, status=a.status, is_demo=a.is_demo, created_at=a.created_at) for a in rows]
 
 
 @router.post("/avatars", status_code=201)

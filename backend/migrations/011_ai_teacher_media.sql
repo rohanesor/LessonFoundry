@@ -10,6 +10,8 @@ CREATE TABLE IF NOT EXISTS public.avatars (
  status varchar(20) NOT NULL DEFAULT 'ready',
  created_at text NOT NULL
 );
+ALTER TABLE public.avatars ADD COLUMN IF NOT EXISTS is_demo boolean NOT NULL DEFAULT false;
+ALTER TABLE public.avatars ADD COLUMN IF NOT EXISTS source varchar(50) NOT NULL DEFAULT 'teacher_upload';
 CREATE INDEX IF NOT EXISTS ix_avatars_owner ON public.avatars(owner_id);
 CREATE TABLE IF NOT EXISTS public.teacher_videos (
  id varchar(36) PRIMARY KEY,

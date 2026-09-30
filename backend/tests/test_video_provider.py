@@ -1,37 +1,25 @@
 import os
 from pathlib import Path
 import sys
-import pytest
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from app.providers.video import MockVideoGenerationProvider, VideoGenerationInput
 
-
 def test_mock_without_demo_is_honest(tmp_path, monkeypatch):
-    monkeypatch.setenv("DEMO_VIDEO_DIR", str(tmp_path))
-    p = MockVideoGenerationProvider()
-    r = p.create_video(VideoGenerationInput("hello", "ava-1", "p1", "u1"))
-    assert r.state == "Ready"
-    assert r.url is None
+    monkeypatch.setenv("AI_TEACHER_DEMO_VIDEO_PATH", str(tmp_path / "missing.mp4"))
+    r = MockVideoGenerationProvider().create_video(VideoGenerationInput("hello", "ava-1", "p1", "u1"))
+    assert r.state == "Ready" and r.source_path is None and r.is_demo
     assert "no playable video" in r.message.lower()
-    assert r.is_demo
 
-
-def test_mock_deterministic_with_two_demos(tmp_path, monkeypatch):
-    monkeypatch.setenv("DEMO_VIDEO_DIR", str(tmp_path))
-    (tmp_path / "a.mp4").write_bytes(b"ftypisom")
-    (tmp_path / "b.mp4").write_bytes(b"ftypisom")
+def test_mock_deterministic_with_supplied_demo(tmp_path, monkeypatch):
+    demo = tmp_path / "demo.mp4"; demo.write_bytes(b"ftypisom")
+    monkeypatch.setenv("AI_TEACHER_DEMO_VIDEO_PATH", str(demo))
     p = MockVideoGenerationProvider()
-    r1 = p.create_video(VideoGenerationInput("hello", "ava-1", "p1", "u1"))
-    r2 = p.create_video(VideoGenerationInput("hello", "ava-1", "p1", "u1"))
-    r3 = p.create_video(VideoGenerationInput("different", "ava-1", "p1", "u1"))
-    assert r1.url == r2.url
-    assert r1.url is not None
-    assert r3.url != r1.url
-
+    a = VideoGenerationInput("hello", "ava-1", "p1", "u1", "script-1")
+    b = VideoGenerationInput("different", "ava-2", "p2", "u1", "script-2")
+    assert p.create_video(a).source_path == p.create_video(a).source_path == str(demo)
+    assert p.create_video(b).source_path == str(demo)
 
 def test_mock_requires_avatar(tmp_path, monkeypatch):
-    monkeypatch.setenv("DEMO_VIDEO_DIR", str(tmp_path))
-    p = MockVideoGenerationProvider()
-    r = p.create_video(VideoGenerationInput("hello", None, "p1", "u1"))
-    assert r.url is None
-    assert "no avatar" in r.message.lower()
+    monkeypatch.setenv("AI_TEACHER_DEMO_VIDEO_PATH", str(tmp_path / "missing.mp4"))
+    r = MockVideoGenerationProvider().create_video(VideoGenerationInput("hello", None, "p1", "u1"))
+    assert r.source_path is None and "avatar" in r.message.lower()

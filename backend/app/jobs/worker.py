@@ -12,6 +12,7 @@ from app.services.packs import new_version, event
 from app.providers.llm import provider, SLOTS
 from app.providers.video import MockVideoGenerationProvider, VideoGenerationInput
 from app.services.export import render_pack_pdf
+from app.services.storage import get_store
 
 
 def run_job(jid):
@@ -68,9 +69,18 @@ def run_job(jid):
                     raise ValueError("Script must be approved and current")
                 text = script.payload["body"]
             result = MockVideoGenerationProvider().create_video(VideoGenerationInput(
-                script_text=text, avatar_id=v.avatar_id, pack_id=v.unit_id, user_id=user_id
+                script_text=text, avatar_id=v.avatar_id, pack_id=v.unit_id, user_id=user_id, script_version_id=v.script_version_id
             ))
-            result = {"state": result.state, "url": result.url, "message": result.message, "is_demo": result.is_demo}
+            if result.source_path:
+                media_key = f"{user_id}/videos/{uid()}/demo-teacher.mp4"
+                get_store("media").put_server(media_key, open(result.source_path, "rb").read(), "video/mp4")
+                with transaction() as s:
+                    existing = s.scalar(select(TeacherVideo).where(TeacherVideo.pack_id == v.unit_id, TeacherVideo.script_version_id == v.script_version_id, TeacherVideo.owner_id == user_id))
+                    if existing:
+                        existing.storage_key = media_key; existing.status = "ready"; existing.is_demo = result.is_demo
+                    else:
+                        s.add(TeacherVideo(owner_id=user_id, pack_id=v.unit_id, avatar_id=v.avatar_id, script_version_id=v.script_version_id, title="AI Teacher demo lesson", description=result.message, storage_key=media_key, mime_type="video/mp4", status="ready", is_demo=result.is_demo))
+            result = {"state": result.state, "url": None, "message": result.message, "is_demo": result.is_demo}
         else:
             objectives = [o for o in data["objectives"] if o["status"] == "SUPPORTED"]
             if not objectives:

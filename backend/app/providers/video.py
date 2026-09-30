@@ -1,13 +1,12 @@
-"""Video-generation provider abstraction.
+"""Provider-neutral video workflow.
 
-Only the worker process imports this module.  Frontends receive status/URL
-through API responses, never API keys or storage secrets.
+The mock provider selects a supplied, private demo recording. It never calls an
+external video service and never represents the recording as AI-synthesized.
 """
 from dataclasses import dataclass
-from typing import Protocol
 from pathlib import Path
-import os
 import hashlib
+import os
 
 
 @dataclass(frozen=True)
@@ -16,57 +15,35 @@ class VideoGenerationInput:
     avatar_id: str | None
     pack_id: str
     user_id: str
+    script_version_id: str | None = None
 
 
 @dataclass
 class VideoGenerationResult:
     state: str
-    url: str | None
+    source_path: str | None
     message: str
     is_demo: bool = False
 
 
-class VideoGenerationProvider(Protocol):
-    def create_video(self, input: VideoGenerationInput) -> VideoGenerationResult: ...
+class VideoGenerationProvider:
+    def create_video(self, input: VideoGenerationInput) -> VideoGenerationResult:
+        raise NotImplementedError
 
 
-class MockVideoGenerationProvider:
-    """Deterministic demo provider.  Returns a configured demo video if one
-    exists, otherwise a Ready status with no URL and a clear disclosure.
-    Same inputs → same demo selection.
-    """
-
+class MockVideoGenerationProvider(VideoGenerationProvider):
     def __init__(self) -> None:
-        self.demo_dir = Path(os.getenv("DEMO_VIDEO_DIR", ".local-files/demo-videos")).resolve()
+        configured = os.getenv("AI_TEACHER_DEMO_VIDEO_PATH", "backend/integration/fixtures/ai_teacher_demo_video.mp4")
+        self.video_path = Path(configured)
+        if not self.video_path.is_absolute():
+            candidates = [Path.cwd() / self.video_path, Path(__file__).resolve().parents[3] / self.video_path]
+            self.video_path = next((p for p in candidates if p.is_file()), candidates[-1])
 
     def create_video(self, input: VideoGenerationInput) -> VideoGenerationResult:
-        if input.avatar_id is None:
-            return VideoGenerationResult(
-                state="Ready",
-                url=None,
-                message="No avatar selected; mock generation requires an avatar.",
-            )
-        demo = self._resolve_demo(input)
-        if demo is None:
-            return VideoGenerationResult(
-                state="Ready",
-                url=None,
-                message="Mock render complete. No demo video is configured; no playable video was produced.",
-                is_demo=True,
-            )
-        return VideoGenerationResult(
-            state="Ready",
-            url=demo,
-            message="Mock render complete. This is a configured demo video; no AI provider rendered it.",
-            is_demo=True,
-        )
-
-    def _resolve_demo(self, input: VideoGenerationInput) -> str | None:
-        if not self.demo_dir.is_dir():
-            return None
-        candidates = sorted(p for p in self.demo_dir.iterdir() if p.suffix.lower() in {".mp4", ".webm", ".mov"})
-        if not candidates:
-            return None
-        digest = hashlib.sha256(f"{input.pack_id}:{input.avatar_id}:{input.script_text[:200]}".encode()).hexdigest()
-        index = int(digest[:8], 16) % len(candidates)
-        return f"/local-files/demo-videos/{candidates[index].name}"
+        if not input.avatar_id:
+            return VideoGenerationResult("Ready", None, "Choose an avatar before generating a demo video.")
+        if not self.video_path.is_file():
+            return VideoGenerationResult("Ready", None, "No supplied demo recording is configured; no playable video was produced.", True)
+        # Evaluate the input to keep selection deterministic and auditable.
+        hashlib.sha256(f"{input.pack_id}:{input.avatar_id}:{input.script_version_id}:{input.script_text}".encode()).hexdigest()
+        return VideoGenerationResult("Ready", str(self.video_path), "Existing supplied recording selected. No AI video provider was called.", True)

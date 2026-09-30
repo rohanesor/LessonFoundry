@@ -55,6 +55,12 @@ jobs:
           tar -czf lessonfoundry-mobile-source-${{ inputs.version }}.tar.gz \
             mobile/App.tsx mobile/app.json mobile/eas.json mobile/package.json mobile/package-lock.json mobile/tsconfig.json
 
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: "17"
+          distribution: "temurin"
+
       - name: Build Android APK with EAS
         if: ${{ secrets.EXPO_TOKEN != '' }}
         working-directory: mobile
@@ -66,6 +72,21 @@ jobs:
             node -e "const fs=require('fs'); const x=JSON.parse(fs.readFileSync('../eas-build.json')); const url=x[0]?.artifacts?.buildUrl || x[0]?.artifacts?.applicationArchiveUrl; if(!url) throw new Error('EAS returned no APK URL'); fs.writeFileSync('../lessonfoundry-android-${{ inputs.version }}.url', url);"
             curl -fL "$(cat ../lessonfoundry-android-${{ inputs.version }}.url)" -o ../lessonfoundry-android-${{ inputs.version }}.apk
           }
+
+      - name: Build Android APK with local Gradle
+        if: ${{ secrets.EXPO_TOKEN == '' }}
+        working-directory: mobile
+        run: |
+          npx expo prebuild --platform android --clean
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug
+          APK_FILE="$(find app/build/outputs/apk -name "*.apk" | head -n 1)"
+          if [ -z "$APK_FILE" ]; then
+            echo "No APK produced by Gradle"
+            exit 1
+          fi
+          cp "$APK_FILE" "../../lessonfoundry-android-${{ inputs.version }}.apk"
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
@@ -81,8 +102,9 @@ jobs:
             ## LessonFoundry ${{ inputs.version }}
 
             ### Mobile App
-            - **Web Bundle**: `lessonfoundry-mobile-web-${{ inputs.version }}.tar.gz` — Expo web export, deployable to any static host
-            - **Source Package**: `lessonfoundry-mobile-source-${{ inputs.version }}.tar.gz` — Source files for local Expo development
+            - **Android APK**: `lessonfoundry-android-${{ inputs.version }}.apk` — Installable APK for Android phones
+            - **Web Bundle**: `lessonfoundry-mobile-web-${{ inputs.version }}.tar.gz` — Expo web export
+            - **Source Package**: `lessonfoundry-mobile-source-${{ inputs.version }}.tar.gz` — Source files for development
 
             ### To run the mobile app locally:
             ```bash
@@ -92,19 +114,10 @@ jobs:
             ```
             Scan the QR code with Expo Go on your phone to test.
 
-            If `EXPO_TOKEN` is configured in GitHub Actions, this release also includes an installable Android APK.
-
-            ### To build a native APK (requires EAS):
-            ```bash
-            npm install -g eas-cli
-            cd mobile
-            eas build --platform android --profile preview
-            ```
-
       - name: Attach Android APK
-        if: ${{ secrets.EXPO_TOKEN != '' }}
+        if: ${{ hashFiles(format('lessonfoundry-android-{0}.apk', inputs.version)) != '' }}
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ inputs.version }}
           files: lessonfoundry-android-${{ inputs.version }}.apk
-          fail_on_unmatched_files: true
+          fail_on_unmatched_files: false

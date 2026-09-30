@@ -17,3 +17,6 @@ test-results/
 !.env.example
 !.env.*.example
 .ruff_cache/
+mobile/android/
+mobile/ios/
+mobile/dist/

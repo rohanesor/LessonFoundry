@@ -518,7 +518,6 @@ def update_me(body: ProfileUpdate, user=Depends(authenticated)):
         if values.get("institution_name") is not None and len(values["institution_name"].strip()) < 3:
             raise HTTPException(422, "Institution name must be at least 3 characters")
         for key, value in values.items(): setattr(u, key, value.strip() if isinstance(value, str) else value)
-        u.updated_at = now()
         return dict(id=u.id, name=u.name, email=u.email, avatar_url=u.avatar_url, role=u.role,
                     institution_type=u.institution_type, institution_name=u.institution_name,
                     grade_level=u.grade_level, onboarding_completed=u.onboarding_completed)

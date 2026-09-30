@@ -35,7 +35,6 @@ class User(Identity, Base):
     institution_name: Mapped[str | None] = mapped_column(String(200), nullable=True)
     grade_level: Mapped[str | None] = mapped_column(String(100), nullable=True)
     onboarding_completed: Mapped[bool] = mapped_column(Boolean, default=False)
-    updated_at: Mapped[str] = mapped_column(String, default=now)
 
 
 class Unit(Identity, Base):
@@ -207,6 +206,8 @@ class Avatar(Identity, Base):
     storage_key: Mapped[str] = mapped_column(String)
     mime_type: Mapped[str] = mapped_column(String(100))
     status: Mapped[str] = mapped_column(String(20), default="ready")
+    is_demo: Mapped[bool] = mapped_column(Boolean, default=False)
+    source: Mapped[str] = mapped_column(String(50), default="teacher_upload")
     created_at: Mapped[str] = mapped_column(String, default=now)
 
 

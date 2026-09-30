@@ -76,16 +76,21 @@ def run_job(jid):
             result = MockVideoGenerationProvider().create_video(VideoGenerationInput(
                 script_text=text, avatar_id=v.avatar_id, pack_id=v.unit_id, user_id=user_id, script_version_id=v.script_version_id
             ))
+            video_url = None
             if result.source_path:
                 media_key = f"{user_id}/videos/{uid()}/demo-teacher.mp4"
                 get_store("media").put_server(media_key, open(result.source_path, "rb").read(), "video/mp4")
+                try:
+                    video_url = get_store("media").create_server_download_url(media_key, expires=86400)["url"]
+                except Exception:
+                    video_url = None
                 with transaction() as s:
                     existing = s.scalar(select(TeacherVideo).where(TeacherVideo.pack_id == v.unit_id, TeacherVideo.script_version_id == v.script_version_id, TeacherVideo.owner_id == user_id))
                     if existing:
                         existing.storage_key = media_key; existing.status = "ready"; existing.is_demo = result.is_demo
                     else:
                         s.add(TeacherVideo(owner_id=user_id, pack_id=v.unit_id, avatar_id=v.avatar_id, script_version_id=v.script_version_id, title="AI Teacher demo lesson", description=result.message, storage_key=media_key, mime_type="video/mp4", status="ready", is_demo=result.is_demo))
-            result = {"state": result.state, "url": None, "message": result.message, "is_demo": result.is_demo}
+            result = {"state": result.state, "url": video_url, "message": result.message, "is_demo": result.is_demo}
         else:
             objectives = [o for o in data["objectives"] if o["status"] == "SUPPORTED"]
             if not objectives:

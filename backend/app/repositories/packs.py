@@ -82,6 +82,39 @@ def asset_dict(s, a, v, u):
     )
 
 
+def _resolve_video_info(s, unit_id: str, v: VideoJob):
+    url = v.url
+    tv = None
+    if v.script_version_id:
+        tv = s.scalar(
+            select(TeacherVideo)
+            .where(
+                TeacherVideo.pack_id == unit_id,
+                TeacherVideo.script_version_id == v.script_version_id,
+            )
+            .order_by(TeacherVideo.created_at.desc())
+        )
+    if not tv:
+        tv = s.scalar(
+            select(TeacherVideo)
+            .where(TeacherVideo.pack_id == unit_id)
+            .order_by(TeacherVideo.created_at.desc())
+        )
+    if not url and tv and tv.storage_key:
+        try:
+            from app.services.storage import get_store
+            signed = get_store("media").create_server_download_url(tv.storage_key, expires=3600)
+            url = signed["url"]
+        except Exception:
+            url = None
+    return {
+        "url": url,
+        "teacher_video_id": tv.id if tv else None,
+        "approved": tv.approved if tv else False,
+        "published": tv.published if tv else False,
+    }
+
+
 def pack_dict(s, u):
     objectives = []
     for o in s.scalars(
@@ -150,8 +183,12 @@ def pack_dict(s, u):
                 script_version_id=v.script_version_id,
                 state=v.state,
                 provider=v.provider,
-                url=v.url,
+                url=info["url"],
+                teacher_video_id=info["teacher_video_id"],
+                approved=info["approved"],
+                published=info["published"],
             )
             for v in s.scalars(select(VideoJob).where(VideoJob.unit_id == u.id))
+            for info in [_resolve_video_info(s, u.id, v)]
         ],
     )

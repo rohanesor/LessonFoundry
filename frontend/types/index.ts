@@ -81,6 +81,9 @@ export interface Video {
   state: string;
   provider: string;
   url: string | null;
+  teacher_video_id?: string | null;
+  approved?: boolean;
+  published?: boolean;
 }
 export interface Pack {
   id: string;

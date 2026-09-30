@@ -323,14 +323,32 @@ export function VideoWorkflow({
               <b>
                 {latest.provider} · v{latest.script_version_id === script?.version_id ? script?.version : "historical"}
               </b>
-              <Status state={latest.state} />
+              <Status state={latest.approved ? "APPROVED" : latest.state} />
             </div>
             {latest.url ? (
               <video src={latest.url} controls poster="" style={{ width: "100%", maxHeight: 420 }} />
             ) : (
               <p className="muted">No playable video is available from the demo provider.</p>
             )}
-            <small>{latest.state} · {latest.url ? "Demo media attached" : "Simulation only"}</small>
+            <div className="row spread" style={{ alignItems: "center", marginTop: "8px" }}>
+              <small>{latest.approved ? "Approved for students" : latest.state} · {latest.url ? "Demo media attached" : "Simulation only"}</small>
+              {latest.teacher_video_id && (
+                <Button
+                  disabled={latest.approved}
+                  onClick={() =>
+                    run(
+                      async () => {
+                        await post(`/videos/${latest.teacher_video_id}/approve`);
+                        await videos.refetch();
+                      },
+                      "AI Teacher video approved",
+                    )
+                  }
+                >
+                  {latest.approved ? "Video approved ✓" : "Approve video"}
+                </Button>
+              )}
+            </div>
           </article>
         ) : (
           <Empty title="No AI Teacher video yet">
@@ -339,7 +357,7 @@ export function VideoWorkflow({
           </Empty>
         )}
         {message && <div className="alert" role="status">{message}</div>}
-        {videos.data?.map(v => <div className="asset-card stack" key={v.id}><div className="row spread"><span><b>{v.title}</b>{v.is_demo && <small className="muted"> · Supplied development recording</small>}</span><Status state={v.approved ? "APPROVED" : v.status} /></div>{previewUrl && <video src={previewUrl} controls preload="metadata" style={{width:"100%",maxHeight:360}} /> }<div className="row"><Button onClick={async()=>{try{const r=await api<{url:string}>(`/videos/${v.id}/download`);setPreviewUrl(r.url);}catch(e){setMessage((e as Error).message);}}}>Preview</Button><Button disabled={v.approved} onClick={() => run(async () => { await post(`/videos/${v.id}/approve`); await videos.refetch(); }, "Existing video approved")}>{v.approved ? "Approved" : "Approve video"}</Button></div></div>)}
+        {videos.data?.filter(v => v.id !== latest?.teacher_video_id).map(v => <div className="asset-card stack" key={v.id}><div className="row spread"><span><b>{v.title}</b>{v.is_demo && <small className="muted"> · Supplied development recording</small>}</span><Status state={v.approved ? "APPROVED" : v.status} /></div>{previewUrl && <video src={previewUrl} controls preload="metadata" style={{width:"100%",maxHeight:360}} /> }<div className="row"><Button onClick={async()=>{try{const r=await api<{url:string}>(`/videos/${v.id}/download`);setPreviewUrl(r.url);}catch(e){setMessage((e as Error).message);}}}>Preview</Button><Button disabled={v.approved} onClick={() => run(async () => { await post(`/videos/${v.id}/approve`); await videos.refetch(); }, "Existing video approved")}>{v.approved ? "Approved" : "Approve video"}</Button></div></div>)}
         <div className="row">
           <label className="btn btn-secondary">Upload existing video<input hidden type="file" accept="video/mp4,video/webm,video/quicktime" disabled={uploading} onChange={e => { const f=e.target.files?.[0]; if(f) void uploadVideo(f); e.currentTarget.value=""; }} /></label>
           <Button
@@ -347,7 +365,10 @@ export function VideoWorkflow({
             disabled={!scriptApproved || !avatarId}
             onClick={() =>
               run(
-                () => post("/video-jobs", { pack_id: pack.id, avatar_id: avatarId }),
+                async () => {
+                  await post("/video-jobs", { pack_id: pack.id, avatar_id: avatarId });
+                  await videos.refetch();
+                },
                 "Mock generation queued",
               )
             }

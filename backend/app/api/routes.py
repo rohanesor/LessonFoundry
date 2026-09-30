@@ -511,8 +511,14 @@ def approve_video(vid: str, user=Depends(teacher)):
         v = s.get(TeacherVideo, vid)
         if not v or v.owner_id != user: raise HTTPException(404, "Video not found")
         if not v.pack_id: raise HTTPException(409, "Attach the video to a pack first")
+        pack = s.get(Unit, v.pack_id)
+        if not pack or pack.owner_id != user: raise HTTPException(404, "Pack not found")
         v.approved = True
-        return {"id": v.id, "approved": True}
+        # If the pack is already published, approving this attached video is
+        # the final gate needed to make it visible. Otherwise publication will
+        # set published=True later.
+        v.published = bool(pack.published_at)
+        return {"id": v.id, "approved": True, "published": v.published}
 
 
 @router.get("/videos/{vid}/download")

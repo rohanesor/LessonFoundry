@@ -1,6 +1,6 @@
 """Classroom, membership, publication, and authenticated student APIs."""
 
-from sqlalchemy import select, func
+from sqlalchemy import select, func, or_
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
@@ -261,6 +261,8 @@ def unpublish_pack(pid: str, user=Depends(teacher)):
         if not u.published_at:
             raise HTTPException(409, "Pack is not published")
         u.published_at = None
+        for video in s.scalars(select(TeacherVideo).where(TeacherVideo.pack_id == u.id)):
+            video.published = False
         u.revision += 1
         from app.services.packs import event
         event(s, u, "Pack unpublished", "Students can no longer access this pack.")
@@ -396,9 +398,18 @@ def student_pack(pid: str, user=Depends(student)):
                 Export.status == "completed",
             ).order_by(Export.created_at.desc())
         )
-        published_video = s.scalar(select(TeacherVideo).where(TeacherVideo.pack_id == u.id, TeacherVideo.approved == True, TeacherVideo.published == True).order_by(TeacherVideo.created_at.desc()))
+        published_video = s.scalar(
+            select(TeacherVideo)
+            .where(
+                TeacherVideo.pack_id == u.id,
+                TeacherVideo.approved == True,
+            )
+            .order_by(TeacherVideo.created_at.desc())
+        )
         video_output = None
         if published_video:
+            if not published_video.published:
+                published_video.published = True
             try:
                 from app.services.storage import get_store
                 signed = get_store("media").create_server_download_url(published_video.storage_key, expires=60)

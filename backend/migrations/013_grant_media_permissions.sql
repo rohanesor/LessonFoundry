@@ -1,8 +1,19 @@
 -- Grant media permissions for avatars and teacher_videos to API and worker roles.
 BEGIN;
 
-GRANT USAGE ON SCHEMA public TO lessonfoundry_api, lessonfoundry_worker, lessonfoundry_api_login, lessonfoundry_worker_login;
-GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.avatars, public.teacher_videos TO lessonfoundry_api, lessonfoundry_worker, lessonfoundry_api_login, lessonfoundry_worker_login;
+GRANT USAGE ON SCHEMA public TO lessonfoundry_api, lessonfoundry_worker;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.avatars, public.teacher_videos TO lessonfoundry_api, lessonfoundry_worker;
+DO $$ BEGIN
+  IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'lessonfoundry_api_login') THEN
+    EXECUTE 'GRANT USAGE ON SCHEMA public TO lessonfoundry_api_login';
+    EXECUTE 'GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.avatars, public.teacher_videos TO lessonfoundry_api_login';
+  END IF;
+  IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'lessonfoundry_worker_login') THEN
+    EXECUTE 'GRANT USAGE ON SCHEMA public TO lessonfoundry_worker_login';
+    EXECUTE 'GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.avatars, public.teacher_videos TO lessonfoundry_worker_login';
+  END IF;
+END $$;
+UPDATE public.teacher_videos v SET published=true FROM public.units u WHERE v.pack_id=u.id AND v.approved=true AND u.published_at IS NOT NULL;
 
 -- RLS policies for lessonfoundry_api on avatars
 DO $$

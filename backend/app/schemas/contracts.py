@@ -89,6 +89,11 @@ class Choice(BaseModel):
     choice: int = Field(ge=0, le=3)
 
 
+class CustomResourceInput(BaseModel):
+    url: str = Field(min_length=12, max_length=500)
+    title: str | None = Field(default=None, max_length=250)
+
+
 class ProfileUpdate(BaseModel):
     name: str | None = Field(default=None, min_length=2, max_length=150)
     role: Literal["teacher", "student"] | None = None

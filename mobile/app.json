@@ -5,8 +5,21 @@
     "version": "0.1.0",
     "orientation": "default",
     "userInterfaceStyle": "light",
-    "splash": { "backgroundColor": "#f3f2f2" },
-    "ios": { "supportsTablet": true, "bundleIdentifier": "com.lessonfoundry.app" },
-    "android": { "package": "com.lessonfoundry.app", "adaptiveIcon": { "backgroundColor": "#f3f2f2" } }
+    "splash": {
+      "backgroundColor": "#f3f2f2"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.lessonfoundry.app"
+    },
+    "android": {
+      "package": "com.lessonfoundry.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#f3f2f2"
+      }
+    },
+    "plugins": [
+      "expo-asset"
+    ]
   }
 }

@@ -77,10 +77,10 @@ jobs:
         if: ${{ env.EXPO_TOKEN == '' }}
         working-directory: mobile
         run: |
-          npx expo prebuild --platform android --clean
+          npx expo prebuild --platform android --clean --no-install
           cd android
           chmod +x gradlew
-          ./gradlew assembleDebug
+          ./gradlew assembleDebug --no-daemon
           APK_FILE="$(find app/build/outputs/apk -name "*.apk" | head -n 1)"
           if [ -z "$APK_FILE" ]; then
             echo "No APK produced by Gradle"

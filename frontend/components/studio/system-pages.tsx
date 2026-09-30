@@ -256,7 +256,7 @@ export function VideoWorkflow({
                   disabled={script.state === "APPROVED" || script.stale}
                   onClick={() => onApprove(script)}
                 >
-                  Review & approve script
+                  {script.state === "APPROVED" ? "Script approved ✓" : script.stale ? "Script stale (source changed)" : "Review & approve script"}
                 </Button>
               </div>
             </article>

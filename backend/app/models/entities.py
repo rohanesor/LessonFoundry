@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from uuid import uuid4
+from uuid import uuid4, UUID
 from sqlalchemy import (
     String,
     Text,
@@ -8,6 +8,7 @@ from sqlalchemy import (
     ForeignKey,
     JSON,
     UniqueConstraint,
+    Uuid,
 )
 from sqlalchemy.orm import Mapped, mapped_column
 from app.database import Base
@@ -31,6 +32,7 @@ class User(Identity, Base):
     email: Mapped[str | None] = mapped_column(String, nullable=True)
     avatar_url: Mapped[str | None] = mapped_column(String, nullable=True)
     role: Mapped[str] = mapped_column(String, default="teacher")
+    auth_user_id: Mapped[UUID | None] = mapped_column(Uuid, nullable=True)
     institution_type: Mapped[str | None] = mapped_column(String, nullable=True)
     institution_name: Mapped[str | None] = mapped_column(String(200), nullable=True)
     grade_level: Mapped[str | None] = mapped_column(String(100), nullable=True)

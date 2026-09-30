@@ -50,13 +50,26 @@ def ensure_user(user_id: str, role: str = "teacher", name: str = "User",
     with transaction() as s:
         db_user = s.get(User, user_id)
         if not db_user:
-            if s.bind.dialect.name == "postgresql":
+            is_pg = s.bind.dialect.name == "postgresql"
+            if is_pg:
                 from sqlalchemy.dialects.postgresql import insert
             else:
                 from sqlalchemy.dialects.sqlite import insert
+            vals = {
+                "id": user_id,
+                "name": name,
+                "role": role,
+                "email": email,
+                "avatar_url": avatar_url,
+            }
+            if is_pg:
+                try:
+                    vals["auth_user_id"] = UUID(user_id)
+                except Exception:
+                    pass
             s.execute(
                 insert(User)
-                .values(id=user_id, name=name, role=role, email=email, avatar_url=avatar_url)
+                .values(**vals)
                 .on_conflict_do_nothing(index_elements=[User.id])
             )
             s.flush()

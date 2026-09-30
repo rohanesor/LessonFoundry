@@ -15,6 +15,33 @@ export default function AuthCallback() {
       return;
     }
 
+    async function finalizeUser() {
+      try {
+        const oauthRole = sessionStorage.getItem("lf_oauth_intent");
+        if (oauthRole) {
+          try {
+            await api("/me", {
+              method: "PATCH",
+              body: JSON.stringify({ role: oauthRole }),
+            });
+          } catch (e) {
+            console.warn("Could not patch oauth role", e);
+          } finally {
+            sessionStorage.removeItem("lf_oauth_intent");
+          }
+        }
+        const u = await api<{ role?: string; onboarding_completed?: boolean }>("/me");
+        if (u.onboarding_completed === false) {
+          router.replace("/onboarding");
+        } else {
+          router.replace(u.role === "student" ? "/student" : "/teacher");
+        }
+      } catch (err) {
+        console.error("User resolution error:", err);
+        setErrorMessage((err as Error).message);
+      }
+    }
+
     async function handleAuth() {
       try {
         const url = new URL(window.location.href);
@@ -29,8 +56,7 @@ export default function AuthCallback() {
           const { data, error: exchangeError } = await supabase().auth.exchangeCodeForSession(code);
           if (exchangeError) throw exchangeError;
           if (data.session) {
-            const u = await api<{ role?: string }>("/me");
-            router.replace(u.role === "student" ? "/student" : "/teacher");
+            await finalizeUser();
             return;
           }
         }
@@ -38,8 +64,7 @@ export default function AuthCallback() {
         // Check active session if already resolved or implicit tokens
         const { data: sessionData } = await supabase().auth.getSession();
         if (sessionData.session) {
-          const u = await api<{ role?: string }>("/me");
-          router.replace(u.role === "student" ? "/student" : "/teacher");
+          await finalizeUser();
           return;
         }
 
@@ -47,18 +72,14 @@ export default function AuthCallback() {
         const { data: listener } = supabase().auth.onAuthStateChange(async (event, session) => {
           if (session) {
             listener.subscription.unsubscribe();
-            try {
-              const u = await api<{ role?: string }>("/me");
-              router.replace(u.role === "student" ? "/student" : "/teacher");
-            } catch {
-              router.replace("/teacher");
-            }
+            await finalizeUser();
           }
         });
 
         setTimeout(() => {
-          router.replace("/login");
-        }, 5000);
+          setErrorMessage("Authentication timed out. Returning to login…");
+          setTimeout(() => router.replace("/login"), 3000);
+        }, 8000);
       } catch (err) {
         console.error("OAuth callback error:", err);
         setErrorMessage((err as Error).message);

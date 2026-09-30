@@ -33,6 +33,11 @@ export default function LoginPage() {
       return;
     }
     setBusy(true);
+    if (mode === "signup") {
+      sessionStorage.setItem("lf_oauth_intent", intent);
+    } else {
+      sessionStorage.removeItem("lf_oauth_intent");
+    }
     const { error } = await supabase().auth.signInWithOAuth({
       provider: "google",
       options: {
@@ -137,45 +142,52 @@ export default function LoginPage() {
                 Create account
               </button>
             </div>
+            {mode === "signup" && (
+              <div style={{ marginBottom: 12 }}>
+                <p className="muted" style={{ margin: "0 0 6px", fontSize: 13, fontWeight: 500 }}>
+                  I want to join as:
+                </p>
+                <div className="role-choice">
+                  <button
+                    type="button"
+                    className={intent === "teacher" ? "selected" : ""}
+                    onClick={() => setIntent("teacher")}
+                  >
+                    Teacher / Educator
+                  </button>
+                  <button
+                    type="button"
+                    className={intent === "student" ? "selected" : ""}
+                    onClick={() => setIntent("student")}
+                  >
+                    Student / Learner
+                  </button>
+                </div>
+              </div>
+            )}
             <button
               className="btn btn-primary btn-block"
               onClick={google}
               disabled={busy}
             >
-              Continue with Google
+              {mode === "signup"
+                ? `Sign up with Google as ${intent === "teacher" ? "Teacher" : "Student"}`
+                : "Continue with Google"}
             </button>
             <div className="muted" style={{ textAlign: "center" }}>
               or
             </div>
             <form className="stack" onSubmit={password}>
               {mode === "signup" && (
-                <>
-                  <div className="role-choice">
-                    <button
-                      type="button"
-                      className={intent === "teacher" ? "selected" : ""}
-                      onClick={() => setIntent("teacher")}
-                    >
-                      Teacher / Educator
-                    </button>
-                    <button
-                      type="button"
-                      className={intent === "student" ? "selected" : ""}
-                      onClick={() => setIntent("student")}
-                    >
-                      Student / Learner
-                    </button>
-                  </div>
-                  <label>
-                    Full name
-                    <input
-                      className="input"
-                      name="name"
-                      required
-                      minLength={2}
-                    />
-                  </label>
-                </>
+                <label>
+                  Full name
+                  <input
+                    className="input"
+                    name="name"
+                    required
+                    minLength={2}
+                  />
+                </label>
               )}
               <label>
                 Email

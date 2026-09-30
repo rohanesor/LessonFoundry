@@ -91,6 +91,7 @@ class Choice(BaseModel):
 
 class ProfileUpdate(BaseModel):
     name: str | None = Field(default=None, min_length=2, max_length=150)
+    role: Literal["teacher", "student"] | None = None
     institution_type: Literal["school", "college", "independent"] | None = None
     institution_name: str | None = Field(default=None, max_length=200)
     grade_level: str | None = Field(default=None, max_length=100)

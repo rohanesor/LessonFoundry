@@ -28,7 +28,11 @@ def verify_session(token: str, required_role: str | None = None) -> tuple[str, s
             issuer=f"{url}/auth/v1",
             options={"require": ["exp", "iat", "sub", "iss", "aud"]},
         )
-        role = claims.get("app_metadata", {}).get("role", "student")
+        if claims.get("app_metadata") is None:
+            raise ValueError("app_metadata required")
+        app_meta = claims.get("app_metadata") or {}
+        user_meta = claims.get("user_metadata") or {}
+        role = app_meta.get("role") or user_meta.get("role") or user_meta.get("requested_role") or "student"
         if required_role and role != required_role:
             raise ValueError(f"{required_role} role required")
         user_id = str(UUID(claims["sub"]))
@@ -42,17 +46,22 @@ def verify_session(token: str, required_role: str | None = None) -> tuple[str, s
 
 
 def ensure_user(user_id: str, role: str = "teacher", name: str = "User",
-                email: str | None = None, avatar_url: str | None = None):
+                email: str | None = None, avatar_url: str | None = None) -> str:
     with transaction() as s:
-        if s.bind.dialect.name == "postgresql":
-            from sqlalchemy.dialects.postgresql import insert
-        else:
-            from sqlalchemy.dialects.sqlite import insert
-        s.execute(
-            insert(User)
-            .values(id=user_id, name=name, role=role, email=email, avatar_url=avatar_url)
-            .on_conflict_do_nothing(index_elements=[User.id])
-        )
+        db_user = s.get(User, user_id)
+        if not db_user:
+            if s.bind.dialect.name == "postgresql":
+                from sqlalchemy.dialects.postgresql import insert
+            else:
+                from sqlalchemy.dialects.sqlite import insert
+            s.execute(
+                insert(User)
+                .values(id=user_id, name=name, role=role, email=email, avatar_url=avatar_url)
+                .on_conflict_do_nothing(index_elements=[User.id])
+            )
+            s.flush()
+            db_user = s.get(User, user_id)
+        return db_user.role if db_user else role
 
 
 def _extract_token(authorization: str) -> str:
@@ -65,8 +74,13 @@ def _extract_token(authorization: str) -> str:
 
 async def _resolve(authorization: str, required_role: str | None = None):
     token = _extract_token(authorization)
+    claims = {}
     if os.getenv("AUTH_MODE", "local") == "supabase":
         user_id, role = await run_in_threadpool(verify_session, token, required_role)
+        try:
+            claims = jwt.decode(token, options={"verify_signature": False})
+        except Exception:
+            claims = {}
     else:
         teacher_tok = os.getenv("LOCAL_TEACHER_TOKEN", "local-development-only")
         student_tok = os.getenv("LOCAL_STUDENT_TOKEN", "local-student-only")
@@ -80,7 +94,13 @@ async def _resolve(authorization: str, required_role: str | None = None):
             raise HTTPException(403, f"{required_role} role required")
     handle = identity.set(Identity(user_id, token))
     try:
-        await run_in_threadpool(ensure_user, user_id, role)
+        user_meta = claims.get("user_metadata") or {}
+        name = user_meta.get("full_name") or user_meta.get("name") or "User"
+        email = claims.get("email")
+        avatar_url = user_meta.get("avatar_url") or user_meta.get("picture")
+        actual_role = await run_in_threadpool(ensure_user, user_id, role, name, email, avatar_url)
+        if required_role and actual_role != required_role:
+            raise HTTPException(403, f"{required_role} role required")
         yield user_id
     finally:
         identity.reset(handle)

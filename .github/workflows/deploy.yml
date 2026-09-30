@@ -19,38 +19,56 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Configure SSH
+        env:
+          EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
         run: |
+          test -n "$EC2_SSH_KEY"
           mkdir -p ~/.ssh
-          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/deploy_key
+          printf '%s\n' "$EC2_SSH_KEY" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H 3.7.29.147 >> ~/.ssh/known_hosts
           cat >> ~/.ssh/config <<EOF
           Host ec2
             HostName 3.7.29.147
             User ubuntu
             IdentityFile ~/.ssh/deploy_key
-            StrictHostKeyChecking no
+            IdentitiesOnly yes
+            StrictHostKeyChecking yes
           EOF
 
-      - name: Pull latest code
-        run: ssh ec2 "cd /opt/lessonfoundry && git pull origin main"
-
-      - name: Apply database migrations
+      - name: Pull exact successful commit
+        env:
+          SHA: ${{ github.event.workflow_run.head_sha }}
         run: |
-          ssh ec2 'cd /opt/lessonfoundry && for f in backend/migrations/*.sql; do
-            echo "Applying $f..."
-            docker compose exec -T db psql -U lessonfoundry -d lessonfoundry -f - < "$f" 2>&1 || true
-          done'
+          ssh ec2 "cd /opt/lessonfoundry && git fetch origin && git checkout main && git pull --ff-only origin main && test \"\$(git rev-parse HEAD)\" = \"$SHA\""
+
+      - name: Apply ordered migrations
+        run: |
+          ssh ec2 'cd /opt/lessonfoundry && set -euo pipefail
+            MIGRATION_BASELINE="${MIGRATION_BASELINE:-010}"
+            docker compose exec -T db psql -v ON_ERROR_STOP=1 -U lessonfoundry -d lessonfoundry <<SQL
+            CREATE TABLE IF NOT EXISTS lessonfoundry_schema_migrations (
+              version varchar(32) PRIMARY KEY,
+              filename text NOT NULL,
+              applied_at timestamptz NOT NULL DEFAULT now()
+            );
+            SQL
+            for f in backend/migrations/*.sql; do
+              version="$(basename "$f" | cut -d_ -f1)"
+              [ "$version" -gt "$MIGRATION_BASELINE" ] || continue
+              if docker compose exec -T db psql -At -U lessonfoundry -d lessonfoundry -c "SELECT 1 FROM lessonfoundry_schema_migrations WHERE version = '\''$version'\''" | grep -q 1; then
+                echo "Skipping applied migration $f"
+                continue
+              fi
+              echo "Applying $f"
+              docker compose exec -T db psql -v ON_ERROR_STOP=1 -U lessonfoundry -d lessonfoundry -f - < "$f"
+              docker compose exec -T db psql -v ON_ERROR_STOP=1 -U lessonfoundry -d lessonfoundry -c "INSERT INTO lessonfoundry_schema_migrations(version, filename) VALUES ('\''$version'\'', '\''$f'\'')"
+            done'
 
       - name: Rebuild and restart containers
         run: |
-          ssh ec2 'cd /opt/lessonfoundry && \
-            docker compose build --no-cache api worker web && \
-            docker compose up -d && \
-            echo "Waiting for health check..." && \
-            sleep 10 && \
-            curl -sf http://127.0.0.1:8000/api/ready || echo "Health check warning"'
+          ssh ec2 'cd /opt/lessonfoundry && docker compose build api worker web && docker compose up -d --remove-orphans && sleep 10 && curl -fsS http://127.0.0.1:8000/api/ready'
 
       - name: Verify deployment
         run: |
-          ssh ec2 'curl -sf http://127.0.0.1:8000/api/ready && echo "Deployment OK" || echo "Deployment needs attention"'
-          ssh ec2 'docker compose ps'
+          ssh ec2 'cd /opt/lessonfoundry && curl -fsS http://127.0.0.1:8000/api/health && curl -fsS http://127.0.0.1:8000/api/ready && docker compose ps'

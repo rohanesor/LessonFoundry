@@ -6,7 +6,7 @@
     "orientation": "default",
     "userInterfaceStyle": "light",
     "splash": { "backgroundColor": "#f3f2f2" },
-    "ios": { "supportsTablet": true },
-    "android": { "adaptiveIcon": { "backgroundColor": "#f3f2f2" } }
+    "ios": { "supportsTablet": true, "bundleIdentifier": "com.lessonfoundry.app" },
+    "android": { "package": "com.lessonfoundry.app", "adaptiveIcon": { "backgroundColor": "#f3f2f2" } }
   }
 }

@@ -33,11 +33,16 @@ class VideoGenerationProvider:
 
 class MockVideoGenerationProvider(VideoGenerationProvider):
     def __init__(self) -> None:
-        configured = os.getenv("AI_TEACHER_DEMO_VIDEO_PATH", "backend/integration/fixtures/ai_teacher_demo_video.mp4")
+        configured = os.getenv("AI_TEACHER_DEMO_VIDEO_PATH", "fixtures/ai_teacher_demo_video.mp4")
         self.video_path = Path(configured)
         if not self.video_path.is_absolute():
-            candidates = [Path.cwd() / self.video_path, Path(__file__).resolve().parents[3] / self.video_path]
-            self.video_path = next((p for p in candidates if p.is_file()), candidates[-1])
+            candidates = [
+                Path(__file__).resolve().parent.parent / "fixtures" / "ai_teacher_demo_video.mp4",
+                Path.cwd() / self.video_path,
+                Path(__file__).resolve().parents[3] / self.video_path,
+                Path("backend/integration/fixtures/ai_teacher_demo_video.mp4"),
+            ]
+            self.video_path = next((p for p in candidates if p.is_file()), candidates[0])
 
     def create_video(self, input: VideoGenerationInput) -> VideoGenerationResult:
         if not input.avatar_id:

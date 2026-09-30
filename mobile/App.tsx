@@ -3,7 +3,7 @@ import { ActivityIndicator, Button, Image, SafeAreaView, ScrollView, StyleSheet,
 import * as ImagePicker from "expo-image-picker";
 import { Video, ResizeMode } from "expo-av";
 
-const API = process.env.EXPO_PUBLIC_API_URL || "http://127.0.0.1:8000/api";
+const API = process.env.EXPO_PUBLIC_API_URL || "https://lessonfoundry.duckdns.org/api";
 type Role = "teacher" | "student";
 type Me = { name: string; role: Role; onboarding_completed?: boolean };
 type Avatar = { id: string; name: string; description: string };

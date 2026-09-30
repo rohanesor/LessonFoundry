@@ -1,44 +1,30 @@
-# LessonFoundry Mobile App
+# LessonFoundry Mobile
 
-React Native / Expo mobile client for LessonFoundry.
+## Test on a phone with Expo Go
 
-## Features
-- **Token-based Authentication:** Works with LessonFoundry API session tokens.
-- **Teacher Avatar Selection:** Select and upload avatar photos directly from device camera roll.
-- **Student Video Playback:** Stream authorized AI teacher video lessons using native video player.
-- **Modernist Design System:** Shares typography, colors, and layout principles with LessonFoundry web.
+```bash
+npm ci
+EXPO_PUBLIC_API_URL=https://lessonfoundry.duckdns.org/api npx expo start
+```
 
-## Quick Start (Local Testing with Expo Go)
+Scan the QR code with Expo Go. The phone must be able to reach the configured API URL; `127.0.0.1` refers to the phone itself and will not reach the EC2 server.
 
-1. **Install dependencies:**
-   ```bash
-   cd mobile
-   npm install
-   ```
+## Installable Android APK
 
-2. **Start the development server:**
-   ```bash
-   npx expo start
-   ```
+The GitHub Mobile Release workflow creates an Android preview APK when the repository secret `EXPO_TOKEN` is configured. The workflow is manual:
 
-3. **Run on your device:**
-   - Install **Expo Go** from Google Play Store or iOS App Store.
-   - Scan the QR code shown in your terminal.
+```text
+Actions → Mobile Release → Run workflow
+```
 
-## Building Native APK for Android (via EAS)
+The resulting GitHub Release contains:
 
-1. **Install EAS CLI:**
-   ```bash
-   npm install -g eas-cli
-   ```
+```text
+lessonfoundry-android-<version>.apk
+```
 
-2. **Log in to Expo:**
-   ```bash
-   eas login
-   ```
+Download that APK on Android, allow installation from the browser/files app when prompted, and install it.
 
-3. **Configure and build preview APK:**
-   ```bash
-   eas build --platform android --profile preview
-   ```
-   This generates an `.apk` file that can be downloaded and installed directly on any Android device without the Google Play Store.
+## iOS
+
+A directly downloadable unsigned iOS app is not produced. Use an EAS internal distribution/TestFlight build with an Apple Developer account.

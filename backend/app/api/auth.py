@@ -116,7 +116,10 @@ async def _resolve(authorization: str, required_role: str | None = None):
             raise HTTPException(403, f"{required_role} role required")
         yield user_id
     finally:
-        identity.reset(handle)
+        try:
+            identity.reset(handle)
+        except ValueError:
+            identity.set(None)
 
 
 async def teacher(authorization: str = Header(default="")):

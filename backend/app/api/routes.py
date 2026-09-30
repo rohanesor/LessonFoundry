@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+from urllib.parse import urlparse, parse_qs
 from uuid import uuid4
 import httpx
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
@@ -425,10 +426,15 @@ def _media_key(owner: str, kind: str, ident: str, filename: str) -> str:
 
 @router.get("/avatars")
 def list_avatars(user=Depends(teacher)):
-    demo_path = Path(os.getenv("AI_TEACHER_DEMO_AVATAR_PATH", "backend/integration/fixtures/ai_teacher_demo_avatar.png"))
+    demo_path = Path(os.getenv("AI_TEACHER_DEMO_AVATAR_PATH", "fixtures/ai_teacher_demo_avatar.png"))
     if not demo_path.is_absolute():
-        candidates = [Path.cwd() / demo_path, Path(__file__).resolve().parents[3] / demo_path]
-        demo_path = next((p for p in candidates if p.is_file()), candidates[-1])
+        candidates = [
+            Path(__file__).resolve().parent.parent / "fixtures" / "ai_teacher_demo_avatar.png",
+            Path.cwd() / demo_path,
+            Path(__file__).resolve().parents[3] / demo_path,
+            Path("backend/integration/fixtures/ai_teacher_demo_avatar.png"),
+        ]
+        demo_path = next((p for p in candidates if p.is_file()), candidates[0])
     with transaction() as s:
         demo = s.scalar(select(Avatar).where(Avatar.owner_id == user, Avatar.is_demo == True))
         if demo_path.is_file() and not demo:
@@ -570,6 +576,39 @@ def resources(pid: str, user=Depends(teacher)):
             )
             for r in s.scalars(select(Resource).where(Resource.unit_id == pid))
         ]
+
+
+@router.post("/packs/{pid}/resources/custom")
+def add_custom_resource(pid: str, body: CustomResourceInput, user=Depends(teacher)):
+    parsed = urlparse(body.url.strip())
+    host = parsed.netloc.lower().split(":")[0]
+    video_id = parse_qs(parsed.query).get("v", [None])[0]
+    if host in {"youtu.be", "www.youtu.be"}:
+        video_id = parsed.path.strip("/").split("/")[0]
+    elif host in {"youtube.com", "www.youtube.com", "m.youtube.com"} and parsed.path.startswith("/shorts/"):
+        video_id = parsed.path.split("/")[2] if len(parsed.path.split("/")) > 2 else None
+    if host not in {"youtu.be", "www.youtu.be", "youtube.com", "www.youtube.com", "m.youtube.com"} or not video_id or len(video_id) > 80:
+        raise HTTPException(422, "Enter a valid YouTube watch, youtu.be, or Shorts URL")
+    title = body.title.strip() if body.title else "YouTube resource"
+    channel = "Teacher-added link"
+    key = os.getenv("YOUTUBE_API_KEY")
+    if key:
+        try:
+            response = httpx.get("https://www.googleapis.com/youtube/v3/videos", params={"key":key,"part":"snippet","id":video_id}, timeout=15)
+            if response.is_success and response.json().get("items"):
+                snippet = response.json()["items"][0]["snippet"]
+                title = title if body.title else snippet.get("title", title)
+                channel = snippet.get("channelTitle", channel)
+        except Exception:
+            pass
+    with transaction() as s:
+        owned(s, pid, user)
+        resource = s.scalar(select(Resource).where(Resource.unit_id == pid, Resource.video_id == video_id))
+        if resource:
+            raise HTTPException(409, "That YouTube video is already in this pack")
+        resource = Resource(unit_id=pid, video_id=video_id, title=title, channel=channel)
+        s.add(resource); s.flush()
+        return {"id": resource.id, "title": resource.title, "channel": resource.channel, "url": f"https://www.youtube.com/watch?v={video_id}", "approved": False}
 
 
 @router.post("/packs/{pid}/resources/search")

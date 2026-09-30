@@ -53,7 +53,19 @@ jobs:
       - name: Package mobile source
         run: |
           tar -czf lessonfoundry-mobile-source-${{ inputs.version }}.tar.gz \
-            mobile/App.tsx mobile/app.json mobile/package.json mobile/tsconfig.json
+            mobile/App.tsx mobile/app.json mobile/eas.json mobile/package.json mobile/package-lock.json mobile/tsconfig.json
+
+      - name: Build Android APK with EAS
+        if: ${{ secrets.EXPO_TOKEN != '' }}
+        working-directory: mobile
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: |
+          npx eas-cli@latest build --platform android --profile preview --non-interactive --wait --output ../lessonfoundry-android-${{ inputs.version }}.apk || {
+            npx eas-cli@latest build:list --platform android --limit 1 --json > ../eas-build.json
+            node -e "const fs=require('fs'); const x=JSON.parse(fs.readFileSync('../eas-build.json')); const url=x[0]?.artifacts?.buildUrl || x[0]?.artifacts?.applicationArchiveUrl; if(!url) throw new Error('EAS returned no APK URL'); fs.writeFileSync('../lessonfoundry-android-${{ inputs.version }}.url', url);"
+            curl -fL "$(cat ../lessonfoundry-android-${{ inputs.version }}.url)" -o ../lessonfoundry-android-${{ inputs.version }}.apk
+          }
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
@@ -80,9 +92,19 @@ jobs:
             ```
             Scan the QR code with Expo Go on your phone to test.
 
+            If `EXPO_TOKEN` is configured in GitHub Actions, this release also includes an installable Android APK.
+
             ### To build a native APK (requires EAS):
             ```bash
             npm install -g eas-cli
             cd mobile
             eas build --platform android --profile preview
             ```
+
+      - name: Attach Android APK
+        if: ${{ secrets.EXPO_TOKEN != '' }}
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ inputs.version }}
+          files: lessonfoundry-android-${{ inputs.version }}.apk
+          fail_on_unmatched_files: true

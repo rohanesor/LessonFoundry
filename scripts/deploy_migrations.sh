@@ -1,7 +1,7 @@
 #!/bin/bash
 set -eu
 
-MIGRATION_BASELINE="${MIGRATION_BASELINE:-012}"
+MIGRATION_BASELINE="${MIGRATION_BASELINE:-013}"
 
 # Initialize migration tracking table
 docker compose exec -T db psql -v ON_ERROR_STOP=1 -U lessonfoundry -d lessonfoundry <<SQL

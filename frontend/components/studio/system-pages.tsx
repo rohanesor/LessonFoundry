@@ -1,6 +1,6 @@
 "use client";
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { api, post } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Status, Skeleton, Empty } from "@/components/ui/status";
@@ -137,6 +137,8 @@ export function Resources({
     queryKey: ["resources", pack.id],
     queryFn: () => api<Resource[]>(`/packs/${pack.id}/resources`),
   });
+  const [url, setUrl] = useState("");
+  const [title, setTitle] = useState("");
   return (
     <div className="page stack">
       <div className="kicker">Supplementary · Not source evidence</div>
@@ -144,16 +146,14 @@ export function Resources({
       <p className="muted">
         Real YouTube search results, reviewed by you before students see them.
       </p>
-      <Button
-        onClick={() =>
-          run(async () => {
-            await post(`/packs/${pack.id}/resources/search`);
-            await q.refetch();
-          }, "Search completed")
-        }
-      >
-        Search YouTube resources
-      </Button>
+      <div className="asset-card stack">
+        <h3>Add a teacher-selected video</h3>
+        <p className="muted">Paste a YouTube watch, youtu.be, or Shorts link. It stays private to students until you approve it.</p>
+        <label>YouTube URL<input className="input" value={url} onChange={e => setUrl(e.target.value)} placeholder="https://youtu.be/..." /></label>
+        <label>Optional title<input className="input" value={title} onChange={e => setTitle(e.target.value)} placeholder="Lesson resource" /></label>
+        <Button disabled={!url.trim()} onClick={() => run(async () => { await post(`/packs/${pack.id}/resources/custom`, { url, title: title || undefined }); setUrl(""); setTitle(""); await q.refetch(); }, "YouTube link added for review")}>Add video</Button>
+      </div>
+      <Button onClick={() => run(async () => { await post(`/packs/${pack.id}/resources/search`); await q.refetch(); }, "Search completed")}>Search YouTube resources</Button>
       {q.error && <div className="alert">{q.error.message}</div>}
       {q.isLoading ? (
         <Skeleton />
@@ -206,6 +206,7 @@ export function VideoWorkflow({
   const [uploading, setUploading] = useState(false);
   const [message, setMessage] = useState("");
   const [previewUrl, setPreviewUrl] = useState("");
+  const [avatarPreview, setAvatarPreview] = useState("");
   const avatars = useQuery({ queryKey: ["avatars"], queryFn: () => api<{id:string;name:string;description:string;status:string}[]>("/avatars") });
   const videos = useQuery({ queryKey: ["videos", pack.id], queryFn: () => api<{id:string;title:string;status:string;approved:boolean;published:boolean;is_demo:boolean}[]>(`/videos?pack_id=${pack.id}`) });
   async function createAvatar(file: File) {
@@ -216,6 +217,16 @@ export function VideoWorkflow({
     const form = new FormData(); form.append("file", file); form.append("title", file.name.replace(/\\.[^.]+$/, "")); form.append("pack_id", pack.id);
     setUploading(true); setMessage(""); try { const video = await api<{id:string}>("/videos", { method: "POST", body: form }); await api(`/videos/${video.id}/attach`, { method: "POST", body: (() => { const f = new FormData(); f.append("pack_id", pack.id); if (avatarId) f.append("avatar_id", avatarId); return f; })() }); await videos.refetch(); setMessage("Existing video uploaded and attached. Approve it before publication."); } catch(e) { setMessage((e as Error).message); } finally { setUploading(false); }
   }
+  const selectedAvatar = (avatars.data || []).find((a) => a.id === avatarId);
+  useEffect(() => {
+    if (!avatarId && avatars.data && avatars.data.length > 0) {
+      const first = avatars.data[0];
+      setAvatarId(first.id);
+      void api<{ url: string }>(`/avatars/${first.id}/download`)
+        .then((r) => setAvatarPreview(r.url))
+        .catch(() => setAvatarPreview(""));
+    }
+  }, [avatarId, avatars.data]);
   return (
     <div className="page stack">
       <div className="kicker">AI Teacher</div>
@@ -260,13 +271,25 @@ export function VideoWorkflow({
         <section className="stack">
           <h3>Avatar</h3>
           <div className="asset-card">
-            <div className="video-stage" style={{ minHeight: 160 }}>
-              <AITeacherIcon size={36} />
-              <h4>Avatar library</h4>
-              <span>Avatar upload and selection require the avatar library migration.</span>
+            <div className="video-stage" style={{ minHeight: 180, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "0.5rem" }}>
+              {avatarPreview ? (
+                <img
+                  src={avatarPreview}
+                  alt="Selected teacher avatar"
+                  style={{ width: 110, height: 110, borderRadius: "50%", objectFit: "cover", border: "2px solid var(--accent, #6366f1)" }}
+                />
+              ) : (
+                <AITeacherIcon size={48} />
+              )}
+              <h4>{selectedAvatar ? selectedAvatar.name : "Avatar library"}</h4>
+              <p className="muted" style={{ margin: 0, fontSize: "0.85rem", textAlign: "center" }}>
+                {selectedAvatar
+                  ? (selectedAvatar.description || "Active AI Teacher avatar profile.")
+                  : (avatars.isLoading ? "Loading avatar library…" : "Select or upload an avatar profile.")}
+              </p>
             </div>
             <div className="row">
-              <label className="row">Avatar<select className="input" value={avatarId} onChange={e => setAvatarId(e.target.value)}><option value="">Choose an avatar</option>{(avatars.data || []).map(a => <option key={a.id} value={a.id}>{a.name}</option>)}</select></label>
+              <label className="row">Avatar<select className="input" value={avatarId} onChange={async e => { const id=e.target.value; setAvatarId(id); if(id) { try { const r=await api<{url:string}>(`/avatars/${id}/download`); setAvatarPreview(r.url); } catch { setAvatarPreview(""); } } else setAvatarPreview(""); }}><option value="">Choose an avatar</option>{(avatars.data || []).map(a => <option key={a.id} value={a.id}>{a.name}</option>)}</select></label>
               <label className="btn btn-secondary">Create avatar from photo<input hidden type="file" accept="image/png,image/jpeg,image/webp" disabled={uploading} onChange={e => { const f=e.target.files?.[0]; if(f) void createAvatar(f); e.currentTarget.value=""; }} /></label>
             </div>
           </div>

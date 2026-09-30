@@ -35,12 +35,13 @@ jobs:
         working-directory: mobile
         run: npm run typecheck
 
-      - name: Install Expo CLI
-        run: npm install -g expo-cli@latest @expo/ngrok
+      - name: Validate Expo project
+        working-directory: mobile
+        run: npx expo config --type public
 
       - name: Export Expo web bundle
         working-directory: mobile
-        run: npx expo export --platform web --output-dir dist
+        run: npx expo export --platform web --output-dir dist --clear
         env:
           NODE_ENV: production
 

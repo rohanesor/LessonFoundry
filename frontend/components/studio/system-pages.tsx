@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { api, post } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Status, Skeleton, Empty } from "@/components/ui/status";
-import { PlayIcon, AITeacherIcon } from "@/components/icons/brand";
+import { PlayIcon, AITeacherIcon, RegenerateIcon } from "@/components/icons/brand";
 import type { Pack, TimelineEntry, Resource, Asset } from "@/types";
 export function Versions({ pack }: { pack: Pack }) {
   const q = useQuery({
@@ -248,10 +248,29 @@ export function VideoWorkflow({
             <article className="asset-card">
               <div className="row spread">
                 <h4>{script.payload.title} · v{script.version}</h4>
-                <Status state={script.state} />
+                <Status state={script.stale ? "FAIL" : script.state} label={script.stale ? "STALE SOURCE" : undefined} />
               </div>
+              {script.stale && (
+                <div className="alert" style={{ margin: "10px 0" }}>
+                  <strong>Source material updated.</strong> The source text was changed after this script was generated. Regenerate the script to ground it in the latest sources before reviewing and approving.
+                </div>
+              )}
               <p className="prose">{script.payload.body}</p>
-              <div className="row">
+              <div className="row" style={{ gap: "8px" }}>
+                {script.stale && (
+                  <Button
+                    variant="secondary"
+                    onClick={() =>
+                      run(
+                        () => post(`/assets/${script.id}/regenerate`),
+                        "Script regeneration queued",
+                      )
+                    }
+                  >
+                    <RegenerateIcon size={14} />
+                    Regenerate script
+                  </Button>
+                )}
                 <Button
                   disabled={script.state === "APPROVED" || script.stale}
                   onClick={() => onApprove(script)}

@@ -11,6 +11,8 @@ export default function LoginPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [intent, setIntent] = useState<"teacher" | "student">("teacher");
+  const [showLocalNotice, setShowLocalNotice] = useState(!hostedAuth);
+
   const routeUser = (u: { role?: string; onboarding_completed?: boolean }) =>
     router.replace(
       u.onboarding_completed === false
@@ -19,6 +21,7 @@ export default function LoginPage() {
           ? "/student"
           : "/teacher",
     );
+
   useEffect(() => {
     accessToken().then((t) => {
       if (t)
@@ -27,6 +30,7 @@ export default function LoginPage() {
           .catch(() => {});
     });
   }, [router]);
+
   async function google() {
     if (!hostedAuth) {
       setError("Google login requires Supabase configuration.");
@@ -48,6 +52,7 @@ export default function LoginPage() {
     if (error) setError(error.message);
     setBusy(false);
   }
+
   async function password(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setBusy(true);
@@ -64,7 +69,10 @@ export default function LoginPage() {
           email: String(f.get("email")),
           password: pass,
           options: {
-            data: { requested_role: intent, name: String(f.get("name") || "") },
+            data: {
+              requested_role: intent,
+              name: String(f.get("name") || ""),
+            },
           },
         });
         if (r.error) throw r.error;
@@ -90,6 +98,7 @@ export default function LoginPage() {
       setBusy(false);
     }
   }
+
   async function local(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setBusy(true);
@@ -104,28 +113,51 @@ export default function LoginPage() {
       setBusy(false);
     }
   }
+
   return (
     <div className="login-page v5-login">
       <aside className="login-story">
-        <div className="kicker">LessonFoundry</div>
-        <div>
-          <h1>
-            Generation
-            <br />
-            with control.
-          </h1>
-          <p>Trusted sources. Traceable learning. Your approval.</p>
+        <div className="kicker" style={{ color: "#fff", opacity: 0.85 }}>
+          LessonFoundry
         </div>
-        <div className="row">
+        <div>
+          <h1>Trusted learning, teacher approved.</h1>
+          <p>
+            Build evidence-linked lessons, review every generation, and publish
+            only what you stand behind.
+          </p>
+        </div>
+        <div className="row" style={{ gap: "var(--space-4)" }}>
           <span>Sources</span>
           <span>Evidence</span>
           <span>Review</span>
           <span>Learning</span>
         </div>
       </aside>
+
       <div className="login-card">
         <LessonFoundryLogo height={28} />
         <p className="login-tagline">Build. Verify. Teach. Learn.</p>
+
+        {!hostedAuth && showLocalNotice && (
+          <div className="notice">
+            <strong>Local development mode.</strong>
+            <br />
+            Authentication uses a static token. Use the field below to sign in.
+            <button
+              type="button"
+              onClick={() => setShowLocalNotice(false)}
+              style={{
+                marginLeft: 8,
+                color: "var(--color-accent-700)",
+                textDecoration: "underline",
+              }}
+            >
+              Dismiss
+            </button>
+          </div>
+        )}
+
         {hostedAuth ? (
           <>
             <div className="auth-tabs">
@@ -142,9 +174,17 @@ export default function LoginPage() {
                 Create account
               </button>
             </div>
+
             {mode === "signup" && (
-              <div style={{ marginBottom: 12 }}>
-                <p className="muted" style={{ margin: "0 0 6px", fontSize: 13, fontWeight: 500 }}>
+              <div>
+                <p
+                  className="muted"
+                  style={{
+                    margin: "0 0 var(--space-2)",
+                    fontSize: 13,
+                    fontWeight: 600,
+                  }}
+                >
                   I want to join as:
                 </p>
                 <div className="role-choice">
@@ -153,18 +193,19 @@ export default function LoginPage() {
                     className={intent === "teacher" ? "selected" : ""}
                     onClick={() => setIntent("teacher")}
                   >
-                    Teacher / Educator
+                    Teacher
                   </button>
                   <button
                     type="button"
                     className={intent === "student" ? "selected" : ""}
                     onClick={() => setIntent("student")}
                   >
-                    Student / Learner
+                    Student
                   </button>
                 </div>
               </div>
             )}
+
             <button
               className="btn btn-primary btn-block"
               onClick={google}
@@ -174,9 +215,14 @@ export default function LoginPage() {
                 ? `Sign up with Google as ${intent === "teacher" ? "Teacher" : "Student"}`
                 : "Continue with Google"}
             </button>
-            <div className="muted" style={{ textAlign: "center" }}>
-              or
+
+            <div
+              className="muted"
+              style={{ textAlign: "center", fontSize: 13 }}
+            >
+              or continue with email
             </div>
+
             <form className="stack" onSubmit={password}>
               {mode === "signup" && (
                 <label>
@@ -223,7 +269,10 @@ export default function LoginPage() {
                   />
                 </label>
               )}
-              <button className="btn btn-secondary btn-block" disabled={busy}>
+              <button
+                className="btn btn-secondary btn-block"
+                disabled={busy}
+              >
                 {busy
                   ? mode === "signup"
                     ? "Creating…"
@@ -236,9 +285,8 @@ export default function LoginPage() {
           </>
         ) : (
           <form className="stack" onSubmit={local}>
-            <div className="notice">Local development mode.</div>
             <label>
-              Token
+              Development token
               <input
                 className="input"
                 name="token"
@@ -252,6 +300,7 @@ export default function LoginPage() {
             </button>
           </form>
         )}
+
         {error && (
           <div className="alert" role="alert">
             {error}

@@ -4,26 +4,43 @@ import { use, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { LFMark, LFWordmark, PlusIcon } from "@/components/icons/brand";
+import { PlusIcon, ArrowIcon } from "@/components/icons/brand";
 import { Button } from "@/components/ui/button";
 import { Status, Skeleton, Empty } from "@/components/ui/status";
 import { api, post } from "@/lib/api";
-import { signOut } from "@/lib/auth";
 
 interface ClassroomDetail {
-  id: string; name: string; description: string; join_code: string;
-  status: string; member_count: number; pack_count: number;
+  id: string;
+  name: string;
+  description: string;
+  join_code: string;
+  status: string;
+  member_count: number;
+  pack_count: number;
 }
 interface PackSummary {
-  id: string; title: string; subject: string; level: string;
-  revision: number; status: string; published_at: string | null;
+  id: string;
+  title: string;
+  subject: string;
+  level: string;
+  revision: number;
+  status: string;
+  published_at: string | null;
 }
 interface Member {
-  id: string; user_id: string; name: string; email: string | null;
-  status: string; joined_at: string;
+  id: string;
+  user_id: string;
+  name: string;
+  email: string | null;
+  status: string;
+  joined_at: string;
 }
 
-export default function ClassroomPage({ params }: { params: Promise<{ id: string }> }) {
+export default function ClassroomPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const { id } = use(params);
   const router = useRouter();
   const qc = useQueryClient();
@@ -31,106 +48,383 @@ export default function ClassroomPage({ params }: { params: Promise<{ id: string
   const [creating, setCreating] = useState(false);
   const [title, setTitle] = useState("");
   const [obj, setObj] = useState("Objective 1\nObjective 2");
+  const [copyStatus, setCopyStatus] = useState("");
 
-  const detail = useQuery({ queryKey: ["classroom", id], queryFn: () => api<ClassroomDetail>(`/classrooms/${id}`) });
-  const packs = useQuery({ queryKey: ["classroom-packs", id], queryFn: () => api<PackSummary[]>(`/classrooms/${id}/packs`) });
-  const members = useQuery({ queryKey: ["classroom-members", id], queryFn: () => api<Member[]>(`/classrooms/${id}/members`), enabled: tab === "students" });
+  const detail = useQuery({
+    queryKey: ["classroom", id],
+    queryFn: () => api<ClassroomDetail>(`/classrooms/${id}`),
+  });
+  const packs = useQuery({
+    queryKey: ["classroom-packs", id],
+    queryFn: () => api<PackSummary[]>(`/classrooms/${id}/packs`),
+  });
+  const members = useQuery({
+    queryKey: ["classroom-members", id],
+    queryFn: () => api<Member[]>(`/classrooms/${id}/members`),
+    enabled: tab === "students",
+  });
 
   const c = detail.data;
-  const [copyStatus, setCopyStatus] = useState("");
 
   async function createPack(e: React.FormEvent) {
     e.preventDefault();
-    const objectives = obj.split("\n").map((s) => s.trim()).filter(Boolean);
+    const objectives = obj
+      .split("\n")
+      .map((s) => s.trim())
+      .filter(Boolean);
     if (objectives.length < 2) return;
-    const r = await post<{ id: string }>("/packs", { title, objectives, classroom_id: id });
+    const r = await post<{ id: string }>("/packs", {
+      title,
+      objectives,
+      classroom_id: id,
+    });
     setCreating(false);
     router.push(`/teacher/packs/${r.id}`);
   }
 
+  async function copyCode(code: string) {
+    try {
+      await navigator.clipboard.writeText(code);
+      setCopyStatus("Copied!");
+      setTimeout(() => setCopyStatus(""), 2000);
+    } catch {
+      setCopyStatus("Copy unavailable. Select the code above.");
+    }
+  }
+
   return (
     <div className="teacher-shell">
-      <AppHeader role="Teacher" crumbs={[{ label: c?.name || "Classroom" }]} />
+      <AppHeader
+        role="Teacher"
+        crumbs={[{ label: c?.name || "Classroom", href: `/teacher/classrooms/${id}` }]}
+      />
 
-      <main className="page" style={{ maxWidth: 1100, margin: "0 auto" }}>
-        {detail.error ? <div role="alert" className="alert">{detail.error.message}</div> : !c ? <Skeleton /> : (
+      <main className="page">
+        {detail.error ? (
+          <div role="alert" className="alert">
+            {detail.error.message}
+          </div>
+        ) : !c ? (
+          <Skeleton />
+        ) : (
           <>
-            <div className="row spread">
+            <section
+              className="row spread"
+              style={{ alignItems: "flex-start", marginBottom: "var(--space-6)" }}
+            >
               <div>
-                <Link href="/teacher" className="muted" style={{ fontSize: 13 }}>← Classrooms</Link>
-                <h1 style={{ fontSize: 30, marginBottom: 4 }}>{c.name}</h1>
-                <p className="muted" style={{ margin: 0 }}>{c.description}</p>
+                <p className="muted" style={{ margin: "0 0 var(--space-1)", fontSize: 13 }}>
+                  <Link href="/teacher">Classrooms</Link>
+                </p>
+                <h1 style={{ margin: "0 0 var(--space-1)" }}>{c.name}</h1>
+                <p className="muted" style={{ margin: 0 }}>
+                  {c.description || "Manage your students and learning materials."}
+                </p>
               </div>
-              <div className="stack" style={{ gap: 8, alignItems: "flex-end" }}>
-                <div className="join-code-display" style={{ fontSize: 18, padding: "8px 16px" }}>{c.join_code}</div>
-                <Button variant="ghost" onClick={async () => { try { await navigator.clipboard.writeText(c.join_code); setCopyStatus("Code copied"); } catch { setCopyStatus("Copy unavailable. Select the code above."); } }}>Copy join code</Button><small role="status">{copyStatus}</small>
-                <small className="muted">{c.member_count} students · {c.pack_count} packs</small>
+              <div
+                className="stack"
+                style={{
+                  gap: "var(--space-2)",
+                  alignItems: "flex-end",
+                  minWidth: 220,
+                }}
+              >
+                <div className="row" style={{ gap: "var(--space-2)" }}>
+                  <div className="join-code-display">{c.join_code}</div>
+                  <Button
+                    variant="secondary"
+                    onClick={() => copyCode(c.join_code)}
+                  >
+                    Copy
+                  </Button>
+                </div>
+                {copyStatus && (
+                  <small
+                    role="status"
+                    style={{
+                      color:
+                        copyStatus === "Copied!"
+                          ? "var(--lf-green)"
+                          : "var(--lf-amber)",
+                    }}
+                  >
+                    {copyStatus}
+                  </small>
+                )}
               </div>
-            </div>
+            </section>
 
-            <div className="row" style={{ gap: 0, borderBottom: "2px solid var(--color-divider)", marginTop: 20 }}>
-              <button className={`tab-btn ${tab === "overview" ? "active" : ""}`} onClick={() => setTab("overview")}>Overview</button>
-              <button className={`tab-btn ${tab === "packs" ? "active" : ""}`} onClick={() => setTab("packs")}>Learning Packs</button>
-              <button className={`tab-btn ${tab === "students" ? "active" : ""}`} onClick={() => setTab("students")}>Students</button>
-            </div>
+            <nav
+              className="row"
+              style={{
+                gap: 0,
+                borderBottom: "1px solid var(--color-border)",
+                marginBottom: "var(--space-6)",
+              }}
+            >
+              {(["overview", "packs", "students"] as const).map((t) => (
+                <button
+                  key={t}
+                  className={`tab-btn ${tab === t ? "active" : ""}`}
+                  onClick={() => setTab(t)}
+                  style={{ textTransform: "capitalize" }}
+                >
+                  {t === "packs" ? "Learning packs" : t}
+                </button>
+              ))}
+            </nav>
 
-            {tab === "overview" && <div className="stats"><div className="stat"><small>Students</small><strong>{c.member_count}</strong></div><div className="stat"><small>Learning packs</small><strong>{c.pack_count}</strong></div><div className="stat"><small>Next step</small><Button onClick={() => setTab("packs")}>Open learning packs</Button></div></div>}
-            {(tab === "packs" || tab === "overview") && (
-              <div className="stack" style={{ marginTop: 20 }}>
-                <div className="row spread">
-                  <h2 style={{ fontSize: 22, margin: 0 }}>Learning Packs</h2>
-                  <Button onClick={() => setCreating(true)}><PlusIcon size={14} /> Create Learning Pack</Button>
+            {tab === "overview" && (
+              <section className="stack">
+                <div className="stats">
+                  <div className="stat">
+                    <small>Students</small>
+                    <strong>{c.member_count}</strong>
+                  </div>
+                  <div className="stat">
+                    <small>Learning packs</small>
+                    <strong>{c.pack_count}</strong>
+                  </div>
+                  <div className="stat">
+                    <small>Published packs</small>
+                    <strong>
+                      {(packs.data || []).filter((p) => p.published_at).length}
+                    </strong>
+                  </div>
+                </div>
+
+                <div className="stack" style={{ marginTop: "var(--space-4)" }}>
+                  <div className="row spread" style={{ alignItems: "center" }}>
+                    <h2 style={{ fontSize: 18, margin: 0 }}>Learning packs</h2>
+                    <Button onClick={() => setCreating(true)}>
+                      <PlusIcon size={14} /> Create learning pack
+                    </Button>
+                  </div>
+                  {creating && (
+                    <form className="card stack" onSubmit={createPack}>
+                      <label>
+                        Title
+                        <input
+                          className="input"
+                          value={title}
+                          onChange={(e) => setTitle(e.target.value)}
+                          required
+                          minLength={3}
+                        />
+                      </label>
+                      <label>
+                        Learning objectives (one per line, min 2)
+                        <textarea
+                          className="input"
+                          value={obj}
+                          onChange={(e) => setObj(e.target.value)}
+                          required
+                          rows={4}
+                        />
+                      </label>
+                      <div className="row">
+                        <Button type="submit" variant="default">
+                          Create pack
+                        </Button>
+                        <Button type="button" onClick={() => setCreating(false)}>
+                          Cancel
+                        </Button>
+                      </div>
+                    </form>
+                  )}
+                  {packs.isLoading ? (
+                    <Skeleton />
+                  ) : !packs.data?.length ? (
+                    <Empty title="No packs yet">
+                      Create your first learning pack for this classroom.
+                    </Empty>
+                  ) : (
+                    <div className="table-wrap">
+                      <table>
+                        <thead>
+                          <tr>
+                            <th>Pack</th>
+                            <th>Subject / class</th>
+                            <th>Status</th>
+                            <th>Published</th>
+                            <th />
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {packs.data.map((p) => (
+                            <tr key={p.id}>
+                              <td>
+                                <Link href={`/teacher/packs/${p.id}`}>
+                                  <strong>{p.title}</strong>
+                                </Link>
+                              </td>
+                              <td>
+                                {p.subject} · {p.level}
+                              </td>
+                              <td>
+                                <Status state={p.status} />
+                              </td>
+                              <td>
+                                {p.published_at
+                                  ? new Date(p.published_at).toLocaleDateString()
+                                  : "—"}
+                              </td>
+                              <td>
+                                <Button
+                                  variant="ghost"
+                                  onClick={() =>
+                                    router.push(`/teacher/packs/${p.id}`)
+                                  }
+                                >
+                                  Open <ArrowIcon size={14} />
+                                </Button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              </section>
+            )}
+
+            {tab === "packs" && (
+              <section className="stack">
+                <div className="row spread" style={{ alignItems: "center" }}>
+                  <div>
+                    <h2 style={{ fontSize: 20, margin: 0 }}>Learning packs</h2>
+                    <p className="muted" style={{ margin: "var(--space-1) 0 0" }}>
+                      Create, review, and publish materials for this classroom.
+                    </p>
+                  </div>
+                  <Button onClick={() => setCreating(true)}>
+                    <PlusIcon size={14} /> Create learning pack
+                  </Button>
                 </div>
                 {creating && (
                   <form className="card stack" onSubmit={createPack}>
-                    <label>Title <input className="input" value={title} onChange={(e) => setTitle(e.target.value)} required minLength={3} /></label>
-                    <label>Learning objectives (one per line, min 2)
-                      <textarea className="input" value={obj} onChange={(e) => setObj(e.target.value)} required />
+                    <label>
+                      Title
+                      <input
+                        className="input"
+                        value={title}
+                        onChange={(e) => setTitle(e.target.value)}
+                        required
+                        minLength={3}
+                      />
                     </label>
-                    <div className="row"><Button type="submit">Create →</Button><Button type="button" onClick={() => setCreating(false)}>Cancel</Button></div>
+                    <label>
+                      Learning objectives (one per line, min 2)
+                      <textarea
+                        className="input"
+                        value={obj}
+                        onChange={(e) => setObj(e.target.value)}
+                        required
+                        rows={4}
+                      />
+                    </label>
+                    <div className="row">
+                      <Button type="submit" variant="default">
+                        Create pack
+                      </Button>
+                      <Button type="button" onClick={() => setCreating(false)}>
+                        Cancel
+                      </Button>
+                    </div>
                   </form>
                 )}
-                {packs.isLoading ? <Skeleton /> : !packs.data?.length ? (
-                  <Empty title="No packs yet">Create your first learning pack for this classroom.</Empty>
-                ) : packs.data.map((p) => (
-                  <Link key={p.id} href={`/teacher/packs/${p.id}`} className="card" style={{ textDecoration: "none", color: "inherit" }}>
-                    <div className="row spread">
-                      <h4 style={{ margin: 0 }}>{p.title}</h4>
-                      <div className="row" style={{ gap: 8 }}>
-                        <Status state={p.status} />
-                        {p.published_at && <small className="muted">Published {new Date(p.published_at).toLocaleDateString()}</small>}
-                      </div>
-                    </div>
-                    <div className="meta" style={{ marginTop: 6 }}>
-                      <span>{p.subject} · {p.level}</span>
-                      <span>v{p.revision}</span>
-                    </div>
-                  </Link>
-                ))}
-              </div>
+                {packs.isLoading ? (
+                  <Skeleton />
+                ) : !packs.data?.length ? (
+                  <Empty title="No packs yet">
+                    Create your first learning pack for this classroom.
+                  </Empty>
+                ) : (
+                  <div className="classroom-grid">
+                    {packs.data.map((p) => (
+                      <Link
+                        key={p.id}
+                        href={`/teacher/packs/${p.id}`}
+                        className="card classroom-card"
+                      >
+                        <div className="row spread" style={{ alignItems: "flex-start" }}>
+                          <h3 className="card-title">{p.title}</h3>
+                          <Status state={p.status} />
+                        </div>
+                        <p className="card-body">
+                          {p.subject} · {p.level}
+                        </p>
+                        <div className="card-meta">
+                          <span>v{p.revision}</span>
+                          <span>·</span>
+                          <span>
+                            {p.published_at
+                              ? new Date(p.published_at).toLocaleDateString()
+                              : "Draft"}
+                          </span>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </section>
             )}
 
             {tab === "students" && (
-              <div className="stack" style={{ marginTop: 20 }}>
-                <h2 style={{ fontSize: 22, margin: 0 }}>Students</h2>
-                {members.isLoading ? <Skeleton /> : !members.data?.length ? (
-                  <Empty title="No students yet">Share the classroom code with students.</Empty>
+              <section className="stack">
+                <div className="row spread" style={{ alignItems: "center" }}>
+                  <div>
+                    <h2 style={{ fontSize: 20, margin: 0 }}>Students</h2>
+                    <p className="muted" style={{ margin: "var(--space-1) 0 0" }}>
+                      Share the join code <strong>{c.join_code}</strong> to invite
+                      students.
+                    </p>
+                  </div>
+                  <Button
+                    variant="secondary"
+                    onClick={() => copyCode(c.join_code)}
+                  >
+                    Copy join code
+                  </Button>
+                </div>
+                {members.isLoading ? (
+                  <Skeleton />
+                ) : !members.data?.length ? (
+                  <Empty title="No students yet">
+                    Share the classroom code with students to invite them.
+                  </Empty>
                 ) : (
                   <div className="table-wrap">
                     <table>
-                      <thead><tr><th>Name</th><th>Email</th><th>Joined</th><th>Status</th></tr></thead>
-                      <tbody>{members.data.map((m) => (
-                        <tr key={m.id}>
-                          <td><b>{m.name}</b></td>
-                          <td>{m.email || "—"}</td>
-                          <td>{new Date(m.joined_at).toLocaleDateString()}</td>
-                          <td><Status state={m.status} /></td>
+                      <thead>
+                        <tr>
+                          <th>Name</th>
+                          <th>Email</th>
+                          <th>Joined</th>
+                          <th>Status</th>
                         </tr>
-                      ))}</tbody>
+                      </thead>
+                      <tbody>
+                        {members.data.map((m) => (
+                          <tr key={m.id}>
+                            <td>
+                              <strong>{m.name}</strong>
+                            </td>
+                            <td>{m.email || "—"}</td>
+                            <td>
+                              {new Date(m.joined_at).toLocaleDateString()}
+                            </td>
+                            <td>
+                              <Status state={m.status} />
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
                     </table>
                   </div>
                 )}
-              </div>
+              </section>
             )}
           </>
         )}

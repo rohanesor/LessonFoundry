@@ -92,7 +92,7 @@ test("source → evidence → quiz Q3 regeneration → approval → student", as
     page.getByRole("button", { name: "Create new draft" }),
   ).toBeVisible();
   const studentLink = await page
-    .getByRole("link", { name: "Student view" })
+    .getByRole("link", { name: /student/i })
     .getAttribute("href");
   await page.goto(studentLink!);
   await page.getByRole("button", { name: "Practice", exact: true }).click();
@@ -170,16 +170,16 @@ test("fresh source UI, navigation, video gate and tablet layout", async ({
   }
   await page.getByRole("button", { name: "AI Teacher", exact: true }).click();
   await expect(
-    page.getByRole("button", { name: "Simulate rendering" }),
+    page.getByRole("button", { name: "Generate AI Teacher video" }),
   ).toBeDisabled();
   await page.getByRole("button", { name: "Review & approve script" }).click();
   await page.getByRole("checkbox").check();
   await page
     .getByPlaceholder("Record what you verified")
     .fill("Reviewed script source support and presentation sequence.");
-  await page.getByRole("button", { name: "Approve & publish" }).click();
-  await page.getByRole("button", { name: "Simulate rendering" }).click();
-  await expect(page.getByText(/Mock render complete/)).toBeVisible({
+  await page.getByRole("button", { name: "Approve version" }).click();
+  await page.getByRole("button", { name: "Generate AI Teacher video" }).click();
+  await expect(page.getByText(/Mock generation queued|Development mode/)).toBeVisible({
     timeout: 30000,
   });
   await page.screenshot({ path: "../docs/evidence/mock-video-workflow.png" });

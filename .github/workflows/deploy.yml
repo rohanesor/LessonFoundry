@@ -21,16 +21,18 @@ jobs:
       - name: Configure SSH
         env:
           EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
+          EC2_HOST: ${{ secrets.EC2_HOST || '16.4.139.162' }}
+          EC2_USER: ${{ secrets.EC2_USER || 'ec2-user' }}
         run: |
           test -n "$EC2_SSH_KEY"
           mkdir -p ~/.ssh
           printf '%s\n' "$EC2_SSH_KEY" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
-          ssh-keyscan -H 3.7.29.147 >> ~/.ssh/known_hosts
+          ssh-keyscan -H "$EC2_HOST" >> ~/.ssh/known_hosts
           cat >> ~/.ssh/config <<EOF
           Host ec2
-            HostName 3.7.29.147
-            User ubuntu
+            HostName $EC2_HOST
+            User $EC2_USER
             IdentityFile ~/.ssh/deploy_key
             IdentitiesOnly yes
             StrictHostKeyChecking yes
@@ -44,12 +46,12 @@ jobs:
 
       - name: Apply ordered migrations
         run: |
-          ssh ec2 "cd /opt/lessonfoundry && bash scripts/deploy_migrations.sh"
+          ssh ec2 "cd /opt/lessonfoundry && bash scripts/deploy_migrations_sqlite.sh"
 
-      - name: Rebuild and restart containers
+      - name: Restart systemd services
         run: |
-          ssh ec2 'cd /opt/lessonfoundry && docker compose build api worker web && docker compose up -d --remove-orphans && sleep 10 && curl -fsS http://127.0.0.1:8000/api/ready'
+          ssh ec2 'sudo systemctl restart lessonfoundry-api lessonfoundry-worker lessonfoundry-web && sleep 8'
 
       - name: Verify deployment
         run: |
-          ssh ec2 'cd /opt/lessonfoundry && curl -fsS http://127.0.0.1:8000/api/health && curl -fsS http://127.0.0.1:8000/api/ready && docker compose ps'
+          ssh ec2 'curl -fsS http://127.0.0.1:8000/api/health && curl -fsS http://127.0.0.1:8000/api/ready && systemctl is-active lessonfoundry-api lessonfoundry-worker lessonfoundry-web nginx'

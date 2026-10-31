@@ -101,6 +101,7 @@ class Objective(Identity, Base):
     reason: Mapped[str] = mapped_column(
         Text, default="Run evidence mapping before generation."
     )
+    topic_tags: Mapped[list] = mapped_column(JSON, default=list)
 
 
 class ObjectiveEvidence(Base):
@@ -284,3 +285,87 @@ class Export(Identity, Base):
     created_at: Mapped[str] = mapped_column(String, default=now)
     completed_at: Mapped[str | None] = mapped_column(String, nullable=True)
     error: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+
+# ─── Adaptive Learning ───────────────────────────────────────────────────────
+
+class QuizAttempt(Identity, Base):
+    """Records every student quiz answer for performance analysis."""
+    __tablename__ = "quiz_attempts"
+    student_id: Mapped[str] = mapped_column(ForeignKey("users.id"), index=True)
+    asset_version_id: Mapped[str] = mapped_column(ForeignKey("asset_versions.id"))
+    unit_id: Mapped[str] = mapped_column(ForeignKey("units.id"), index=True)
+    classroom_id: Mapped[str | None] = mapped_column(
+        ForeignKey("classrooms.id"), nullable=True, index=True
+    )
+    slot: Mapped[str] = mapped_column(String(50))
+    choice: Mapped[int] = mapped_column(Integer)
+    correct_answer: Mapped[int] = mapped_column(Integer)
+    is_correct: Mapped[bool] = mapped_column(Boolean)
+    objective_id: Mapped[str | None] = mapped_column(
+        ForeignKey("objectives.id"), nullable=True, index=True
+    )
+    attempted_at: Mapped[str] = mapped_column(String, default=now)
+
+
+class LearningPlan(Identity, Base):
+    """A personalized 3-day learning plan for a student."""
+    __tablename__ = "learning_plans"
+    student_id: Mapped[str] = mapped_column(ForeignKey("users.id"), index=True)
+    classroom_id: Mapped[str] = mapped_column(ForeignKey("classrooms.id"), index=True)
+    weak_topics: Mapped[list] = mapped_column(JSON)
+    status: Mapped[str] = mapped_column(String(20), default="active")
+    created_at: Mapped[str] = mapped_column(String, default=now)
+    completed_at: Mapped[str | None] = mapped_column(String, nullable=True)
+
+
+class PlanItem(Identity, Base):
+    """A single activity in a learning plan."""
+    __tablename__ = "plan_items"
+    plan_id: Mapped[str] = mapped_column(ForeignKey("learning_plans.id"), index=True)
+    day_number: Mapped[int] = mapped_column(Integer)
+    position: Mapped[int] = mapped_column(Integer)
+    activity_type: Mapped[str] = mapped_column(String(50))
+    title: Mapped[str] = mapped_column(String(200))
+    description: Mapped[str] = mapped_column(Text)
+    asset_version_id: Mapped[str | None] = mapped_column(
+        ForeignKey("asset_versions.id"), nullable=True
+    )
+    coding_problem_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    estimated_minutes: Mapped[int] = mapped_column(Integer, default=15)
+    completed: Mapped[bool] = mapped_column(Boolean, default=False)
+    completed_at: Mapped[str | None] = mapped_column(String, nullable=True)
+
+
+class CodingProblem(Identity, Base):
+    """An auto-generated coding problem for practice."""
+    __tablename__ = "coding_problems"
+    unit_id: Mapped[str | None] = mapped_column(
+        ForeignKey("units.id"), nullable=True, index=True
+    )
+    topic: Mapped[str] = mapped_column(String(100))
+    difficulty: Mapped[str] = mapped_column(String(20))
+    title: Mapped[str] = mapped_column(String(200))
+    description: Mapped[str] = mapped_column(Text)
+    starter_code: Mapped[str] = mapped_column(Text, default="")
+    test_cases: Mapped[list] = mapped_column(JSON)
+    solution: Mapped[str] = mapped_column(Text)
+    hints: Mapped[list] = mapped_column(JSON, default=list)
+    language: Mapped[str] = mapped_column(String(20), default="python")
+    created_at: Mapped[str] = mapped_column(String, default=now)
+
+
+class CodeSubmission(Identity, Base):
+    """A student's code submission for evaluation."""
+    __tablename__ = "code_submissions"
+    problem_id: Mapped[str] = mapped_column(ForeignKey("coding_problems.id"), index=True)
+    student_id: Mapped[str] = mapped_column(ForeignKey("users.id"), index=True)
+    code: Mapped[str] = mapped_column(Text)
+    language: Mapped[str] = mapped_column(String(20), default="python")
+    status: Mapped[str] = mapped_column(String(20))
+    stdout: Mapped[str | None] = mapped_column(Text, nullable=True)
+    stderr: Mapped[str | None] = mapped_column(Text, nullable=True)
+    test_results: Mapped[list | None] = mapped_column(JSON, nullable=True)
+    feedback: Mapped[str | None] = mapped_column(Text, nullable=True)
+    execution_time_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    submitted_at: Mapped[str] = mapped_column(String, default=now)

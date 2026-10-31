@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton, Empty } from "@/components/ui/status";
 import { api } from "@/lib/api";
 import { signOut } from "@/lib/auth";
+import { AdaptiveNextSteps } from "@/components/student/adaptive-next-steps";
 
 interface ClassroomDetail {
   id: string; name: string; description: string; teacher_name: string;
@@ -28,13 +29,15 @@ export default function StudentClassroomPage({ params }: { params: Promise<{ id:
     <div className="student-shell">
       <AppHeader role="Student" crumbs={[{ label: c?.name || "Classroom" }]} />
 
-      <main className="student-content" style={{ maxWidth: 900, margin: "0 auto", padding: "32px 24px" }}>
+      <main className="student-content">
         {detail.error ? <div role="alert" className="alert">{detail.error.message}</div> : !c ? <Skeleton /> : (
           <>
             <Link href="/student" className="muted" style={{ fontSize: 13 }}>← My Classrooms</Link>
             <h1 style={{ fontSize: 30, marginBottom: 4 }}>{c.name}</h1>
             <p className="muted" style={{ margin: "0 0 4px" }}>Teacher: {c.teacher_name}</p>
             {c.description && <p style={{ margin: "0 0 24px" }}>{c.description}</p>}
+
+            <AdaptiveNextSteps classroomId={id} />
 
             <h2 style={{ fontSize: 22, marginTop: 24 }}>Learning Packs</h2>
             {!c.packs.length ? (

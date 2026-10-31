@@ -1,71 +1,81 @@
-# Local PostgreSQL development only. Secrets are supplied through an ignored .env
-# or deployment secret store; no credential value belongs in this file.
+# Local development stack only. EC2/hosted deployments must use a separate,
+# reviewed production configuration and managed services (see docs/DEPLOYMENT_EC2.md).
 services:
   db:
     image: postgres:17-alpine
     environment:
       POSTGRES_USER: ${LOCAL_POSTGRES_USER:-lessonfoundry}
-      POSTGRES_PASSWORD: ${LOCAL_POSTGRES_PASSWORD:-postgres}
+      POSTGRES_PASSWORD: ${LOCAL_POSTGRES_PASSWORD:-local-dev-only}
       POSTGRES_DB: ${LOCAL_POSTGRES_DB:-lessonfoundry}
     volumes:
       - postgres-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER}"]
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 5s
+      timeout: 3s
       retries: 10
+
   api:
     build: ./backend
-    env_file: .env
     environment: &backend-env
-      DATABASE_URL: ${DATABASE_URL:?set DATABASE_URL in ignored environment}
-      AUTH_MODE: ${AUTH_MODE:-local}
+      APP_ENV: development
+      DATABASE_URL: postgresql+psycopg://${LOCAL_POSTGRES_USER:-lessonfoundry}:${LOCAL_POSTGRES_PASSWORD:-local-dev-only}@db:5432/${LOCAL_POSTGRES_DB:-lessonfoundry}
+      WORKER_DATABASE_URL: postgresql+psycopg://${LOCAL_POSTGRES_USER:-lessonfoundry}:${LOCAL_POSTGRES_PASSWORD:-local-dev-only}@db:5432/${LOCAL_POSTGRES_DB:-lessonfoundry}
+      AUTH_MODE: local
+      LOCAL_TEACHER_TOKEN: ${LOCAL_TEACHER_TOKEN:-local-development-only}
+      LOCAL_STUDENT_TOKEN: ${LOCAL_STUDENT_TOKEN:-local-student-only}
+      FRONTEND_ORIGIN: ${FRONTEND_ORIGIN:-http://localhost:3000}
+      RATE_LIMIT: ${RATE_LIMIT:-0}
       LLM_PROVIDER: ${LLM_PROVIDER:-mock}
       REAL_LLM_ENABLED: ${REAL_LLM_ENABLED:-false}
-      STORAGE_PROVIDER: ${STORAGE_PROVIDER:-local}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      ANTHROPIC_MODEL: ${ANTHROPIC_MODEL:-}
+      STORAGE_PROVIDER: local
       LOCAL_STORAGE_PATH: /app/files
-      FRONTEND_ORIGIN: ${FRONTEND_ORIGIN:-http://localhost:3000}
       YOUTUBE_API_KEY: ${YOUTUBE_API_KEY:-}
-      AWS_REGION: ${AWS_REGION:-}
-      AWS_S3_BUCKET: ${AWS_S3_BUCKET:-}
-      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
-      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
-      SUPABASE_URL: ${SUPABASE_URL:-}
-      SUPABASE_ANON_KEY: ${SUPABASE_ANON_KEY:-}
-      SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY:-}
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health')"]
       interval: 5s
+      timeout: 3s
       retries: 12
+      start_period: 15s
     volumes:
       - source-files:/app/files
     ports: ["127.0.0.1:8000:8000"]
     depends_on:
       db:
         condition: service_healthy
+    restart: unless-stopped
+
   worker:
     build: ./backend
     command: ["python", "-m", "app.jobs.worker"]
-    env_file: .env
     environment: *backend-env
     volumes:
       - source-files:/app/files
     depends_on:
       api:
         condition: service_healthy
+    restart: unless-stopped
+
   web:
     build:
       context: ./frontend
       args:
         BACKEND_URL: http://api:8000
-        NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL:-${SUPABASE_URL}}
-        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY:-${SUPABASE_ANON_KEY}}
-    env_file: .env
+        NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL:-}
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY:-}
     environment:
       BACKEND_URL: http://api:8000
-      NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL:-${SUPABASE_URL}}
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY:-${SUPABASE_ANON_KEY}}
+      # Public browser configuration only. Never pass a secret-bearing .env file here.
+      NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL:-}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY:-}
     ports: ["127.0.0.1:3000:3000"]
-    depends_on: [api]
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+
 volumes:
   postgres-data:
   source-files:

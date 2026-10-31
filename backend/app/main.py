@@ -6,6 +6,7 @@ from app.database import Base, engine
 from app.models import entities
 from app.api.routes import router
 from app.api.classroom_routes import router as classroom_router
+from app.api.adaptive_routes import router as adaptive_router
 
 
 @asynccontextmanager
@@ -33,4 +34,5 @@ app.add_middleware(
     allow_headers=["Authorization", "Content-Type"],
 )
 app.include_router(classroom_router)  # specific student routes before legacy catch-all
+app.include_router(adaptive_router)   # adaptive learning: plans, problems, submissions
 app.include_router(router)

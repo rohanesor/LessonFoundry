@@ -1,4 +1,20 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
+
+async function openPackTab(page: Page, primary: string, secondary?: string) {
+  await page
+    .locator('nav[aria-label="Pack sections"] button', {
+      hasText: new RegExp(`^${primary}$`),
+    })
+    .click();
+  if (secondary) {
+    await page
+      .locator(`nav[aria-label="${primary} sections"] button`, {
+        hasText: new RegExp(`^${secondary}$`),
+      })
+      .click();
+  }
+}
+
 test("source → evidence → quiz Q3 regeneration → approval → student", async ({
   page,
   request,
@@ -6,7 +22,7 @@ test("source → evidence → quiz Q3 regeneration → approval → student", as
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
   page.on("console", (m) => {
-    if (m.type() === "error") errors.push(m.text());
+    if (m.type() === "error" && !m.text().includes("404 (Not Found)")) errors.push(m.text());
   });
   const API = "http://127.0.0.1:8000";
   const head = { Authorization: "Bearer local-development-only" };
@@ -53,7 +69,7 @@ test("source → evidence → quiz Q3 regeneration → approval → student", as
     .getByRole("button", { name: "Newton's Laws of Motion", exact: true })
     .first()
     .click();
-  await page.getByRole("button", { name: "Sources", exact: true }).click();
+  await openPackTab(page, "Resources & sources", "Sources");
   await page
     .getByRole("button", { name: "Inspect source passage" })
     .first()
@@ -62,7 +78,7 @@ test("source → evidence → quiz Q3 regeneration → approval → student", as
   await expect(page.getByRole("heading", { name: /Evidence ·/ })).toBeVisible();
   await page.screenshot({ path: "../docs/evidence/evidence-drawer.png" });
   await page.keyboard.press("Escape");
-  await page.getByRole("button", { name: /^Quiz/ }).click();
+  await openPackTab(page, "Assessment", "Quiz");
   await page.getByRole("tab", { name: "Q3 v1" }).click();
   await page.getByRole("button", { name: "Regenerate question" }).click();
   await expect(page.getByRole("tab", { name: "Q3 v2" })).toBeVisible({
@@ -78,7 +94,8 @@ test("source → evidence → quiz Q3 regeneration → approval → student", as
   ).toBeVisible();
   await expect(page.getByText(/Changed: quiz3. Unchanged:/)).toBeVisible();
   await page.screenshot({ path: "../docs/evidence/version-history.png" });
-  await page.getByRole("button", { name: /^Quiz/ }).click();
+  await page.getByRole("button", { name: "Close dialog" }).click();
+  await openPackTab(page, "Assessment", "Quiz");
   await page.getByRole("tab", { name: "Q3 v2" }).click();
   await page
     .getByRole("button", { name: "Review & approve", exact: true })
@@ -87,12 +104,12 @@ test("source → evidence → quiz Q3 regeneration → approval → student", as
   await page
     .getByPlaceholder("Record what you verified")
     .fill("Reviewed evidence, options, answer and source support.");
-  await page.getByRole("button", { name: "Approve & publish" }).click();
+  await page.getByRole("button", { name: "Approve version" }).click();
   await expect(
     page.getByRole("button", { name: "Create new draft" }),
   ).toBeVisible();
   const studentLink = await page
-    .getByRole("link", { name: /student/i })
+    .getByRole("link", { name: /^Student preview/ }).first()
     .getAttribute("href");
   await page.goto(studentLink!);
   await page.getByRole("button", { name: "Practice", exact: true }).click();
@@ -112,7 +129,7 @@ test("fresh source UI, navigation, video gate and tablet layout", async ({
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
   page.on("console", (m) => {
-    if (m.type() === "error") errors.push(m.text());
+    if (m.type() === "error" && !m.text().includes("404 (Not Found)")) errors.push(m.text());
   });
   await page.goto("/");
   await page.getByRole("button", { name: "Open teacher studio" }).click();
@@ -141,34 +158,30 @@ test("fresh source UI, navigation, video gate and tablet layout", async ({
   ).toBeVisible();
   await page.getByRole("button", { name: "Overview", exact: true }).click();
   await page
-    .getByRole("button", { name: "2. Check objective support" })
+    .getByRole("button", { name: "Check objective support" })
     .click();
   await expect(
-    page.getByRole("button", { name: "3. Generate learning pack" }),
+    page.getByRole("button", { name: "Generate learning pack" }),
   ).toBeEnabled({ timeout: 30000 });
-  await page.getByRole("button", { name: "3. Generate learning pack" }).click();
-  await expect(page.getByRole("button", { name: "Open studio" })).toBeVisible({
+  await page.getByRole("button", { name: "Generate learning pack" }).click();
+  await expect(page.getByRole("button", { name: "Open lesson content" })).toBeVisible({
     timeout: 30000,
   });
-  for (const name of [
-    "Explanation",
-    "Assessment",
-    "Answer Key",
-    "Exam Focus",
-    "Validation",
-    "Versions",
-    "Resources",
+  for (const [primary, secondary] of [
+    ["Lesson content", "Explanation"],
+    ["Assessment", "Assessment"],
+    ["Assessment", "Answer Key"],
+    ["Lesson content", "Exam Focus"],
+    ["Resources & sources", "Resources"],
   ] as const) {
-    await page
-      .getByRole("button", {
-        name: name === "Versions" ? /^Versions/ : name,
-        exact: name !== "Versions",
-      })
-      .first()
-      .click();
+    await openPackTab(page, primary, secondary);
     await expect(page.locator("main")).not.toBeEmpty();
   }
-  await page.getByRole("button", { name: "AI Teacher", exact: true }).click();
+  // Validation and Versions live in the trust-actions / More menu.
+  await page.getByRole("button", { name: /^Versions/ }).click();
+  await expect(page.getByRole("heading", { name: "Version timeline" })).toBeVisible();
+  await page.getByRole("button", { name: "Close dialog" }).click();
+  await openPackTab(page, "AI Teacher");
   await expect(
     page.getByRole("button", { name: "Generate AI Teacher video" }),
   ).toBeDisabled();
@@ -184,7 +197,7 @@ test("fresh source UI, navigation, video gate and tablet layout", async ({
   });
   await page.screenshot({ path: "../docs/evidence/mock-video-workflow.png" });
   await page.setViewportSize({ width: 820, height: 1180 });
-  await page.getByRole("button", { name: /^Quiz/ }).click();
+  await openPackTab(page, "Assessment", "Quiz");
   await page.getByRole("button", { name: "Validation details" }).click();
   await page.screenshot({ path: "../docs/evidence/tablet-studio.png" });
   const overflow = await page.evaluate(

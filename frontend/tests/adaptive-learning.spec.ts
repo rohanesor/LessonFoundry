@@ -12,6 +12,17 @@ import { test, expect } from "@playwright/test";
 
 const API = "http://127.0.0.1:8000";
 const teacherAuth = { Authorization: "Bearer local-development-only" };
+// Student-role routes must be called with the student token. Using the teacher
+// token here correctly returns 403 (role enforcement), which hid real results.
+const STUDENT_TOKEN = process.env.ADAPTIVE_TEST_STUDENT_TOKEN ?? "local-student-only";
+
+// Shared across both describe blocks (run serially, one worker).
+let sharedPackId = "";
+
+const NEWTON_SOURCE = `Newton's Laws of Motion — teacher-authored demonstration notes.
+Newton's first law: an object remains at rest or moves with constant velocity unless acted on by a nonzero resultant external force. Inertia is resistance to a change in velocity. Mass measures inertia.
+Newton's second law: for a constant-mass object in an inertial frame, the resultant external force F equals mass m multiplied by acceleration a: F = ma. The SI unit of force is the newton. A 2 kg object with acceleration 3 m/s² experiences a resultant force of 6 N.
+Newton's third law: when one body exerts a force on a second body, the second exerts an equal and opposite force on the first. These forces act on different bodies and do not cancel on a single-body free-body diagram.`;
 
 test.describe("Adaptive Learning Integration", () => {
   let packId: string;
@@ -19,50 +30,9 @@ test.describe("Adaptive Learning Integration", () => {
   let studentToken: string;
 
   test.beforeAll(async ({ request }) => {
-    // Create a demo pack with quiz content
-    const demo = await request.post(`${API}/api/demo`, {
-      headers: teacherAuth,
-    });
-    expect(demo.status()).toBe(201);
-    const demoData = await demo.json();
-    packId = demoData.id;
-
-    // Wait for demo pack processing
-    await expect
-      .poll(
-        async () => {
-          const p = await (
-            await request.get(`${API}/api/packs/${packId}`, {
-              headers: teacherAuth,
-            })
-          ).json();
-          return p.jobs?.[0]?.state;
-        },
-        { timeout: 30000 },
-      )
-      .toBe("Succeeded");
-
-    // Generate learning pack content
-    await request.post(`${API}/api/packs/${packId}/generate`, {
-      headers: teacherAuth,
-    });
-
-    // Wait for assets to be generated
-    await expect
-      .poll(
-        async () => {
-          const p = await (
-            await request.get(`${API}/api/packs/${packId}`, {
-              headers: teacherAuth,
-            })
-          ).json();
-          return p.assets?.length >= 5;
-        },
-        { timeout: 30000 },
-      )
-      .toBe(true);
-
-    // Create a classroom for adaptive learning tests
+    // 1. Classroom first, then a pack created *in* that classroom. A pack can only
+    //    be assigned at creation (no PATCH route), and only classroom packs can be
+    //    published to students.
     const classroom = await request.post(`${API}/api/classrooms`, {
       headers: teacherAuth,
       data: {
@@ -74,15 +44,108 @@ test.describe("Adaptive Learning Integration", () => {
     const classroomData = await classroom.json();
     classroomId = classroomData.id;
 
-    // Assign pack to classroom
-    await request.patch(`${API}/api/packs/${packId}`, {
+    const created = await request.post(`${API}/api/packs`, {
       headers: teacherAuth,
-      data: { classroom_id: classroomId },
+      data: {
+        title: "Adaptive Newton Pack",
+        objectives: [
+          "Explain Newton's three laws of motion",
+          "Solve force and acceleration problems",
+          "Interpret free-body diagrams",
+        ],
+        classroom_id: classroomId,
+      },
     });
+    expect(created.status()).toBe(201);
+    packId = (await created.json()).id;
+    sharedPackId = packId;
 
-    // For testing, we use the teacher token as student
-    // In production, this would be a separate student auth
-    studentToken = "local-development-only";
+    // 2. Source material, gap check, generation (the real teacher workflow).
+    const upload = await request.post(`${API}/api/packs/${packId}/sources`, {
+      headers: teacherAuth,
+      multipart: {
+        file: {
+          name: "newton-notes.txt",
+          mimeType: "text/plain",
+          buffer: Buffer.from(NEWTON_SOURCE),
+        },
+      },
+    });
+    expect(upload.status()).toBeLessThan(300);
+
+    await request.post(`${API}/api/packs/${packId}/gap-check`, { headers: teacherAuth });
+    await expect
+      .poll(
+        async () => {
+          const p = await (
+            await request.get(`${API}/api/packs/${packId}`, { headers: teacherAuth })
+          ).json();
+          return p.jobs?.[0]?.state;
+        },
+        { timeout: 30000 },
+      )
+      .toBe("Succeeded");
+
+    await request.post(`${API}/api/packs/${packId}/generate`, { headers: teacherAuth });
+    await expect
+      .poll(
+        async () => {
+          const p = await (
+            await request.get(`${API}/api/packs/${packId}`, { headers: teacherAuth })
+          ).json();
+          return p.assets?.length >= 5;
+        },
+        { timeout: 30000 },
+      )
+      .toBe(true);
+
+    // 3. Approve and publish (publish requires every current asset approved).
+    const packDetail = await (
+      await request.get(`${API}/api/packs/${packId}`, { headers: teacherAuth })
+    ).json();
+    const approve = await request.post(`${API}/api/packs/${packId}/approve`, {
+      headers: teacherAuth,
+      data: {
+        expected_revision: packDetail.revision,
+        note: "Reviewed for adaptive learning integration test.",
+      },
+    });
+    expect(approve.status()).toBe(200);
+    const publish = await request.post(`${API}/api/packs/${packId}/publish`, {
+      headers: teacherAuth,
+    });
+    expect(publish.status()).toBe(200);
+
+    // 4. Student joins by classroom code (student-role route).
+    const join = await request.post(`${API}/api/join`, {
+      headers: { Authorization: `Bearer ${STUDENT_TOKEN}` },
+      data: { code: classroomData.join_code },
+    });
+    expect([200, 201, 409]).toContain(join.status());
+
+    studentToken = STUDENT_TOKEN;
+
+    // 5. Record real quiz attempts through the student answer route so the
+    //    adaptive planner works from actual scores, not an empty history.
+    const studentPack = await (
+      await request.get(`${API}/api/student/packs/${packId}`, {
+        headers: { Authorization: `Bearer ${STUDENT_TOKEN}` },
+      })
+    ).json();
+    const quizzes = studentPack.assets.filter((a: { slot: string }) =>
+      a.slot.startsWith("quiz"),
+    );
+    expect(quizzes.length).toBeGreaterThan(0);
+    for (const q of quizzes) {
+      const answer = await request.post(
+        `${API}/api/student/packs/${packId}/answers/${q.id}`,
+        {
+          headers: { Authorization: `Bearer ${STUDENT_TOKEN}` },
+          data: { choice: 0 },
+        },
+      );
+      expect(answer.status()).toBe(200);
+    }
   });
 
   test("Requirement 1: Read weak topics from student quiz performance", async ({
@@ -203,6 +266,7 @@ test.describe("Adaptive Learning Integration", () => {
     const response = await request.post(`${API}/api/teacher/problems`, {
       headers: teacherAuth,
       data: {
+        unit_id: sharedPackId,
         topic: "loops",
         difficulty: "easy",
       },
@@ -233,6 +297,7 @@ test.describe("Adaptive Learning Integration", () => {
     const problemResponse = await request.post(`${API}/api/teacher/problems`, {
       headers: teacherAuth,
       data: {
+        unit_id: sharedPackId,
         topic: "functions",
         difficulty: "medium",
       },
@@ -308,6 +373,7 @@ test.describe("Adaptive Learning Integration", () => {
     const problemResponse = await request.post(`${API}/api/teacher/problems`, {
       headers: teacherAuth,
       data: {
+        unit_id: sharedPackId,
         topic: "security-test",
         difficulty: "easy",
       },
@@ -390,7 +456,7 @@ test.describe("Adaptive Learning Integration", () => {
 
 test.describe("Adaptive Learning Error Handling", () => {
   test("Returns 404 for non-existent learning plan", async ({ request }) => {
-    const studentAuth = { Authorization: "Bearer local-development-only" };
+    const studentAuth = { Authorization: `Bearer ${STUDENT_TOKEN}` };
 
     const response = await request.get(
       `${API}/api/student/learning-plans/non-existent-id`,
@@ -401,7 +467,7 @@ test.describe("Adaptive Learning Error Handling", () => {
   });
 
   test("Returns 404 for non-existent problem", async ({ request }) => {
-    const studentAuth = { Authorization: "Bearer local-development-only" };
+    const studentAuth = { Authorization: `Bearer ${STUDENT_TOKEN}` };
 
     const response = await request.get(
       `${API}/api/student/problems/non-existent-id`,
@@ -412,7 +478,7 @@ test.describe("Adaptive Learning Error Handling", () => {
   });
 
   test("Returns 404 for non-existent submission", async ({ request }) => {
-    const studentAuth = { Authorization: "Bearer local-development-only" };
+    const studentAuth = { Authorization: `Bearer ${STUDENT_TOKEN}` };
 
     const response = await request.get(
       `${API}/api/student/submissions/non-existent-id`,
@@ -423,13 +489,13 @@ test.describe("Adaptive Learning Error Handling", () => {
   });
 
   test("Validates code submission input", async ({ request }) => {
-    const studentAuth = { Authorization: "Bearer local-development-only" };
+    const studentAuth = { Authorization: `Bearer ${STUDENT_TOKEN}` };
 
     // Create a problem first
     const teacherAuth = { Authorization: "Bearer local-development-only" };
     const problemResponse = await request.post(`${API}/api/teacher/problems`, {
       headers: teacherAuth,
-      data: { topic: "validation-test", difficulty: "easy" },
+      data: { unit_id: sharedPackId, topic: "validation-test", difficulty: "easy" },
     });
     const problem = await problemResponse.json();
 
@@ -449,13 +515,13 @@ test.describe("Adaptive Learning Error Handling", () => {
   });
 
   test("Validates language input", async ({ request }) => {
-    const studentAuth = { Authorization: "Bearer local-development-only" };
+    const studentAuth = { Authorization: `Bearer ${STUDENT_TOKEN}` };
 
     // Create a problem first
     const teacherAuth = { Authorization: "Bearer local-development-only" };
     const problemResponse = await request.post(`${API}/api/teacher/problems`, {
       headers: teacherAuth,
-      data: { topic: "lang-test", difficulty: "easy" },
+      data: { unit_id: sharedPackId, topic: "lang-test", difficulty: "easy" },
     });
     const problem = await problemResponse.json();
 

@@ -34,7 +34,7 @@ export function Dashboard({
           Create Learning Pack
         </Button>
       </div>
-      <div className="stats">
+      <div className="stats dashboard-stats">
         {[
           ["Learning packs", packs.length],
           ["Source boundary", "Enforced"],
@@ -68,7 +68,7 @@ export function Dashboard({
               Load Newton demo
             </Button>
           </div>
-          <div className="table-wrap">
+          <div className="table-wrap dashboard-table">
             <table>
               <thead>
                 <tr>
@@ -109,6 +109,29 @@ export function Dashboard({
               </tbody>
             </table>
           </div>
+          <section className="dashboard-pack-list" aria-label="Learning packs">
+            {packs.map((p) => (
+              <article className="dashboard-pack-card" key={p.id}>
+                <div className="kicker">{p.subject} · {p.level}</div>
+                <h3>
+                  <button
+                    className="table-link"
+                    onClick={() => onOpen(p.id)}
+                    aria-label={`Open ${p.title}`}
+                  >
+                    {p.title}
+                  </button>
+                </h3>
+                <p className="muted">{p.exam} · Version {p.revision}</p>
+                <div className="row spread">
+                  <small>Updated {new Date(p.created_at).toLocaleDateString()}</small>
+                  <Button variant="default" onClick={() => onOpen(p.id)}>
+                    Open pack <ArrowIcon size={14} />
+                  </Button>
+                </div>
+              </article>
+            ))}
+          </section>
         </>
       )}
       <div className="rule" style={{ marginTop: 40 }}>

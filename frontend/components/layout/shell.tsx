@@ -222,7 +222,6 @@ export function Shell({
                 >
                   {[
                     { label: "Validation", screen: "Validation" as Screen },
-                    { label: "Versions", screen: "Versions" as Screen },
                     { label: "Evidence & sources", screen: "Sources" as Screen },
                   ].map((item) => (
                     <button
@@ -248,6 +247,26 @@ export function Shell({
               )}
             </div>
           </nav>
+
+          <div className="trust-actions">
+            <small>Trust &amp; history</small>
+            <a
+              href={`/student/${pack.share_token}`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              Student preview ↗
+            </a>
+            <Button variant="ghost" onClick={() => navigate("Validation")}>
+              Validation
+            </Button>
+            <Button variant="ghost" onClick={() => navigate("Versions")}>
+              Versions
+            </Button>
+            <Button variant="ghost" onClick={() => navigate("Sources")}>
+              Evidence &amp; sources
+            </Button>
+          </div>
 
           {activeGroup.screens.length > 1 && (
             <nav

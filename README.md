@@ -113,8 +113,8 @@ prototype schema is not migrated automatically. `docs/PRD.md` is the original su
 requirements document; its historical “Built” labels are not implementation evidence. Prompts are versioned in
 `backend/app/providers/llm.py`; asset settings record model/contract/prompt version.
 
-See [architecture](docs/ARCHITECTURE.md), [design mapping](docs/DESIGN_IMPLEMENTATION.md)
-and [Supabase deployment](docs/DEPLOYMENT.md).
+See [architecture](docs/ARCHITECTURE.md), [design mapping](docs/DESIGN_IMPLEMENTATION.md),
+[Supabase deployment](docs/DEPLOYMENT.md), and the [AWS EC2 deployment readiness guide](docs/DEPLOYMENT_EC2.md). The root Compose file is for local development only; it is not a production EC2 manifest.
 
 ## Supabase staging integration
 

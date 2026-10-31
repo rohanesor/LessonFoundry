@@ -437,7 +437,7 @@ class ChoiceInput(BaseModel):
 
 @router.post("/student/packs/{pid}/answers/{vid}")
 def student_answer(pid: str, vid: str, body: ChoiceInput, user=Depends(student)):
-    """Authenticated student quiz answer check."""
+    """Authenticated student quiz answer check with attempt persistence."""
     with transaction() as s:
         u = s.get(Unit, pid)
         if not u or not u.published_at or not u.classroom_id:
@@ -453,7 +453,26 @@ def student_answer(pid: str, vid: str, body: ChoiceInput, user=Depends(student))
             or not a.slot.startswith("quiz")
         ):
             raise HTTPException(404, "Published question unavailable")
-        result = {"correct": body.choice == v.payload["answer"]}
+        
+        correct_answer = v.payload["answer"]
+        is_correct = body.choice == correct_answer
+        
+        # Persist the attempt for adaptive learning
+        from app.models.entities import QuizAttempt
+        attempt = QuizAttempt(
+            student_id=user,
+            asset_version_id=v.id,
+            unit_id=u.id,
+            classroom_id=u.classroom_id,
+            slot=a.slot,
+            choice=body.choice,
+            correct_answer=correct_answer,
+            is_correct=is_correct,
+            objective_id=v.objective_id,
+        )
+        s.add(attempt)
+        
+        result = {"correct": is_correct, "attempt_id": attempt.id}
         if u.constraints.get("answer_reveal", False):
             result["solution"] = v.payload["solution"]
         return result
@@ -502,6 +521,99 @@ def teacher_download(pid: str, user=Depends(teacher)):
             return {"download_url": info["url"], "expires_in": 300}
         except Exception:
             raise HTTPException(502, "Download temporarily unavailable")
+
+
+# ─── Adaptive Learning: Performance & Analytics ─────────────────────────────
+
+@router.get("/student/performance")
+def student_performance(classroom_id: str | None = None, user=Depends(student)):
+    """Get student's performance report with weak topics (Requirement 1)."""
+    with transaction() as s:
+        # Validate classroom membership if specified
+        if classroom_id:
+            _student_member(s, classroom_id, user)
+        
+        from app.services.performance import PerformanceAnalyzer
+        analyzer = PerformanceAnalyzer(s)
+        report = analyzer.get_student_performance(user, classroom_id)
+        
+        return {
+            "student_id": report.student_id,
+            "total_attempts": report.total_attempts,
+            "overall_accuracy": round(report.overall_accuracy, 3),
+            "weak_topics": [
+                {
+                    "objective_id": t.objective_id,
+                    "description": t.description,
+                    "topic_tags": t.topic_tags,
+                    "total_attempts": t.total_attempts,
+                    "correct_attempts": t.correct_attempts,
+                    "accuracy": round(t.accuracy, 3),
+                    "unit_id": t.unit_id,
+                    "unit_title": t.unit_title,
+                }
+                for t in report.weak_topics
+            ],
+            "strong_topics": [
+                {
+                    "objective_id": t.objective_id,
+                    "description": t.description,
+                    "accuracy": round(t.accuracy, 3),
+                }
+                for t in report.strong_topics[:5]  # Top 5 strong topics
+            ],
+        }
+
+
+@router.get("/student/attempts")
+def student_attempts(
+    classroom_id: str | None = None,
+    limit: int = 50,
+    user=Depends(student)
+):
+    """Get student's recent quiz attempts."""
+    with transaction() as s:
+        from app.models.entities import QuizAttempt
+        
+        query = (
+            select(QuizAttempt)
+            .where(QuizAttempt.student_id == user)
+            .order_by(QuizAttempt.attempted_at.desc())
+            .limit(min(limit, 100))
+        )
+        
+        if classroom_id:
+            _student_member(s, classroom_id, user)
+            query = query.where(QuizAttempt.classroom_id == classroom_id)
+        
+        attempts = list(s.scalars(query))
+        
+        return {
+            "attempts": [
+                {
+                    "id": a.id,
+                    "unit_id": a.unit_id,
+                    "slot": a.slot,
+                    "choice": a.choice,
+                    "is_correct": a.is_correct,
+                    "attempted_at": a.attempted_at,
+                }
+                for a in attempts
+            ]
+        }
+
+
+@router.get("/teacher/classrooms/{cid}/analytics")
+def classroom_analytics(cid: str, user=Depends(teacher)):
+    """Get classroom performance analytics for teachers."""
+    with transaction() as s:
+        from app.services.performance import PerformanceAnalyzer
+        analyzer = PerformanceAnalyzer(s)
+        try:
+            analytics = analyzer.get_classroom_analytics(cid, user)
+            return analytics
+        except PermissionError:
+            raise HTTPException(403, "Not authorized to view this classroom")
 
 
 # ─── User profile ────────────────────────────────────────────────────────────

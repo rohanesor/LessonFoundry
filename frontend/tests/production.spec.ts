@@ -1,7 +1,14 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
 
 const API = "http://127.0.0.1:8000";
 const head = { Authorization: "Bearer local-development-only" };
+
+async function openPackTab(page: Page, primary: string, secondary?: string) {
+  await page.getByRole("button", { name: primary, exact: true }).click();
+  if (secondary) {
+    await page.getByRole("button", { name: secondary, exact: true }).click();
+  }
+}
 
 test("approved asset is locked and cannot be edited or regenerated", async ({
   page,
@@ -49,14 +56,14 @@ test("approved asset is locked and cannot be edited or regenerated", async ({
     .first()
     .click();
 
-  await page.getByRole("button", { name: /^Quiz/ }).click();
+  await openPackTab(page, "Assessment", "Quiz");
   await page.getByRole("tab", { name: "Q3 v1" }).click();
   await page.getByRole("button", { name: "Review & approve", exact: true }).click();
   await page.getByRole("checkbox").check();
   await page
     .getByPlaceholder("Record what you verified")
     .fill("Reviewed evidence, options, answer and source support.");
-  await page.getByRole("button", { name: "Approve & publish" }).click();
+  await page.getByRole("button", { name: "Approve version" }).click();
 
   await expect(
     page.getByRole("button", { name: "Create new draft" }),
@@ -156,7 +163,7 @@ test("exam focus renders structured concept flowchart", async ({
     .getByRole("button", { name: "Newton's Laws of Motion", exact: true })
     .first()
     .click();
-  await page.getByRole("button", { name: "Exam Focus", exact: true }).click();
+  await openPackTab(page, "Lesson content", "Exam Focus");
   await expect(page.getByText(/Trusted source/)).toBeVisible();
   await expect(page.getByText(/Evidence passage/)).toBeVisible();
 

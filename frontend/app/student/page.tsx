@@ -44,7 +44,7 @@ export default function StudentDashboard() {
     <div className="student-shell">
       <AppHeader role="Student" />
 
-      <main className="student-content" style={{ maxWidth: 900, margin: "0 auto", padding: "32px 24px" }}>
+      <main className="student-content">
         <div className="row spread">
           <div>
             <p className="muted" style={{ margin: 0 }}>Welcome back</p>

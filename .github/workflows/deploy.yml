@@ -5,6 +5,7 @@ on:
     workflows: [CI]
     types: [completed]
     branches: [main]
+  workflow_dispatch:
 
 concurrency:
   group: deploy-production
@@ -12,11 +13,15 @@ concurrency:
 
 jobs:
   deploy:
-    name: Deploy
+    name: Deploy and E2E
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    env:
+      SHA: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.SHA }}
 
       - name: Configure SSH
         env:
@@ -36,17 +41,24 @@ jobs:
             IdentityFile ~/.ssh/deploy_key
             IdentitiesOnly yes
             StrictHostKeyChecking yes
+            ServerAliveInterval 30
           EOF
 
-      - name: Pull exact successful commit
-        env:
-          SHA: ${{ github.event.workflow_run.head_sha }}
+      # Stream the exact CI-tested revision from the runner. The EC2 host does
+      # not need GitHub credentials, and ignored runtime files remain intact.
+      - name: Upload exact successful commit
         run: |
-          ssh ec2 "cd /opt/lessonfoundry && git fetch origin && git checkout main && git pull --ff-only origin main && test \"\$(git rev-parse HEAD)\" = \"$SHA\""
+          test "$(git rev-parse HEAD)" = "$SHA"
+          git archive --format=tar "$SHA" | ssh ec2 'set -e; test -d /opt/lessonfoundry; tar -xf - -C /opt/lessonfoundry'
+          ssh ec2 "printf '%s\n' '$SHA' > /opt/lessonfoundry/.deployed-sha"
 
       - name: Apply ordered migrations
         run: |
           ssh ec2 "cd /opt/lessonfoundry && bash scripts/deploy_migrations_sqlite.sh"
+
+      - name: Install dependencies and build frontend
+        run: |
+          ssh ec2 'set -e; cd /opt/lessonfoundry; .venv/bin/pip install -q -r backend/requirements.txt; cd frontend; npm ci --silent; npm run build'
 
       - name: Restart systemd services
         run: |
@@ -54,4 +66,27 @@ jobs:
 
       - name: Verify deployment
         run: |
-          ssh ec2 'curl -fsS http://127.0.0.1:8000/api/health && curl -fsS http://127.0.0.1:8000/api/ready && systemctl is-active lessonfoundry-api lessonfoundry-worker lessonfoundry-web nginx'
+          ssh ec2 'set -e; test "$(cat /opt/lessonfoundry/.deployed-sha)" = "'"$SHA"'"; curl -fsS http://127.0.0.1:8000/api/health; curl -fsS http://127.0.0.1:8000/api/ready; curl -fsS http://127.0.0.1:3000/ >/dev/null; systemctl is-active lessonfoundry-api lessonfoundry-worker lessonfoundry-web nginx'
+
+      - name: Install browser for deployed E2E test
+        working-directory: frontend
+        run: npx playwright install --with-deps chromium
+
+      - name: Run E2E test against EC2 services
+        working-directory: frontend
+        run: |
+          ssh -fN -L 3000:127.0.0.1:3000 -L 8000:127.0.0.1:8000 ec2
+          timeout 30 bash -c 'until curl -fsS http://127.0.0.1:3000/ >/dev/null && curl -fsS http://127.0.0.1:8000/api/health >/dev/null; do sleep 1; done'
+          npx playwright test production.spec.ts --grep "logout redirects to login" --reporter=list
+        env:
+          PLAYWRIGHT_BASE_URL: http://127.0.0.1:3000
+          CI: true
+
+      - name: Upload E2E diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ec2-e2e-diagnostics-${{ github.run_id }}
+          path: frontend/test-results/
+          if-no-files-found: ignore
+          retention-days: 7
